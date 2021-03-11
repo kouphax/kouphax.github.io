@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><meta content="IE=edge,chrome=1" http-equiv="X-UA-Compatible"><meta content="width=device-width, user-scalable=no" name="viewport"><meta content="Provisioning Postgres via Docker" name="description"><link href="/favicon.ico" rel="shortcut icon" type="image/x-icon"><link href="https://fonts.googleapis.com/css?family=Merriweather:400,700|Open+Sans:400,700" rel="stylesheet" type="text/css"><link href="/bundles/84cd5d4454d9/styles.css" rel="stylesheet" /><title>Provisioning Postgres via Docker</title></head><body><div class="row"><blockquote class="warning">This post is over 6 months old.  Some details,
+       especially technical, may have changed.</blockquote><div itemscope="" itemtype="http://schema.org/Article"><h1 itemprop="name">Provisioning Postgres via Docker</h1><div class="post" itemprop="articleBody"><p><a href="/blog/2015/05/20/provisioning-postgres-via-vagrant-and-ansible/">Previously</a> we looked at <a href="/blog/2015/05/20/provisioning-postgres-via-vagrant-and-ansible/">provisioning Postgres via Vagrant and Ansible</a> and in the spirit of trying something a bit different lets do the same thing using <a href="http://docker.io">Docker</a>. </p>
+<blockquote><p>This was new territory for me but this guide will get you far enough for hacking around on a project. If this is an awful way of doing things let me know.</p>
+</blockquote><p>Same rules apply - we want to provision a project level Postgres instance listening on host port <code>5432</code> with a new database and user. </p><h2>boot2docker</h2>
+<blockquote><p>If you're not using <code>boot2docker</code> (if you're on a supported Linux platform) you can skip this bit</p>
+</blockquote><p>Docker is primarily a Linux based tool but there are wrappers for Windows and OSX. Since I'm using a Mac I'll also use <a href="http://boot2docker.io/">boot2docker</a> that uses a Linux VM and proxies requests to the VM.</p><p>I'm going to assume that at this point we have <code>docker</code> and, if necessary, <code>boot2docker</code> installed. If you're using OSX <code>brew</code> is your friend (<code>brew install boot2docker</code>).</p><p>With <code>boot2docker</code> installed we need to start it.</p>
+<pre class="highlight"><code>boot2docker init # only need this the first time
+boot2docker up
+</code></pre><p>After this has started you should see an information message about setting the necessary environment variables to allow docker and boot2docker to talk correctly. There is a quick way to do all this provided by <code>boot2docker</code></p>
+<pre class="highlight"><code>$(boot2docker shellinit)
+</code></pre><h2>Dockerfile</h2><p>The <code>Dockerfile</code> specifies the rules for building a docker image that we can use to create container instances from. I'll just dump ours here and break it down after.</p>
+<pre class="highlight"><code>FROM ubuntu
+
+# add postgresql release repository to apt
+RUN apt-key adv --keyserver hkp://p80.pool.sks-keyservers.net:80 --recv-keys B97B0AFCAA1A47F044F244A07FCC7D46ACCC4CF8
+RUN echo "deb http://apt.postgresql.org/pub/repos/apt/ precise-pgdg main" &gt; /etc/apt/sources.list.d/pgdg.list
+
+# install the necesarry packages
+RUN apt-get update &amp;&amp; \
+  apt-get install -y \
+    python-software-properties \
+    software-properties-common \
+    postgresql-9.4
+
+# run the rest as the postgres user
+USER postgres
+
+# create the database and user
+RUN /etc/init.d/postgresql start &amp;&amp; \
+    psql --command "CREATE USER docker WITH SUPERUSER PASSWORD 'docker';" &amp;&amp; \
+    createdb -O docker docker
+
+# ensure host can connect to postgres correctly
+RUN echo "host all  all    0.0.0.0/0  md5" &gt;&gt; /etc/postgresql/9.4/main/pg_hba.conf
+RUN echo "listen_addresses='*'" &gt;&gt; /etc/postgresql/9.4/main/postgresql.conf
+
+# expose the 5432 port to outside the container
+EXPOSE 5432
+
+# set the default command to run when starting the container
+CMD ["/usr/lib/postgresql/9.4/bin/postgres", \
+      "-D", "/var/lib/postgresql/9.4/main",  \
+      "-c", "config_file=/etc/postgresql/9.4/main/postgresql.conf"]
+</code></pre><p>The flow is somewhat similar to the <a href="/blog/2015/05/20/provisioning-postgres-via-vagrant-and-ansible/">previous</a> post,</p>
+<ul>
+  <li>We want to use the latest version of Postgres so we add the offical Postgres repo (and pgp-key) to the <code>apt</code> catalogue.</li>
+  <li>We install all the necessary packages</li>
+  <li>Then we switch to the newly created <code>postgres</code> user to perform the rest of the operations</li>
+  <li>In <code>RUN</code> we start the database, create the user <code>docker</code> with password <code>docker</code> and finally create the <code>docker</code> database.</li>
+  <li>We then update the necessary <code>*.conf</code> files to allow us to connect to the Postgres instance outside of the container.</li>
+  <li>Next we <code>EXPOSE</code> the 5432 port to the outside world (in a <code>boot2docker</code> world this exposes it from the container to the VM, we still have a bit of work to do to get it exposed to the actual host.</li>
+  <li>Finally we stipulate how to start the Postgres instance when the container starts.</li>
+</ul><h2>Running</h2><p>So now we have specified the rules in the <code>Dockerfile</code> (this is somewhat similar to the Ansible playbook concept, sort of, but not quite) we want to build a versioned image from this,</p>
+<pre class="highlight"><code>docker build --tag postgres:9.4 --rm  .
+</code></pre><p>Running this from the same directory as the <code>Dockerfile</code> will build an image called <code>postgres</code> tagged with <code>9.4</code>. The <code>--rm</code> command tells docker to remove the intermediary images created.</p><p>We can see that our image has been created using the <code>docker images</code> command</p>
+<pre class="highlight"><code>&gt;  docker images
+REPOSITORY          TAG                 IMAGE ID            CREATED             VIRTUAL SIZE
+postgres            9.4                 f25b0a52a81b        26 minutes ago      358.8 MB
+</code></pre><p>Next we need to take this image and run it as a container,</p>
+<pre class="highlight"><code>docker run -p 5432:5432 --name postgres-instance -d postgres:9.4
+</code></pre><p>Lets have a look at the option here,</p>
+<ul>
+  <li><code>-p 5432:5432</code> publishes the <code>EXPOSE</code>d <code>5432</code> port effectively making it accessible outside the container.</li>
+  <li><code>--name postgres-instance</code> is the friendly name we want to give the container</li>
+  <li><code>-d postgres:9.4</code> is the image name and tag to create the container from</li>
+</ul><p>We can verify the container instance is running using the <code>docker ps</code> command</p>
+<pre class="highlight"><code>&gt; docker ps
+CONTAINER ID        IMAGE               COMMAND                CREATED             STATUS              PORTS                    NAMES
+f54de34e1308        postgres:9.4        "/usr/lib/postgresql   22 minutes ago      Up 22 minutes       0.0.0.0:5432-&gt;5432/tcp   postgres-instance
+</code></pre><p>At this point we should be able to access the Postgres instance via the IP of the VM. To ge the IP we can use the <code>ip</code> command of <code>boot2docker</code></p>
+<pre class="highlight"><code>&gt; boot2docker ip
+192.168.59.103
+</code></pre><h2>boot2docker Port Forwarding</h2><p>If we are using <code>boot2docker</code> we still wont be able to access the instance via localhost. As already mentioned <code>boot2docker</code> transparently uses a Linux VM (via VirtualBox) to run docker within. By default this VM doesn't forward any ports to the host so we need to tell <code>boot2docker</code> (via <code>VBoxManage</code>) to open that port.</p>
+<pre class="highlight"><code>VBoxManage modifyvm "boot2docker-vm" --natpf1 "postgres-port,tcp,127.0.0.1,5432,,5432"
+</code></pre><p>This command tells VirtualBox to forward the 5432 TCP port of the <code>boot2docker</code> VM to the host.</p><p>At this point we should be able to access the Postgres instance via <code>localhost</code> on the host as well as the VMs IP address directly.</p></div><a class="twitter" href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fyobriefca.se%2Fblog%2F2015%2F05%2F22%2Fprovisioning-postgres-via-docker%2F&amp;text=Provisioning%20Postgres%20via%20Docker&amp;via=kouphax" itemprop="discussionUrl" target="_blank">Tweet This</a><div class="dater"><time datetime="22-05-2015" itemprop="datePublished">May 22, 2015</time></div><div class="categories">Published in <a href="/categories/postgres/">Postgres</a> <a href="/categories/docker/">Docker</a> on May 22, 2015</div></div></div><div class="homer"><a href="/"><i class="icon-briefcase" style="font-size:32px;"></i></a></div><script type="text/javascript">(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-19143623-5', 'yobriefca.se');
+  ga('send', 'pageview');</script></body></html>

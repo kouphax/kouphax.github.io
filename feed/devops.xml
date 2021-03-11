@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?><feed xmlns="http://www.w3.org/2005/Atom"><id>urn:yobriefca-se:feed:devops</id><updated>Tue Jan 10 00:00:00 UTC 2017</updated><title type="text">Yo! Briefcase: devops</title><link rel="self" href="https://yobriefca.se/feed/devops.xml"></link><entry><title>ansible-console: An Interactive REPL for Ansible</title><updated>Tue Jan 10 00:00:00 UTC 2017</updated><author><name>James Hughes</name></author><link href="https://yobriefca.se/blog/2017/01/10/ansible-console-an-interactive-repl-for-ansible/"></link><id>urn:yobriefca-se:feed:post:ansible-console: An Interactive REPL for Ansible</id><content type="html">&lt;p&gt;If you know about ansible-console you can ignore this.  If you don't this might be of use to you.&lt;/p&gt;&lt;p&gt;Something found out recently is that Ansible has an interactive REPL of sorts in &lt;code&gt;ansible-console&lt;/code&gt; for doing some adhoc things on a collection of hosts.&lt;/p&gt;&lt;p&gt;Using it is pretty simple&lt;/p&gt;
+&lt;pre class="highlight"&gt;&lt;code class="bash"&gt;&amp;gt; ansible-console -i preproduction
+
+Welcome to the ansible console.
+Type &lt;span class="nb"&gt;help &lt;/span&gt;or ? to list commands.
+
+jamhughes@all &lt;span class="o"&gt;(&lt;/span&gt;3&lt;span class="o"&gt;)[&lt;/span&gt;f:5&lt;span class="o"&gt;]&lt;/span&gt;&lt;span class="err"&gt;$&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;This will bring you into the shell itself,&lt;/p&gt;
+&lt;blockquote&gt;&lt;p&gt;the &lt;code&gt;-i preproduction&lt;/code&gt; tells the console to use a certain hosts file (in my case preproduction).&lt;/p&gt;
+&lt;/blockquote&gt;&lt;p&gt;From here you can use the normal ansible modules.  So for example if I wanted to get the date on all the hosts I can do this,&lt;/p&gt;
+&lt;pre class="highlight"&gt;&lt;code class="bash"&gt;jamhughes@all &lt;span class="o"&gt;(&lt;/span&gt;3&lt;span class="o"&gt;)[&lt;/span&gt;f:5&lt;span class="o"&gt;]&lt;/span&gt;&lt;span class="nv"&gt;$ &lt;/span&gt;shell date
+frontend1.preproduction | SUCCESS | &lt;span class="nv"&gt;rc&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;0 &amp;gt;&amp;gt;
+Tue Jan 10 22:04:18 GMT 2017
+
+frontend2.preproduction | SUCCESS | &lt;span class="nv"&gt;rc&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;0 &amp;gt;&amp;gt;
+Tue Jan 10 22:04:18 GMT 2017
+
+backend1.preproduction | SUCCESS | &lt;span class="nv"&gt;rc&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;0 &amp;gt;&amp;gt;
+Tue Jan 10 22:04:18 GMT 2017
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;If you have specific groups you want to work in you can &lt;code&gt;cd&lt;/code&gt; into groups&lt;/p&gt;
+&lt;pre class="highlight"&gt;&lt;code class="bash"&gt;jamhughes@all &lt;span class="o"&gt;(&lt;/span&gt;3&lt;span class="o"&gt;)[&lt;/span&gt;f:5&lt;span class="o"&gt;]&lt;/span&gt;&lt;span class="nv"&gt;$ &lt;/span&gt;&lt;span class="nb"&gt;cd &lt;/span&gt;frontend
+jamhughes@customer &lt;span class="o"&gt;(&lt;/span&gt;3&lt;span class="o"&gt;)[&lt;/span&gt;f:5&lt;span class="o"&gt;]&lt;/span&gt;&lt;span class="nv"&gt;$ &lt;/span&gt;shell date
+frontend1.preproduction | SUCCESS | &lt;span class="nv"&gt;rc&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;0 &amp;gt;&amp;gt;
+Tue Jan 10 22:04:18 GMT 2017
+
+frontend2.preproduction | SUCCESS | &lt;span class="nv"&gt;rc&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;0 &amp;gt;&amp;gt;
+Tue Jan 10 22:04:18 GMT 2017
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;I guess it flies in the face of all this immutable infrastructure stuff but hey we are not all there yet and stuff like this can be handy.&lt;/p&gt;</content></entry><entry><title>Tabularizing output of shell scripts with column</title><updated>Fri Jan 06 00:00:00 UTC 2017</updated><author><name>James Hughes</name></author><link href="https://yobriefca.se/blog/2017/01/06/tabularizing-output-of-shell-scripts-with-column/"></link><id>urn:yobriefca-se:feed:post:Tabularizing output of shell scripts with column</id><content type="html">&lt;p&gt;I tend to live in my terminal and as such tend to write a bunch of shell scripts for various project specific things.  One script I have lists, form a project directory, the what branch each of my repositories is on.  It looks a bit like this,&lt;/p&gt;
+&lt;pre class="highlight"&gt;&lt;code class="bash"&gt;&lt;span class="c"&gt;#!/bin/bash&lt;/span&gt;
+
+&lt;span class="nv"&gt;projects&lt;/span&gt;&lt;span class="o"&gt;=(&lt;/span&gt;
+  super-service 
+  super-client 
+  authentication-service 
+  infrastructure    &lt;span class="o"&gt;)&lt;/span&gt;
+
+&lt;span class="k"&gt;for &lt;/span&gt;project in &lt;span class="k"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;projects&lt;/span&gt;&lt;span class="p"&gt;[*]&lt;/span&gt;&lt;span class="k"&gt;}&lt;/span&gt;; &lt;span class="k"&gt;do&lt;/span&gt;
+  &lt;span class="nb"&gt;cd&lt;/span&gt; &lt;span class="nv"&gt;$project&lt;/span&gt;
+  &lt;span class="nb"&gt;echo&lt;/span&gt; &lt;span class="s2"&gt;"$project $(git branch | sed -n -e 's/^\* \(.*\)/\1/p')"&lt;/span&gt;
+  &lt;span class="nb"&gt;cd&lt;/span&gt; ..
+&lt;span class="k"&gt;done&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;When I run this the output looks like this,&lt;/p&gt;
+&lt;pre class="highlight"&gt;&lt;code&gt;super-service master
+super-client master
+authentication-service experimental
+infrastructure master
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;The list is longer and the names above aren't real but you see the problem.  It's hard to see at a glance what repos are on what branches.&lt;/p&gt;&lt;h2&gt;Enter &lt;code&gt;column&lt;/code&gt;&lt;/h2&gt;&lt;p&gt;If you pipe the output of the script above in &lt;code&gt;column -t -s' '&lt;/code&gt; the result is a bit different.&lt;/p&gt;
+&lt;pre class="highlight"&gt;&lt;code&gt;super-service           master
+super-client            master
+authentication-service  experimental
+infrastructure          master
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;You can see from the output above the &lt;code&gt;column&lt;/code&gt; command pretty much does what is says on the tin.  It turns output into formatted table with discernible columns.  This makes it much easier to read.  The additional parameter I passed where,&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;&lt;code&gt;-t&lt;/code&gt; which tells column to read the whole input and determine the number of columns automatically to print the table&lt;/li&gt;
+  &lt;li&gt;&lt;code&gt;-s' '&lt;/code&gt; specifies the character to use to determine a column break when using the &lt;code&gt;-t&lt;/code&gt; command.  In this case, we specify whitespace.  In fact whitespace is the default character to break on so this is actually not needed in our case but if each column was separated by a | character we could use &lt;code&gt;-s'|'&lt;/code&gt; to change the default behavior.&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;Now go forth and prettify those scripts, they're worth it.&lt;/p&gt;</content></entry><entry><title>The Twelve Factor App (Redux)</title><updated>Sun Sep 20 00:00:00 UTC 2015</updated><author><name>James Hughes</name></author><link href="/presentations/twelve-factor-app-redux.pdf"></link><id>urn:yobriefca-se:feed:post:The Twelve Factor App (Redux)</id><content type="html"></content></entry><entry><title>The Twelve Factor App</title><updated>Tue Jan 20 00:00:00 UTC 2015</updated><author><name>James Hughes</name></author><link href="/presentations/twelve-factor-app.pdf"></link><id>urn:yobriefca-se:feed:post:The Twelve Factor App</id><content type="html"></content></entry></feed>

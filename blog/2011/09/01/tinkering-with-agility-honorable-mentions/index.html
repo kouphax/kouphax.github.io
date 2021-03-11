@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><meta content="IE=edge,chrome=1" http-equiv="X-UA-Compatible"><meta content="width=device-width, user-scalable=no" name="viewport"><meta content="Tinkering with Agility: Honorable Mentions" name="description"><link href="/favicon.ico" rel="shortcut icon" type="image/x-icon"><link href="https://fonts.googleapis.com/css?family=Merriweather:400,700|Open+Sans:400,700" rel="stylesheet" type="text/css"><link href="/bundles/84cd5d4454d9/styles.css" rel="stylesheet" /><title>Tinkering with Agility: Honorable Mentions</title></head><body><div class="row"><blockquote class="warning">This post is over 6 months old.  Some details,
+       especially technical, may have changed.</blockquote><div itemscope="" itemtype="http://schema.org/Article"><h1 itemprop="name">Tinkering with Agility: Honorable Mentions</h1><div class="post" itemprop="articleBody"><p>In the process of <a href="/blog/2011/09/01/tinkering-with-agility/">researching Agility</a> I needed to throw together a quick serverside stack to accept the RESTful calls from Agility. I went with my current framework de jour <a href="https://github.com/martinrue/Tinyweb">Tinyweb</a> and I must admit it was a great call. For more basic info on Tinyweb check out my <a href="/blog/2011/07/18/micro-web-frameworks-in-net-101-tinyweb/">blog post</a></p><p>Agility by default routes the RESTful requests to <code>api/model/{id}</code> and Tinyweb let me create a handler associated with this sort of url by way of areas.</p><p>Areas --</p><p>Tinyweb has a feature I wasn;t aware of before. It is possible to register a handlers namespace as an "area" (if you have experience with ASP.NET MVC you'll know what that means).</p>
+<pre class="highlight"><code>Tinyweb.Areas.Add("Agility.Tinkerings.Web.Handlers.Api", "api");
+</code></pre><p>This means that even though my handler is call <code>TodoHandler</code> the url would map to the one above without having to sacrifice naming style of the handler or force us to create a custom route variable in each handler that had to map to this area. Flippin clever stuff</p><p>WebActivator</p><p>Another excellent Nuget package is the <a href="http://nuget.org/List/Packages/WebActivator">WebActivator</a> and I have been charmed by it's slickness recently. WebActivator allows you to attribute a class/namespace and specify what code should be run when the application starts. So rather than having to put in a load of lines for configuring different aspects of your stack into <code>Global.asax.cs</code> you can break them into distinct classes and avoid breaking <a href="http://en.wikipedia.org/wiki/Single_responsibility_principle">SRP</a> more than you have too. Here is the example I used in the Agility.js source</p>
+<pre class="highlight"><code>[assembly: WebActivator.PostApplicationStartMethod(typeof(TinywebActivator), "Activate")]
+namespace Agility.Tinkerings.Web.Activators
+{
+    public class TinywebActivator
+    {
+        public static void Activate()
+        {
+            Tinyweb.Areas.Add("Agility.Tinkerings.Web.Handlers.Api", "api");
+            Tinyweb.Init();
+        }
+    }
+} 
+</code></pre><p>I don't even have a <code>Global.asax</code> defined at all.</p><p>Feel free to poke around the source to get a better picture of how I threw the backend together. Thanks go to <a href="https://github.com/martinrue/Tinyweb">Tinyweb</a> and <a href="http://twitter.com/#!/martinrue">@martinrue</a></p></div><a class="twitter" href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fyobriefca.se%2Fblog%2F2011%2F09%2F01%2Ftinkering-with-agility-honorable-mentions%2F&amp;text=Tinkering%20with%20Agility%3A%20Honorable%20Mentions&amp;via=kouphax" itemprop="discussionUrl" target="_blank">Tweet This</a><div class="dater"><time datetime="01-09-2011" itemprop="datePublished">September 01, 2011</time></div><div class="categories">Published in <a href="/categories/dot-net/">.NET</a> on September 01, 2011</div></div></div><div class="homer"><a href="/"><i class="icon-briefcase" style="font-size:32px;"></i></a></div><script type="text/javascript">(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-19143623-5', 'yobriefca.se');
+  ga('send', 'pageview');</script></body></html>

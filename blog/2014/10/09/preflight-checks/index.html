@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><meta content="IE=edge,chrome=1" http-equiv="X-UA-Compatible"><meta content="width=device-width, user-scalable=no" name="viewport"><meta content="Preflight Checks" name="description"><link href="/favicon.ico" rel="shortcut icon" type="image/x-icon"><link href="https://fonts.googleapis.com/css?family=Merriweather:400,700|Open+Sans:400,700" rel="stylesheet" type="text/css"><link href="/bundles/84cd5d4454d9/styles.css" rel="stylesheet" /><title>Preflight Checks</title></head><body><div class="row"><blockquote class="warning">This post is over 6 months old.  Some details,
+       especially technical, may have changed.</blockquote><div itemscope="" itemtype="http://schema.org/Article"><h1 itemprop="name">Preflight Checks</h1><div class="post" itemprop="articleBody"><p>What I'm about to describe is in no way a new thing, you'll find evidence of this sort of pattern everywhere. I've noticed some people do it instinctively and others simply fall into the trap that this sort of technique/pattern tries to avoid. Therefore I think its worth a bit of a mention.</p><h2>An Example in a Different Context</h2><p>Lets explore the problem in a slightly different context - dynamic vs static languages. Imagine the given scenario in JavaScript</p>
+<pre class="highlight"><code class="javascript"><span class="kd">function</span> <span class="nx">longest</span><span class="p">(</span><span class="nx">a</span><span class="p">,</span> <span class="nx">b</span><span class="p">){</span>
+  <span class="k">return</span> <span class="nx">a</span><span class="p">.</span><span class="nx">length</span> <span class="o">&lt;</span> <span class="nx">b</span><span class="p">.</span><span class="nx">length</span> <span class="o">?</span> <span class="nx">b</span> <span class="o">:</span> <span class="nx">a</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="nx">longest</span><span class="p">(</span><span class="s2">"aa"</span><span class="p">,</span> <span class="s2">"b"</span><span class="p">);</span>  <span class="c1">// "aa"</span>
+<span class="nx">longest</span><span class="p">(</span><span class="s2">"a"</span><span class="p">,</span> <span class="s2">"bc"</span><span class="p">);</span>  <span class="c1">// "bc"</span>
+<span class="nx">longest</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="s2">"bc"</span><span class="p">);</span>    <span class="c1">// 1</span>
+</code></pre><p>We've defined a function called <code>longest</code> that returns the longest string argument between the two passed to it. We also defined a couple of sample uses of the function,</p>
+<ol>
+  <li><code>"aa"</code> is longer than <code>"b"</code> so <code>"aa"</code> gets returned</li>
+  <li><code>"bc"</code> is longer than <code>"a"</code> so <code>"bc"</code> gets returned</li>
+  <li><strong>Here be dragons!</strong></li>
+</ol><p>In the last example our return value isn't what we expected. At best we'd expect <code>"bc"</code>, with a length of 2, to be longer than <code>1</code>, whose string value would be <code>"1"</code> and therefore have a length of 1. But that isn't the case. Numbers don't have a <code>length</code> property and therefore the result of <code>1.length</code> is <code>undefined</code>. Comparing <code>undefined</code> to 2 is going to yield false, hence our unexpected return value.</p><p>Lets look at this problem in another language, one that is statically typed - TypeScript,</p>
+<pre class="highlight"><code class="javascript"><span class="kd">function</span> <span class="nx">longest</span><span class="p">(</span><span class="nx">a</span><span class="o">:</span> <span class="nx">string</span><span class="p">,</span> <span class="nx">b</span><span class="o">:</span> <span class="nx">string</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">return</span> <span class="nx">a</span><span class="p">.</span><span class="nx">length</span> <span class="o">&lt;</span> <span class="nx">b</span><span class="p">.</span><span class="nx">length</span> <span class="o">?</span> <span class="nx">b</span> <span class="o">:</span> <span class="nx">a</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="nx">longest</span><span class="p">(</span><span class="s2">"aa"</span><span class="p">,</span> <span class="s2">"b"</span><span class="p">);</span>
+<span class="nx">longest</span><span class="p">(</span><span class="s2">"a"</span><span class="p">,</span> <span class="s2">"bb"</span><span class="p">);</span>
+<span class="nx">longest</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="s2">"bb"</span><span class="p">);</span>
+</code></pre><p>Trying to compile this sample will fail on the last line because a number isn't a string. This happens long before you get to run your code.</p><h2>The Problem, Solution and Result</h2><p>So what's the problem? Well in the dynamic example we won't know about the issue until such times as the application gets into a certain state and the manifest problem may happen elsewhere far far down the call chain causing great confusion and frustration.</p><p>Solutions to this problem are available.</p>
+<ul>
+  <li>In static languages we actually have to bend the type system to encounter such problems because we have type checking and compilation up front providing a certain level of application correctness.</li>
+  <li>In dynamic languages we avoid these issues by writing tests that (should) ensure correctness of our application before we run them.</li>
+</ul><p>Ultimately being able to know something is wrong <strong>as early as possible</strong> is essential to making releases pain free and predictable. In turn, being able to release with confidence allows you to release more often and tighten those vital product feedback loops.</p><h2>The Problem at a Higher Level</h2><p>Now lets move away from code and compiler level concerns and think about your application as a deployable thing. Your app will no doubt have dependencies on external services, datastores, configuration or other applications within the same host. All of these things will cause your app to go into some form of failure state should they be unavailable (lets leave aside the fact that services can go down during the course of a running application, thats a different matter entirely). The issue may not be immediately obvious either - a misconfigured application that you call may only present errors for a given set of requirements and finding out whats wrong in a production or other similarly closed off environment can be a a test of any ones patience.</p><p>Being able to detect, as early as possible; like we do with a compiler or test suite, if our applications environment is in a valid state can save a lot of pain further down the line.</p><p>Some of you may be ready to tell me that your favourite provisioning tool (Puppet, Chef, Ansible, Salt etc.) gives you certain guarantees already and that is true to a certain extent but they are often not a sure fire guarantee.</p>
+<ol>
+  <li>Nothing is perfect and sometimes even the most tested tools behave differently</li>
+  <li>You may not have it set up correctly to deal with certain unique states of deployment boxes</li>
+  <li>You may have ultra-secure environments that you can't even run these tools on without a lot of pain and so manual provisioning is necessary.</li>
+</ol><p>Additionally if you are following any of the points in the <a href="http://12factor.net/">Twelve Factor App Methodology</a> you'll notice you are relying more on the hosting environment and this can amplify the problem.</p><h2>The Preflight Check</h2><p>The pre-flight check pattern aims to address these problems by ensuring invalid states in application dependencies fail deployment in a way that lights a flare above the problem so it can be fixed.</p><p>A few things led me to develop this habit/pattern</p>
+<ol>
+  <li>I was deploying smaller services to Heroku that promotes <a href="http://12factor.net/config">pushing config down to the OS</a></li>
+  <li>I was a standard Play! stack which often has less-than-helpful error messages when things go wrong during startup</li>
+  <li>I was provisioning things using vagrant and puppet/chef/ansible which, during the early stages, I often forgot to update as the applications needs evolved.</li>
+</ol><p>Ultimately I got bored of opaque stacktraces and bizarre behaviour in odd edge cases and so attempted to ensure my hosting environment was in good shape before we "took off" so to speak.</p><p>In short a pre-flight check is code that runs when your application starts, asserts the state of the environment or external services/applications. If something fails the code will halt startup with a meaningful message that can be used to quickly diagnose the problem.</p><p>In Play! this took the form of a hook in <code>Global.scala</code></p>
+<pre class="highlight"><code class="scala"><span class="k">object</span> <span class="nc">Global</span> <span class="k">extends</span> <span class="nc">GlobalSettings</span> <span class="o">{</span>
+  <span class="k">override</span> <span class="k">def</span> <span class="n">onStart</span><span class="o">(</span><span class="n">app</span><span class="k">:</span> <span class="kt">Application</span><span class="o">)</span> <span class="o">{</span>
+    <span class="n">performPreflightChecks</span><span class="o">()</span>
+  <span class="o">}</span>
+
+  <span class="k">def</span> <span class="n">performPreflightChecks</span><span class="o">()</span> <span class="o">{</span>
+    <span class="nc">Option</span><span class="o">(</span><span class="nc">System</span><span class="o">.</span><span class="n">getenv</span><span class="o">(</span><span class="s">"DATABASE_URL"</span><span class="o">)).</span><span class="n">getOrElse</span> <span class="o">{</span>
+        <span class="nc">Logger</span><span class="o">.</span><span class="n">error</span><span class="o">(</span><span class="s">"[PREFLIGHT_CHECK] DATABASE_URL is not set"</span><span class="o">)</span>
+        <span class="k">throw</span> <span class="k">new</span> <span class="nc">Exception</span><span class="o">(</span><span class="s">"[PREFLIGHT_CHECK] DATABASE_URL is not set"</span><span class="o">)</span>
+    <span class="o">}</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</code></pre><p>This is an exceptionally primitive example (that I've written without the aid of a compiler so it may be incorrect) - in fact as the pattern developed I eventually extracted the preflight check pattern into it's own plugin that performed a number of things,</p>
+<ol>
+  <li>Ran a number of checks (classes that extended <code>Runnable</code>) within a configurable namespace.</li>
+  <li>Logged a report of checks that passed and failed (regardless of if everything passed or not)</li>
+  <li>Exposed a method that can be called in tests - where deployment environments also supported running test directly.</li>
+</ol><p>Some of the checks I've used have been,</p>
+<ul>
+  <li>Ensuring ImageMagick is correctly installed with the correct codecs (difficult to get right even if you use a provisioning tool I've found)</li>
+  <li>Ensuring System environment variables are set correctly</li>
+  <li>Database connectivity</li>
+  <li>OpenCV JNI bindings available</li>
+</ul><p>Of course, this is in no way limited to Play! or Heroku, I've used this across a number of technologies (Clojure, Ruby, Dropwizard etc.) and environments (locally, vagrant, AWS, Rackspace, Heroku etc.) and the time tackling silly oversights has been greatly reduced.</p><p>Many technologies already have the capacity to perform preflight checks in a way that integrates with your ops story (Dropwizards healthchecks are a perfect example) but preflight checks would mandate running these checks as the application starts as well.</p><p>In short, regardless of technology or platform, it is essential that deployments validate application and hosting environment state before going live. The preflight check pattern aims to address this issue by ensuring you map out all you dependencies of your intended host irrespective of where that may be.</p></div><a class="twitter" href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fyobriefca.se%2Fblog%2F2014%2F10%2F09%2Fpreflight-checks%2F&amp;text=Preflight%20Checks&amp;via=kouphax" itemprop="discussionUrl" target="_blank">Tweet This</a><div class="dater"><time datetime="09-10-2014" itemprop="datePublished">October 09, 2014</time></div><div class="categories">Published in <a href="/categories/craftsmanship/">Craftsmanship</a> on October 09, 2014</div></div></div><div class="homer"><a href="/"><i class="icon-briefcase" style="font-size:32px;"></i></a></div><script type="text/javascript">(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-19143623-5', 'yobriefca.se');
+  ga('send', 'pageview');</script></body></html>

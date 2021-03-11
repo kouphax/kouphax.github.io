@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><meta content="IE=edge,chrome=1" http-equiv="X-UA-Compatible"><meta content="width=device-width, user-scalable=no" name="viewport"><meta content="Quick and Dirty JSON Builder for Java" name="description"><link href="/favicon.ico" rel="shortcut icon" type="image/x-icon"><link href="https://fonts.googleapis.com/css?family=Merriweather:400,700|Open+Sans:400,700" rel="stylesheet" type="text/css"><link href="/bundles/84cd5d4454d9/styles.css" rel="stylesheet" /><title>Quick and Dirty JSON Builder for Java</title></head><body><div class="row"><blockquote class="warning">This post is over 6 months old.  Some details,
+       especially technical, may have changed.</blockquote><div itemscope="" itemtype="http://schema.org/Article"><h1 itemprop="name">Quick and Dirty JSON Builder for Java</h1><div class="post" itemprop="articleBody"><p>If you're writing tests involving JSON or trying to return some basic JSON structure in a simple Play or Spark application here is a simple shorthand notation that can be used to build said response.</p><p>Given the following JSON structure,</p>
+<pre class="highlight"><code class="json"><span class="p">{</span>
+  <span class="nt">"title"</span> <span class="p">:</span> <span class="s2">"Test Schema"</span><span class="p">,</span>
+  <span class="nt">"type"</span> <span class="p">:</span> <span class="s2">"object"</span><span class="p">,</span>
+  <span class="nt">"properties"</span> <span class="p">:</span> <span class="p">{</span>
+    <span class="nt">"firstName"</span> <span class="p">:</span> <span class="p">{</span>
+      <span class="nt">"type"</span> <span class="p">:</span> <span class="s2">"string"</span>
+    <span class="p">},</span>
+    <span class="nt">"lastName"</span> <span class="p">:</span> <span class="p">{</span>
+      <span class="nt">"type"</span> <span class="p">:</span> <span class="s2">"string"</span>
+    <span class="p">},</span>
+    <span class="nt">"age"</span> <span class="p">:</span> <span class="p">{</span>
+      <span class="nt">"description"</span> <span class="p">:</span> <span class="s2">"Age in years"</span><span class="p">,</span>
+      <span class="nt">"type"</span> <span class="p">:</span> <span class="s2">"integer"</span><span class="p">,</span>
+      <span class="nt">"minimum"</span> <span class="p">:</span> <span class="mi">0</span>
+    <span class="p">}</span>
+  <span class="p">},</span>
+  <span class="nt">"required"</span> <span class="p">:</span> <span class="p">[</span> <span class="s2">"firstName"</span><span class="p">,</span> <span class="s2">"lastName"</span> <span class="p">]</span>
+<span class="p">}</span>
+</code></pre><p>It is possible to represent this in Java like this,</p>
+<pre class="highlight"><code class="java"><span class="n">toJson</span><span class="o">(</span><span class="n">of</span><span class="o">(</span>
+    <span class="s">"title"</span><span class="o">,</span> <span class="s">"Test Schema"</span><span class="o">,</span>
+    <span class="s">"type"</span><span class="o">,</span> <span class="s">"object"</span><span class="o">,</span>
+    <span class="s">"properties"</span><span class="o">,</span> <span class="n">of</span><span class="o">(</span>
+        <span class="s">"firstName"</span><span class="o">,</span> <span class="n">of</span><span class="o">(</span><span class="s">"type"</span><span class="o">,</span> <span class="s">"string"</span><span class="o">),</span>
+        <span class="s">"lastName"</span><span class="o">,</span> <span class="n">of</span><span class="o">(</span><span class="s">"type"</span><span class="o">,</span> <span class="s">"string"</span><span class="o">),</span>
+        <span class="s">"age"</span><span class="o">,</span> <span class="n">of</span><span class="o">(</span>
+            <span class="s">"description"</span><span class="o">,</span> <span class="s">"Age in years"</span><span class="o">,</span>
+            <span class="s">"type"</span><span class="o">,</span> <span class="s">"integer"</span><span class="o">,</span>
+            <span class="s">"minimum"</span><span class="o">,</span> <span class="mi">0</span>
+        <span class="o">)</span>
+    <span class="o">),</span>
+    <span class="s">"required"</span><span class="o">,</span> <span class="k">new</span> <span class="n">String</span><span class="o">[]</span> <span class="o">{</span> <span class="s">"firstName"</span><span class="o">,</span> <span class="s">"lastName"</span> <span class="o">}</span>
+<span class="o">))</span>
+</code></pre><p>In order to achieve this then 2 static imports must be used,</p>
+<pre class="highlight"><code class="java"><span class="kn">import</span> <span class="nn">static</span> <span class="n">com</span><span class="o">.</span><span class="na">google</span><span class="o">.</span><span class="na">common</span><span class="o">.</span><span class="na">collect</span><span class="o">.</span><span class="na">ImmutableMap</span><span class="o">.</span><span class="na">of</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">static</span> <span class="n">play</span><span class="o">.</span><span class="na">libs</span><span class="o">.</span><span class="na">Json</span><span class="o">.</span><span class="na">toJson</span><span class="o">;</span>
+</code></pre><p>Obviously, this assume the use of Guava and Play but we can at least avoid the use of Play (i.e. if you're using some other web framework) by shimming the <code>toJson</code> method using the Jackson <code>ObjectMapper</code> directly e.g.</p>
+<pre class="highlight"><code class="java"><span class="kd">public</span> <span class="n">JsonNode</span> <span class="nf">toJson</span><span class="o">(</span><span class="n">Object</span> <span class="n">data</span><span class="o">)</span> <span class="o">{</span>
+    <span class="c1">// either provide or create an ObjectMapper</span>
+    <span class="k">return</span> <span class="k">new</span> <span class="nf">ObjectMapper</span><span class="o">().</span><span class="na">valueToTree</span><span class="o">(</span><span class="n">data</span><span class="o">);</span>
+<span class="o">}</span>
+</code></pre><p>It's nicer than using, and having to wrangle, a massive string blob because it helps avoid some of accidental syntactical JSON errors that you can make (extra commas, unbalanced braces etc.) when dealing with a raw string. It's also a bit terser than using the Jackson builder directly as that can make deep chaining a bit awkward from what I've experienced.</p><p>CAVEAT: I use this in tests and basic webapps were performance is not important in the slightest so I haven't attempted to understand the overhead of using this approach.</p></div><a class="twitter" href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fyobriefca.se%2Fblog%2F2017%2F02%2F10%2Fquick-and-dirty-json-builder-for-java%2F&amp;text=Quick%20and%20Dirty%20JSON%20Builder%20for%20Java&amp;via=kouphax" itemprop="discussionUrl" target="_blank">Tweet This</a><div class="dater"><time datetime="10-02-2017" itemprop="datePublished">February 10, 2017</time></div><div class="categories">Published in <a href="/categories/java/">Java</a> on February 10, 2017</div></div></div><div class="homer"><a href="/"><i class="icon-briefcase" style="font-size:32px;"></i></a></div><script type="text/javascript">(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-19143623-5', 'yobriefca.se');
+  ga('send', 'pageview');</script></body></html>

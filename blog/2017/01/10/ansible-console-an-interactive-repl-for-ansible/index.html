@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><meta content="IE=edge,chrome=1" http-equiv="X-UA-Compatible"><meta content="width=device-width, user-scalable=no" name="viewport"><meta content="ansible-console: An Interactive REPL for Ansible" name="description"><link href="/favicon.ico" rel="shortcut icon" type="image/x-icon"><link href="https://fonts.googleapis.com/css?family=Merriweather:400,700|Open+Sans:400,700" rel="stylesheet" type="text/css"><link href="/bundles/84cd5d4454d9/styles.css" rel="stylesheet" /><title>ansible-console: An Interactive REPL for Ansible</title></head><body><div class="row"><blockquote class="warning">This post is over 6 months old.  Some details,
+       especially technical, may have changed.</blockquote><div itemscope="" itemtype="http://schema.org/Article"><h1 itemprop="name">ansible-console: An Interactive REPL for Ansible</h1><div class="post" itemprop="articleBody"><p>If you know about ansible-console you can ignore this.  If you don't this might be of use to you.</p><p>Something found out recently is that Ansible has an interactive REPL of sorts in <code>ansible-console</code> for doing some adhoc things on a collection of hosts.</p><p>Using it is pretty simple</p>
+<pre class="highlight"><code class="bash">&gt; ansible-console -i preproduction
+
+Welcome to the ansible console.
+Type <span class="nb">help </span>or ? to list commands.
+
+jamhughes@all <span class="o">(</span>3<span class="o">)[</span>f:5<span class="o">]</span><span class="err">$</span>
+</code></pre><p>This will bring you into the shell itself,</p>
+<blockquote><p>the <code>-i preproduction</code> tells the console to use a certain hosts file (in my case preproduction).</p>
+</blockquote><p>From here you can use the normal ansible modules.  So for example if I wanted to get the date on all the hosts I can do this,</p>
+<pre class="highlight"><code class="bash">jamhughes@all <span class="o">(</span>3<span class="o">)[</span>f:5<span class="o">]</span><span class="nv">$ </span>shell date
+frontend1.preproduction | SUCCESS | <span class="nv">rc</span><span class="o">=</span>0 &gt;&gt;
+Tue Jan 10 22:04:18 GMT 2017
+
+frontend2.preproduction | SUCCESS | <span class="nv">rc</span><span class="o">=</span>0 &gt;&gt;
+Tue Jan 10 22:04:18 GMT 2017
+
+backend1.preproduction | SUCCESS | <span class="nv">rc</span><span class="o">=</span>0 &gt;&gt;
+Tue Jan 10 22:04:18 GMT 2017
+</code></pre><p>If you have specific groups you want to work in you can <code>cd</code> into groups</p>
+<pre class="highlight"><code class="bash">jamhughes@all <span class="o">(</span>3<span class="o">)[</span>f:5<span class="o">]</span><span class="nv">$ </span><span class="nb">cd </span>frontend
+jamhughes@customer <span class="o">(</span>3<span class="o">)[</span>f:5<span class="o">]</span><span class="nv">$ </span>shell date
+frontend1.preproduction | SUCCESS | <span class="nv">rc</span><span class="o">=</span>0 &gt;&gt;
+Tue Jan 10 22:04:18 GMT 2017
+
+frontend2.preproduction | SUCCESS | <span class="nv">rc</span><span class="o">=</span>0 &gt;&gt;
+Tue Jan 10 22:04:18 GMT 2017
+</code></pre><p>I guess it flies in the face of all this immutable infrastructure stuff but hey we are not all there yet and stuff like this can be handy.</p></div><a class="twitter" href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fyobriefca.se%2Fblog%2F2017%2F01%2F10%2Fansible-console-an-interactive-repl-for-ansible%2F&amp;text=ansible-console%3A%20An%20Interactive%20REPL%20for%20Ansible&amp;via=kouphax" itemprop="discussionUrl" target="_blank">Tweet This</a><div class="dater"><time datetime="10-01-2017" itemprop="datePublished">January 10, 2017</time></div><div class="categories">Published in <a href="/categories/devops/">DevOps</a> <a href="/categories/ansible/">Ansible</a> on January 10, 2017</div></div></div><div class="homer"><a href="/"><i class="icon-briefcase" style="font-size:32px;"></i></a></div><script type="text/javascript">(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-19143623-5', 'yobriefca.se');
+  ga('send', 'pageview');</script></body></html>

@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><meta content="IE=edge,chrome=1" http-equiv="X-UA-Compatible"><meta content="width=device-width, user-scalable=no" name="viewport"><meta content="Strapping Young Lad - Project Template Token Replacer and Bootstrapper" name="description"><link href="/favicon.ico" rel="shortcut icon" type="image/x-icon"><link href="https://fonts.googleapis.com/css?family=Merriweather:400,700|Open+Sans:400,700" rel="stylesheet" type="text/css"><link href="/bundles/84cd5d4454d9/styles.css" rel="stylesheet" /><title>Strapping Young Lad - Project Template Token Replacer and Bootstrapper</title></head><body><div class="row"><blockquote class="warning">This post is over 6 months old.  Some details,
+       especially technical, may have changed.</blockquote><div itemscope="" itemtype="http://schema.org/Article"><h1 itemprop="name">Strapping Young Lad - Project Template Token Replacer and Bootstrapper</h1><div class="post" itemprop="articleBody"><p>Today I have released the super simple, rough-as-hell, barely <a href="http://en.wikipedia.org/wiki/Minimum_viable_product">MVP</a> <a href="https://rubygems.org/gems/lad">Strapping Young Lad</a>(<a href="https://github.com/kouphax/strapping-young-lad">Source</a>). It's fulfils a need I keep having but never really fixing. </p><h2>Evelvator Pitch</h2><p>SYL, or lad for short, will take a git repo, clone it and replace a bunch of tokens in it with the values you've supplied. </p><h2>Say Wha?</h2><p>This means you can create a bunch of base solution/project types for any language and SYL will simply do some basic file/folder renaming and file content replacing for a given token. For example doing the following,</p>
+<pre class="highlight"><code>lad /path/to/git/repo MyNewProject
+</code></pre><p>Will do the following things,</p>
+<ol>
+  <li>Clone the repo at <code>path/to/git/repo</code> into a temporary folder</li>
+  <li>Remove the <code>.git</code> folder from the repo</li>
+  <li>Check for the existence of a <code>.ladconfig</code> in the freshly cloned repo</li>
+</ol>
+<ul>
+  <li>If one exists it loads the config setting</li>
+  <li>Otherwise it falls back to the defaults</li>
+</ul>
+<ol>
+  <li>Replace all instances of the configured token (eg. <code>__NAME__</code>) in all files, directories and file contents with the project name (in our case <code>MyNewProject</code>)</li>
+  <li>Copy the new folder over to your current working directory (<code>./MyNewProject</code>)</li>
+</ol><p>What this allows you to do is have a standard project template for pretty much anything (.NET, Ruby, Scala - listen I mean anything - if it a collection of folders and files in a git repo then you set) and create a new instance with a few keystrokes - saving you time and potential RSI.</p><p>SYL was inspired by <a href="https://github.com/chucknorris/warmup">WarmuP</a> which is itself a gem but it requires you to be running .NET which for a lot of my requirement isn't going to cut it.</p><p>If you want to see what a typical template project looks like try <a href="https://github.com/amirrajan/Loam">Amir's Loam repo</a>. This is a WarmuP project but works just fine. With SYL you can create a <code>.ladconfig</code> file to override some of the conventions - get the source README linked above.</p><h2>Whats Next</h2><p>Yep it's pretty damn basic right now but it satifies most of my needs right now. There are a few things I want to add for myself but I didn't release this for ME, I am pretty sure this will be of use to someone in some community in some shape or form. With that in mind here are some features I think would take this to the next level,</p>
+<ol>
+  <li>Specifiying multiple tokens e.g. <code>__NAME__</code> and <code>__NAMESPACE__</code> and <code>__YEAR__</code> etc. etc.</li>
+  <li>Post processing actions (e.g. <code>bundle install</code> or <code>npm install</code> or <code>sbt compile</code> or something like that)</li>
+  <li>A catalog - I have a <a href="https://github.com/strapping-young-lad">github organisation</a> with no repos setup right now but this would be a brilliant place to hold a load of templates compatible with SYL, don't ya think? Then I could roll a site like rubygems or npmjs.org and make the projects searchable etc. If you build it, they will come. Maybe, who knows.</li>
+</ol><p>So if you like it - HIGHFIVE - if not - it's all good. Now go break it and criticise me. </p>
+<blockquote><p>So we'll criticise him, because he can take it.... [The Dark Knight, Approx.]</p>
+</blockquote></div><a class="twitter" href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fyobriefca.se%2Fblog%2F2012%2F04%2F16%2Fstrapping-young-lad-project-template-token-replacer-and-bootstrapper%2F&amp;text=Strapping%20Young%20Lad%20-%20Project%20Template%20Token%20Replacer%20and%20Bootstrapper&amp;via=kouphax" itemprop="discussionUrl" target="_blank">Tweet This</a><div class="dater"><time datetime="16-04-2012" itemprop="datePublished">April 16, 2012</time></div><div class="categories">Published in <a href="/categories/ruby/">Ruby</a> on April 16, 2012</div></div></div><div class="homer"><a href="/"><i class="icon-briefcase" style="font-size:32px;"></i></a></div><script type="text/javascript">(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-19143623-5', 'yobriefca.se');
+  ga('send', 'pageview');</script></body></html>

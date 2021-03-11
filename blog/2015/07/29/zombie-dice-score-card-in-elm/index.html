@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><meta content="IE=edge,chrome=1" http-equiv="X-UA-Compatible"><meta content="width=device-width, user-scalable=no" name="viewport"><meta content="Zombie Dice Score Card in Elm" name="description"><link href="/favicon.ico" rel="shortcut icon" type="image/x-icon"><link href="https://fonts.googleapis.com/css?family=Merriweather:400,700|Open+Sans:400,700" rel="stylesheet" type="text/css"><link href="/bundles/84cd5d4454d9/styles.css" rel="stylesheet" /><title>Zombie Dice Score Card in Elm</title></head><body><div class="row"><blockquote class="warning">This post is over 6 months old.  Some details,
+       especially technical, may have changed.</blockquote><div itemscope="" itemtype="http://schema.org/Article"><h1 itemprop="name">Zombie Dice Score Card in Elm</h1><div class="post" itemprop="articleBody"><p><a href="https://yobriefca.se/blog/2015/07/28/window-dot-prompt-in-elm/">As promised</a> yesterday evening I spent some time re-writing my <a href="https://yobriefca.se/blog/2015/07/20/zombie-dice-score-card-with-reagent/">Zombie Dice Score Card</a>, originally written in ClojureScript and <a href="http://reagent-project.github.io/">Reagent</a>, in <a href="http://elm-lang.org">Elm</a>. </p><p>If you just want to poke around the code then the source for each implementation is available on Github,</p>
+<ol>
+  <li><a href="https://github.com/kouphax/zombie-dice-elm">The Elm implementation</a></li>
+  <li><a href="https://github.com/kouphax/zombie-dice">The ClojureScript implementation</a></li>
+</ol><p>If you want a bit of an experience report then read on.</p>
+<blockquote><p>This work was done after spending an evening with some <a href="https://pragmaticstudio.com/elm">Elm screencasts</a> and some internet research I cannot promise this is <strong>good</strong> or <strong>correct</strong> code and I'll welcome any <a href="https://twitter.com/kouphax">feedback via Twitter</a></p>
+</blockquote><p>Developing the Elm version of the app took the best part of 3 or 4 hours once I discovered how to <a href="https://yobriefca.se/blog/2015/07/28/window-dot-prompt-in-elm/">integrate with JavaScript via ports</a>. All in all I'd say there is about 6 or 7 hours work to craft my first Elm app with only a couple of hours introduction to the language. This should be seen as a positive reflection on <strong>Elm</strong> and not me. </p><h2>Types</h2><p>My previous experience with type focused languages was a few years of general purpose Scala development and a brief foray into Haskell which ended in mild frustration. I'm certainly more comfortable in dynamic languages and if I was ever bored enough to be drawn into a "dynamic vs static" debate I'd probably side on the dynamic side. With that said picking apart my ClojureScript implementation and recreating it in Elm has really made me appreciate its typed nature. The ability to look at our defined types e.g.</p>
+<pre class="highlight"><code class="haskell"><span class="kr">type</span> <span class="n">alias</span> <span class="kt">Player</span> <span class="ow">=</span>
+  <span class="p">{</span> <span class="n">id</span>       <span class="kt">:</span> <span class="kt">Int</span><span class="p">,</span>
+    <span class="n">name</span>     <span class="kt">:</span> <span class="kt">String</span><span class="p">,</span>
+    <span class="n">gamesWon</span> <span class="kt">:</span> <span class="kt">Int</span><span class="p">,</span>
+    <span class="n">score</span>    <span class="kt">:</span> <span class="kt">Int</span> <span class="p">}</span>
+
+<span class="kr">type</span> <span class="n">alias</span> <span class="kt">ScoreBoard</span> <span class="ow">=</span>
+  <span class="p">{</span> <span class="n">players</span> <span class="kt">:</span> <span class="kt">List</span> <span class="kt">Player</span><span class="p">,</span>
+    <span class="n">uid</span>     <span class="kt">:</span> <span class="kt">Int</span> <span class="p">}</span>
+</code></pre><p>This explicit declaration really calls out stuff that, in ClojureScript (or <strong>my</strong> ClojureScript code at least), is implied and typically scattered over the place. For example, in the code below I'm just pulling out keys from a map <code>:id</code>, <code>:games-won</code> etc. because <strong>I know</strong> these things should exist. </p>
+<pre class="highlight"><code class="clojure"> <span class="p">(</span><span class="kd">defn- </span><span class="nv">finish-game</span> <span class="p">[]</span>
+   <span class="p">(</span><span class="k">let </span><span class="p">[</span><span class="nv">players</span> <span class="p">(</span><span class="nb">vals </span><span class="o">@</span><span class="nv">scoreboard</span><span class="p">)</span>
+         <span class="nv">winner</span> <span class="p">(</span><span class="nb">reduce </span><span class="o">#</span><span class="p">(</span><span class="k">if </span><span class="p">(</span><span class="nb">&gt; </span><span class="p">(</span><span class="ss">:score</span> <span class="nv">%1</span><span class="p">)</span> <span class="p">(</span><span class="ss">:score</span> <span class="nv">%2</span><span class="p">))</span> <span class="nv">%1</span> <span class="nv">%2</span><span class="p">)</span> <span class="nv">players</span><span class="p">)]</span>
+     <span class="p">(</span><span class="nf">swap!</span> <span class="nv">scoreboard</span> <span class="nv">update-in</span> <span class="p">[(</span><span class="ss">:id</span> <span class="nv">winner</span><span class="p">)</span> <span class="ss">:games-won</span><span class="p">]</span> <span class="nv">inc</span><span class="p">)</span>
+     <span class="p">(</span><span class="nf">reset-scores</span><span class="p">)))</span>
+</code></pre><p>Last night when I revisited this code I had forgotten what my model looked like and I had to figure it out by scanning all my code for when things are set and read from my data structure representing my state. I'm sure I could structure my ClojureScript better, perhaps use something like <a href="https://github.com/clojure/core.typed">core.typed</a> or <a href="https://github.com/Prismatic/schema">Prismatic Schema</a>, but the onus is on the developer. Of course this is not a new and startling revelation this is just one of the many difference in dynamic/static languages. So what does Elm do to make this different? Well, for one, it uses gradual typing. I can declare a function like this,</p>
+<pre class="highlight"><code class="haskell"><span class="nf">newPlayer</span> <span class="n">id</span> <span class="n">name</span> <span class="ow">=</span>
+  <span class="p">{</span> <span class="n">id</span>       <span class="ow">=</span> <span class="n">id</span><span class="p">,</span>
+    <span class="n">name</span>     <span class="ow">=</span> <span class="n">name</span><span class="p">,</span>
+    <span class="n">gamesWon</span> <span class="ow">=</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="n">score</span>    <span class="ow">=</span> <span class="mi">0</span> <span class="p">}</span>
+</code></pre><p>This will work fine and the Elm compiler will infer the types and shout at me if I'm passing ambiguous types around. However I can solidify my intentions by adding a type signature for the function,</p>
+<pre class="highlight"><code class="haskell"><span class="nf">newPlayer</span><span class="kt">:</span> <span class="kt">Int</span> <span class="ow">-&gt;</span> <span class="kt">String</span> <span class="ow">-&gt;</span> <span class="kt">Player</span>
+</code></pre><p>When I initially started dipping into Elm I thought these signatures would be an after thought for me. I'd only add them in for completeness sake. I was wrong. They are extremely useful and helped massively as I designed my implementation. They also improve the error messages. Scala has this sort of type inference as well but I almost always left it out unless required. Perhaps I've got wiser in my old age or maybe Elm has made the type system more accessible.</p><h2>Error Messages</h2><p>When something goes wrong in Clojure or ClojureScript the resulting stacktraces can be next to useless for figuring out what is actually wrong. No amount of formatting and colouring improves this, sometimes they are just confusing. Error messages in Elm are the complete opposite.</p>
+<pre class="highlight"><code>-- TYPE MISMATCH  ZombieDice.elm
+
+The type annotation for `playerEntry` does not match its definition.
+
+98| playerEntry: Address Action -&gt; Player -&gt; Html
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Looks like a record is missing the field `uid`
+
+As I infer the type of values flowing through your program, I see a conflict
+between these two types:
+
+    Player
+
+    { a | score : Int, uid : Int, gamesWon : Int, name : String } Use --force to continue.
+</code></pre><p>Just look at that message. It's telling me exactly what is wrong and I knew how to fix it once I'd read this message. Most Elm messages are like this although some of the type related ones did make me scratch my head until I wrapped my head around them a bit more.</p><h2>HTML</h2><p>Hiccup style syntax in ClojureScript that we use for describing HTML structure is lovely.</p>
+<pre class="highlight"><code class="clojure"> <span class="p">[</span><span class="ss">:div.row</span>
+  <span class="p">[</span><span class="ss">:div.col.span_3.name</span>
+   <span class="p">[</span><span class="ss">:h2</span> <span class="p">(</span><span class="ss">:name</span> <span class="nv">player</span><span class="p">)]</span>
+   <span class="p">(</span><span class="nb">for </span><span class="p">[</span><span class="nv">win</span> <span class="p">(</span><span class="nb">range </span><span class="p">(</span><span class="ss">:games-won</span> <span class="nv">player</span><span class="p">))]</span>
+     <span class="p">[</span><span class="ss">:img</span> <span class="p">{</span> <span class="ss">:src</span> <span class="s">"images/gold-brain.png"</span> <span class="ss">:height</span> <span class="mi">20</span><span class="p">}])</span> <span class="p">]</span>
+  <span class="p">[</span><span class="ss">:div.col.span_3</span>
+   <span class="p">[</span><span class="ss">:image.brain</span> <span class="p">{</span> <span class="ss">:src</span> <span class="s">"images/brain.png"</span>
+                   <span class="ss">:on-click</span> <span class="o">#</span><span class="p">(</span><span class="nf">update-score</span> <span class="p">(</span><span class="ss">:id</span> <span class="nv">player</span><span class="p">))</span> <span class="p">}]</span>
+   <span class="p">[</span><span class="ss">:span.score</span> <span class="p">[</span><span class="ss">:small</span> <span class="s">" x "</span><span class="p">]</span> <span class="p">(</span><span class="ss">:score</span> <span class="nv">player</span><span class="p">)]]]</span>
+</code></pre><p>With paredit enabled creating this sort of structure is an absolute breeze and rather easy to comprehend after it's been written. The same, i'm afraid, can not be said for Elm,</p>
+<pre class="highlight"><code class="haskell">  <span class="n">div</span>
+    <span class="p">[</span> <span class="kr">class</span> <span class="s">"row"</span> <span class="p">]</span>
+    <span class="p">[</span> <span class="n">div</span>
+        <span class="p">[</span> <span class="kr">class</span> <span class="s">"col span_3 name"</span> <span class="p">]</span>
+        <span class="p">[</span> <span class="n">h2</span>
+            <span class="kt">[]</span>
+            <span class="p">[</span> <span class="n">text</span> <span class="n">player</span><span class="o">.</span><span class="n">name</span> <span class="p">],</span>
+          <span class="n">span</span>
+            <span class="kt">[]</span>
+            <span class="p">(</span><span class="kt">List</span><span class="o">.</span><span class="n">map</span> <span class="p">(</span><span class="n">always</span> <span class="n">wonGame</span><span class="p">)</span> <span class="p">[</span><span class="mi">1</span><span class="o">..</span><span class="p">(</span><span class="n">player</span><span class="o">.</span><span class="n">gamesWon</span><span class="p">)])],</span>
+      <span class="n">div</span>
+        <span class="p">[</span> <span class="kr">class</span> <span class="s">"col span_3"</span> <span class="p">]</span>
+        <span class="p">[</span> <span class="n">img</span>
+            <span class="p">[</span> <span class="kr">class</span> <span class="s">"brain"</span><span class="p">,</span>
+              <span class="n">src</span>   <span class="s">"images/brain.png"</span><span class="p">,</span>
+              <span class="n">onClick</span> <span class="n">address</span> <span class="p">(</span><span class="kt">Inc</span> <span class="n">player</span><span class="o">.</span><span class="n">id</span><span class="p">)</span> <span class="p">]</span>
+            <span class="kt">[]</span><span class="p">,</span>
+          <span class="n">span</span>
+            <span class="p">[</span> <span class="kr">class</span> <span class="s">"score"</span> <span class="p">]</span>
+            <span class="p">[</span> <span class="n">small</span>
+                <span class="kt">[]</span>
+                <span class="p">[</span> <span class="n">text</span> <span class="s">"x"</span> <span class="p">],</span>
+              <span class="n">span</span>
+                <span class="kt">[]</span>
+                <span class="p">[</span><span class="n">text</span> <span class="p">(</span><span class="n">toString</span> <span class="n">player</span><span class="o">.</span><span class="n">score</span><span class="p">)]</span>  <span class="p">]</span> <span class="p">]</span> <span class="p">]</span>
+</code></pre><p>This is formatted, I think, using the recommended formatting advice and while it is relatively easy to read and get to the place you want to make changes it caused me a lot pain creating it and refactoring it as I added new features. I almost always misjudged bracket placement and forgot commas resulting in errors. Perhaps it's the fact paredit gives me so much power and ClojureScript doesn't use commas (they're treated as whitespace) but this was painful for me to create.</p><h2>It's just one big fold</h2><p>The architecture of an Elm app is always the same and it's really rather clever. However there is a bit of initial setup to get everything working. To this end you can use the <a href="https://github.com/evancz/start-app">start-app package</a> that removes a lot of the initial boilerplate (there's not really <strong>that much</strong> boilerplate in reality). I didn't use this package as I wanted to really understand how everything was wired together.</p><p>This led to my big revelation. The root of an Elm app is just a map our reactive model that returns the updated view as and when our state changes. The reactive model part is just a fold over the application data which gets updated actions/signals happen that cause the state to transition to another state. </p><p>The entire app updates when something changes the state. </p><p>No management of discrete little parts and internal state - just rebuild the world. This is the same principle behind React and Reagent (a ClojureScript React wrapper) but in React the mechanisms are somewhat hidden. In Elm it's right there. You can compose different signals, à la Reactive Extensions Observables, to make your app behave in different ways. For example,</p>
+<pre class="highlight"><code class="haskell"><span class="nf">model</span> <span class="kt">:</span> <span class="kt">Signal</span> <span class="kt">Model</span>
+<span class="nf">model</span> <span class="ow">=</span>
+  <span class="kr">let</span>
+    <span class="n">allActions</span> <span class="ow">=</span> <span class="n">mergeMany</span>
+      <span class="p">[</span> <span class="n">actions</span><span class="o">.</span><span class="n">signal</span><span class="p">,</span>
+        <span class="n">externalActions</span> <span class="p">]</span>
+  <span class="kr">in</span>
+    <span class="n">foldp</span> <span class="n">update</span> <span class="n">initialModel</span> <span class="n">allActions</span>
+    
+<span class="nf">externalActions</span><span class="kt">:</span> <span class="kt">Signal</span> <span class="kt">Action</span>
+<span class="nf">externalActions</span> <span class="ow">=</span>
+  <span class="n">mergeMany</span>
+    <span class="p">[</span> <span class="p">(</span><span class="kt">Add</span><span class="p">)</span> <span class="o">&lt;~</span> <span class="n">addPlayer</span> <span class="p">]</span>
+</code></pre><p>In this example from the app I merge the actions signal that comes from the apps main Mailbox (this is the one that streams all the internal Actions to update the model) and external signals (these are the ones that are generated by JavaScript outside of the Elm app). <code>externalActions</code> does some manipulation of it's incoming data to create a signal of type <code>Action</code> that can be merged with our core Action signal.</p><p>While I have likely explained this in the worst possible way this approach makes everything wonderfully composable and straightforward. As soon I saw how Elm approached reactive application development I was just blown away by its simplicity.</p><h2>Conclusion</h2><p>I like Elm. Go try it. I can't really say one implementation of my little app is better than the other each has it's good and bad points. Besides I haven't spent enough time with Elm to evaluate it properly yet. All I know is that I've taken to it better than other languages of its ilk.</p><p>I'm not sure why it's type system feels more accessible to me compared to Scala or Haskell but I've found that the barrier of entry for Elm is much less than either of those languages. There seems to be, compared to Scala at least, much less concepts to wrap your brain around while still remaining extremely powerful. </p><p>Finally I recommend you check out <a href="https://www.youtube.com/watch?v=oYk8CKH7OhE">this talk</a> by Evan Czaplicki (creator of Elm) around the design decisions that help make Elm more accessible.</p></div><a class="twitter" href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fyobriefca.se%2Fblog%2F2015%2F07%2F29%2Fzombie-dice-score-card-in-elm%2F&amp;text=Zombie%20Dice%20Score%20Card%20in%20Elm&amp;via=kouphax" itemprop="discussionUrl" target="_blank">Tweet This</a><div class="dater"><time datetime="29-07-2015" itemprop="datePublished">July 29, 2015</time></div><div class="categories">Published in <a href="/categories/elm/">Elm</a> on July 29, 2015</div></div></div><div class="homer"><a href="/"><i class="icon-briefcase" style="font-size:32px;"></i></a></div><script type="text/javascript">(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-19143623-5', 'yobriefca.se');
+  ga('send', 'pageview');</script></body></html>

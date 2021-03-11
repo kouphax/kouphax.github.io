@@ -1,0 +1,249 @@
+<?xml version="1.0" encoding="UTF-8"?><feed xmlns="http://www.w3.org/2005/Atom"><id>urn:yobriefca-se:feed:mongodb</id><updated>Mon Feb 18 00:00:00 UTC 2013</updated><title type="text">Yo! Briefcase: mongodb</title><link rel="self" href="https://yobriefca.se/feed/mongodb.xml"></link><entry><title>play-reactivemongo</title><updated>Mon Feb 18 00:00:00 UTC 2013</updated><author><name>James Hughes</name></author><link href="https://yobriefca.se/screencasts/play-reactivemongo/"></link><id>urn:yobriefca-se:feed:post:play-reactivemongo</id><content type="html">&lt;p&gt;&lt;a href="https://github.com/yobriefcasts/005-play-reactivemongo"&gt;Source&lt;/a&gt; | &lt;a href="https://github.com/zenexity/Play-ReactiveMongo"&gt;Official Site&lt;/a&gt;&lt;/p&gt;&lt;p&gt;ReactiveMongo - reactive, asynchronous and non-blocking Scala driver for MongoDB.&lt;/p&gt;&lt;p&gt;In this episode we will retrofit the app from episode 003 to use Mongo, ReactiveMongo and the play-reactivemongo plugin.&lt;/p&gt;</content></entry><entry><title>ReactiveMongo</title><updated>Mon Feb 11 00:00:00 UTC 2013</updated><author><name>James Hughes</name></author><link href="https://yobriefca.se/screencasts/reactivemongo/"></link><id>urn:yobriefca-se:feed:post:ReactiveMongo</id><content type="html">&lt;p&gt;&lt;a href="https://github.com/yobriefcasts/004-reactivemongo"&gt;Source&lt;/a&gt; | &lt;a href="http://reactivemongo.org"&gt;Official Site&lt;/a&gt;&lt;/p&gt;&lt;p&gt;ReactiveMongo is an asynchronous, non-blocking MongoDB driver written in Scala. This screencast will move quickly through the basic concepts that define ReactiveMongo and then show examples of the various basic operations you'd expect from a MongoDB driver&lt;/p&gt;</content></entry><entry><title>MongoDB Basics</title><updated>Thu Dec 06 00:00:00 UTC 2012</updated><author><name>James Hughes</name></author><link href="/presentations/mongo.pdf"></link><id>urn:yobriefca-se:feed:post:MongoDB Basics</id><content type="html"></content></entry><entry><title>Learning Resources for Scala, Play! and Mongo</title><updated>Fri Oct 05 23:00:00 UTC 2012</updated><author><name>James Hughes</name></author><link href="https://yobriefca.se/blog/2012/10/05/learning-resources-for-scala-play-and-mongo/"></link><id>urn:yobriefca-se:feed:post:Learning Resources for Scala, Play! and Mongo</id><content type="html">&lt;p&gt;I've been asked a lot recently for some resources on various technologies, namely Scala, Play! (2.0) and Mongo so I thought I'd share the wealth (so to speak).&lt;/p&gt;&lt;p&gt;Got any good resources that I haven't listed here? Let me know.&lt;/p&gt;&lt;h2&gt;Scala&lt;/h2&gt;
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href="http://www.scala-lang.org/"&gt;Official Site&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href="https://vimeo.com/40255430"&gt;Screencast&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href="http://www.scala-lang.org/node/1305"&gt;Various Links from the official site&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href="http://scalatron.github.com/"&gt;Scalatron&lt;/a&gt; - learn Scala by programming a game&lt;/li&gt;
+  &lt;li&gt;&lt;a href="http://twitter.github.com/scala_school/"&gt;Scala School&lt;/a&gt; - Twitters learning resource&lt;/li&gt;
+  &lt;li&gt;&lt;a href="http://typesafe.com/resources/book/scala-for-the-impatient"&gt;Scala for the Impatient&lt;/a&gt; - excellent "lite" version of a great book.&lt;/li&gt;
+  &lt;li&gt;&lt;a href="http://typesafe.com/resources/videos"&gt;Scala Videos&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href="https://www.coursera.org/course/progfun"&gt;Coursera Course&lt;/a&gt; - Scala course on Coursera by Martin Odersky. Only good for five weeks or so but during that time anyone can sign up and download the video lectures and materials.&lt;/li&gt;
+&lt;/ul&gt;&lt;h2&gt;Play!&lt;/h2&gt;
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href="http://www.playframework.org/"&gt;Official Site&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href="http://www.playframework.org/documentation/2.0.3/ScalaHome"&gt;Official Docs&lt;/a&gt; - Excellent resource&lt;/li&gt;
+  &lt;li&gt;&lt;a href="https://github.com/playframework/Play20/tree/master/samples/scala"&gt;Scala Code Samples&lt;/a&gt; - Some nice examples from the official Github repo.&lt;/li&gt;
+  &lt;li&gt;&lt;a href="http://yobriefca.se/blog/2012/05/08/starter-for-10-scala/"&gt;Scala, Play! and Mongo&lt;/a&gt; - Blog post on writing a simple app using all those technologies.&lt;/li&gt;
+  &lt;li&gt;&lt;a href="http://www.artima.com/articles/play2_scala_squeryl.html"&gt;Getting Started with Play! 2, Scala and Squeryl&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href="http://www.jamesward.com/2012/02/21/play-framework-2-with-scala-anorm-json-coffeescript-jquery-heroku"&gt;Play! 2 Getting Started&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;&lt;h2&gt;Mongo&lt;/h2&gt;
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href="http://www.mongodb.org/"&gt;Official Website&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href="http://try.mongodb.org/"&gt;Try Mongo&lt;/a&gt; - A Tiny MongoDB Browser Shell (mini tutorial included)&lt;/li&gt;
+  &lt;li&gt;&lt;a href="http://openmymind.net/mongodb.pdf"&gt;Little Book of Mongo&lt;/a&gt; (&lt;a href="http://openmymind.net/mongodb.epub"&gt;epub&lt;/a&gt;) - Book about Mongo&lt;/li&gt;
+  &lt;li&gt;&lt;a href="http://mongly.com/"&gt;Mongly&lt;/a&gt; - Various tutorials and essays on MongoDB&lt;/li&gt;
+  &lt;li&gt;&lt;a href="https://speakerdeck.com/u/kouphax/p/mongodb"&gt;Presentation&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;</content></entry><entry><title>Starter for 10 - Scala, Play 2 and Mongo</title><updated>Mon May 07 23:00:00 UTC 2012</updated><author><name>James Hughes</name></author><link href="https://yobriefca.se/blog/2012/05/07/starter-for-10-scala-play-2-and-mongo/"></link><id>urn:yobriefca-se:feed:post:Starter for 10 - Scala, Play 2 and Mongo</id><content type="html">&lt;p&gt;This post is going to cover the whole "getting up an running" for a simple Scala stack - namely Scala, Play 2 and Mongo. 2012 has been the year of the polyglot for me. I've been working on projects with .NET, Node.js, Ruby and Scala in the mix. I've seen how Rails can really boost developer productivity (compared to the likes of ASP.NET MVC or other, less opinionated, frameworks) but I must say - In terms of developer productivity, at least for me, nothing has come close to the Scala/Play/Mongo combo. I hadn't touched functional programming since SML in university but I found Scala allowed me to express myself in a very terse manner. Combine that with Play and its straightforward, uncomplicated approach to building web apps and Mongo with its schemaless nature then its productivity++ all the way.&lt;/p&gt;&lt;p&gt;It's worth pointing out right away that James Ward already has a &lt;a href="http://www.jamesward.com/2012/02/21/play-framework-2-with-scala-anorm-json-coffeescript-jquery-heroku"&gt;similar post&lt;/a&gt; and a &lt;a href="https://github.com/jamesward/play2torial/blob/master/JAVA.md"&gt;(currently Java only) tutorial&lt;/a&gt;. These are much better but they dont cover the Mongo/Caabah/Salat side of things (not that it is particularly difficult) so at least I've got a leg to stand on.&lt;/p&gt;&lt;h2&gt;Installing&lt;/h2&gt;
+&lt;blockquote&gt;&lt;p&gt;Versions used in this post&lt;/p&gt;
+  &lt;ul&gt;
+    &lt;li&gt;Scala (2.9.1)&lt;/li&gt;
+    &lt;li&gt;Play (2.0.1)&lt;/li&gt;
+    &lt;li&gt;Mongo (2.0.4)&lt;/li&gt;
+  &lt;/ul&gt;
+&lt;/blockquote&gt;&lt;p&gt;I'm going to assume that you are capable of installing software (by following basic instructions) so I won't waste your time covering this. Here are some links to kick you off,&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href="http://www.scala-lang.org/downloads"&gt;Scala&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href="http://www.playframework.org/download"&gt;Play 2&lt;/a&gt; (it just goes on your &lt;code&gt;PATH&lt;/code&gt;)&lt;/li&gt;
+  &lt;li&gt;&lt;a href="http://www.mongodb.org/downloads"&gt;Mongo&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;Alternatively if you are on OSX - &lt;a href="http://mxcl.github.com/homebrew/"&gt;Homebrew&lt;/a&gt; has got everything you need at the time of putting this together.&lt;/p&gt;&lt;h2&gt;Generating your Application&lt;/h2&gt;&lt;p&gt;Play is a command line tool and can be used to generate your basic app skeleton,&lt;/p&gt;
+&lt;pre class="highlight"&gt;&lt;code class="bash"&gt;play new &amp;lt;project name&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Just fill in the project name and you will be guided through the basic generation of the project, e.g.&lt;/p&gt;
+&lt;pre class="highlight"&gt;&lt;code class="bash"&gt;--&amp;gt; play new sampleapp
+        _            _
+  _ __ | | __ _ _  _| |
+| &lt;span class="s1"&gt;'_ \| |/ _'&lt;/span&gt; | &lt;span class="o"&gt;||&lt;/span&gt; |_|
+|  __/|_|&lt;span class="se"&gt;\_&lt;/span&gt;___|&lt;span class="se"&gt;\_&lt;/span&gt;_ &lt;span class="o"&gt;(&lt;/span&gt;_&lt;span class="o"&gt;)&lt;/span&gt;
+|_|            |__/
+
+play! 2.0.1, http://www.playframework.org
+
+The new application will be created in /Users/kouphax/Projects/temp/sampleapp
+
+What is the application name?
+&amp;gt; sampleapp
+
+Which template &lt;span class="k"&gt;do &lt;/span&gt;you want to use &lt;span class="k"&gt;for &lt;/span&gt;this new application?
+
+  1 - Create a simple Scala application
+  2 - Create a simple Java application
+  3 - Create an empty project
+
+&amp;gt; 1
+
+OK, application sampleapp is created.
+
+Have fun!
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Indeed - fun you shall have.&lt;/p&gt;&lt;h2&gt;Dependencies&lt;/h2&gt;&lt;p&gt;Working with Mongo directly is all well and good but it can be made a bit simpler with a few dependencies. Namely &lt;a href="http://api.mongodb.org/scala/casbah/2.0/"&gt;Casbah&lt;/a&gt; and &lt;a href="https://github.com/novus/salat"&gt;Salat&lt;/a&gt;. Casbah is the official Scala Toolkit for MongoDB and Salat allows you to map to and from the generic Mongo object classes into more concrete case classes.&lt;/p&gt;&lt;p&gt;To add the dependencies you need to update the &lt;code&gt;Build.scala&lt;/code&gt; file in the generated &lt;code&gt;project&lt;/code&gt; directory. Firstly you need to update the &lt;code&gt;appDependencies&lt;/code&gt; to create the dependency on the new two libraries,&lt;/p&gt;
+&lt;pre class="highlight"&gt;&lt;code class="scala"&gt;&lt;span class="k"&gt;val&lt;/span&gt; &lt;span class="n"&gt;appDependencies&lt;/span&gt; &lt;span class="k"&gt;=&lt;/span&gt; &lt;span class="nc"&gt;Seq&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;
+  &lt;span class="s"&gt;"com.mongodb.casbah"&lt;/span&gt; &lt;span class="o"&gt;%%&lt;/span&gt; &lt;span class="s"&gt;"casbah"&lt;/span&gt; &lt;span class="o"&gt;%&lt;/span&gt; &lt;span class="s"&gt;"2.1.5-1"&lt;/span&gt;&lt;span class="o"&gt;,&lt;/span&gt;
+  &lt;span class="s"&gt;"com.novus"&lt;/span&gt; &lt;span class="o"&gt;%%&lt;/span&gt; &lt;span class="s"&gt;"salat-core"&lt;/span&gt; &lt;span class="o"&gt;%&lt;/span&gt; &lt;span class="s"&gt;"0.0.8-SNAPSHOT"&lt;/span&gt;
+&lt;span class="o"&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Then you'll need to add the &lt;code&gt;resolvers&lt;/code&gt; to the &lt;code&gt;main&lt;/code&gt; project declaration,&lt;/p&gt;
+&lt;pre class="highlight"&gt;&lt;code class="scala"&gt;&lt;span class="k"&gt;val&lt;/span&gt; &lt;span class="n"&gt;main&lt;/span&gt; &lt;span class="k"&gt;=&lt;/span&gt; &lt;span class="nc"&gt;PlayProject&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="n"&gt;appName&lt;/span&gt;&lt;span class="o"&gt;,&lt;/span&gt; &lt;span class="n"&gt;appVersion&lt;/span&gt;&lt;span class="o"&gt;,&lt;/span&gt; &lt;span class="n"&gt;appDependencies&lt;/span&gt;&lt;span class="o"&gt;,&lt;/span&gt; &lt;span class="n"&gt;mainLang&lt;/span&gt; &lt;span class="k"&gt;=&lt;/span&gt; &lt;span class="nc"&gt;SCALA&lt;/span&gt;&lt;span class="o"&gt;).&lt;/span&gt;&lt;span class="n"&gt;settings&lt;/span&gt;
+  &lt;span class="n"&gt;resolvers&lt;/span&gt; &lt;span class="o"&gt;++=&lt;/span&gt; &lt;span class="nc"&gt;Seq&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;
+    &lt;span class="s"&gt;"repo.novus snaps"&lt;/span&gt; &lt;span class="n"&gt;at&lt;/span&gt; &lt;span class="s"&gt;"http://repo.novus.com/snapshots/"&lt;/span&gt;&lt;span class="o"&gt;)&lt;/span&gt;
+&lt;span class="o"&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;blockquote&gt;&lt;p&gt;UPDATE: Since this article is a bit old but still getting plenty of hits I have noticed that people are having issues resolving dependencies on salat and casbah - this is because of a reporsitory change. Simple fix just add the following line to the resolvers Seq above,&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;pre class="highlight"&gt;&lt;code class="scala"&gt;&lt;span class="s"&gt;"casbah"&lt;/span&gt; &lt;span class="n"&gt;at&lt;/span&gt; &lt;span class="s"&gt;"https://oss.sonatype.org/content/groups/scala-tools/"&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;blockquote&gt;&lt;p&gt;This should be enough to get you going with the rest of this article however there will be some major changes expected in Scala 2.10 that may well fundamentally alter the need to use Salat etc. Be warned.&lt;/p&gt;
+&lt;/blockquote&gt;&lt;p&gt;And thats the project set up with all its dependencies ready to hack on. So lets drive a spike through this stack and see what it looks like shall we? Yes why not, tallyho old bean!&lt;/p&gt;&lt;h2&gt;The Model &amp;amp; Data Access&lt;/h2&gt;&lt;p&gt;First things first lets create our model. So we are going to write a very basic registration app. People "register" on the site, for fun or something, I dunno as our stakeholders - I just write the code.&lt;/p&gt;&lt;p&gt;Our model is super simple,&lt;/p&gt;
+&lt;pre class="highlight"&gt;&lt;code class="scala"&gt;&lt;span class="k"&gt;case&lt;/span&gt; &lt;span class="k"&gt;class&lt;/span&gt; &lt;span class="nc"&gt;Registration&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;
+  &lt;span class="n"&gt;username&lt;/span&gt;&lt;span class="k"&gt;:&lt;/span&gt; &lt;span class="kt"&gt;String&lt;/span&gt;&lt;span class="o"&gt;,&lt;/span&gt;
+  &lt;span class="n"&gt;password&lt;/span&gt;&lt;span class="k"&gt;:&lt;/span&gt; &lt;span class="kt"&gt;String&lt;/span&gt;&lt;span class="o"&gt;,&lt;/span&gt;
+  &lt;span class="n"&gt;confirm&lt;/span&gt;&lt;span class="k"&gt;:&lt;/span&gt;  &lt;span class="kt"&gt;String&lt;/span&gt;&lt;span class="o"&gt;,&lt;/span&gt;
+  &lt;span class="n"&gt;realName&lt;/span&gt;&lt;span class="k"&gt;:&lt;/span&gt; &lt;span class="kt"&gt;String&lt;/span&gt;
+&lt;span class="o"&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Now to the interesting part. To persist this in a Mongo data store we need to make use of the two libraries we imported previously,&lt;/p&gt;
+&lt;pre class="highlight"&gt;&lt;code class="scala"&gt;&lt;span class="k"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;com.mongodb.casbah.Imports._&lt;/span&gt;
+&lt;span class="k"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;com.novus.salat._&lt;/span&gt;
+&lt;span class="k"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;com.novus.salat.global._&lt;/span&gt;
+
+&lt;span class="k"&gt;object&lt;/span&gt; &lt;span class="nc"&gt;Registrations&lt;/span&gt; &lt;span class="o"&gt;{&lt;/span&gt;
+  &lt;span class="k"&gt;val&lt;/span&gt; &lt;span class="n"&gt;registrations&lt;/span&gt; &lt;span class="k"&gt;=&lt;/span&gt; &lt;span class="nc"&gt;MongoConnection&lt;/span&gt;&lt;span class="o"&gt;()(&lt;/span&gt;&lt;span class="s"&gt;"sampleapp"&lt;/span&gt;&lt;span class="o"&gt;)(&lt;/span&gt;&lt;span class="s"&gt;"registrations"&lt;/span&gt;&lt;span class="o"&gt;)&lt;/span&gt;
+
+  &lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="n"&gt;all&lt;/span&gt; &lt;span class="k"&gt;=&lt;/span&gt; &lt;span class="n"&gt;registrations&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;map&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="n"&gt;grater&lt;/span&gt;&lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="kt"&gt;Registration&lt;/span&gt;&lt;span class="o"&gt;].&lt;/span&gt;&lt;span class="n"&gt;asObject&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="k"&gt;_&lt;/span&gt;&lt;span class="o"&gt;)).&lt;/span&gt;&lt;span class="n"&gt;toList&lt;/span&gt;
+  &lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="n"&gt;create&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="n"&gt;registration&lt;/span&gt;&lt;span class="k"&gt;:&lt;/span&gt; &lt;span class="kt"&gt;Registration&lt;/span&gt;&lt;span class="o"&gt;)&lt;/span&gt; &lt;span class="o"&gt;{&lt;/span&gt;
+    &lt;span class="n"&gt;registrations&lt;/span&gt; &lt;span class="o"&gt;+=&lt;/span&gt; &lt;span class="n"&gt;grater&lt;/span&gt;&lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="kt"&gt;Registration&lt;/span&gt;&lt;span class="o"&gt;].&lt;/span&gt;&lt;span class="n"&gt;asDBObject&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="n"&gt;registration&lt;/span&gt;&lt;span class="o"&gt;)&lt;/span&gt;
+  &lt;span class="o"&gt;}&lt;/span&gt;
+&lt;span class="o"&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;First things first we create a connection using the &lt;code&gt;MongoConnection&lt;/code&gt; class and grabs the &lt;code&gt;registrations&lt;/code&gt; collection from the &lt;code&gt;sampleapp&lt;/code&gt; store. Now it's worth noting that provided Mongo is up and running we don't actually need to create either the store or the collection - the act of acting on a collection is enough to create both.&lt;/p&gt;&lt;p&gt;Next up I defined two methods &lt;code&gt;all&lt;/code&gt; and &lt;code&gt;create&lt;/code&gt;.&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;&lt;code&gt;all&lt;/code&gt; simply pulls out all the collection data using Casbah, performs a map over the collection (which is a collection of &lt;code&gt;MongoDBObject&lt;/code&gt;/&lt;code&gt;DBObject&lt;/code&gt;s) and uses the &lt;code&gt;grater&lt;/code&gt; object provided by Salat to map from these generic objects to our &lt;code&gt;Registration&lt;/code&gt; case class.&lt;/li&gt;
+  &lt;li&gt;&lt;code&gt;create&lt;/code&gt; simply adds an element (cast from a &lt;code&gt;Registration&lt;/code&gt; class to an acceptable &lt;code&gt;DBObject&lt;/code&gt;) to the collection.&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;Now isn't that a nice terse data access layer? Yes it is. You want to make changes? Go ahead - the fear of change is gone or much reduced compared to the typical approach.&lt;/p&gt;&lt;h2&gt;Controllers&lt;/h2&gt;&lt;p&gt;Next up we want to add a register controller and update the existing &lt;code&gt;Application&lt;/code&gt; controller.&lt;/p&gt;
+&lt;pre class="highlight"&gt;&lt;code class="scala"&gt;&lt;span class="k"&gt;object&lt;/span&gt; &lt;span class="nc"&gt;Application&lt;/span&gt; &lt;span class="k"&gt;extends&lt;/span&gt; &lt;span class="nc"&gt;Controller&lt;/span&gt; &lt;span class="o"&gt;{&lt;/span&gt;
+  &lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="n"&gt;index&lt;/span&gt; &lt;span class="k"&gt;=&lt;/span&gt; &lt;span class="nc"&gt;Action&lt;/span&gt; &lt;span class="o"&gt;{&lt;/span&gt; &lt;span class="k"&gt;implicit&lt;/span&gt; &lt;span class="n"&gt;request&lt;/span&gt; &lt;span class="k"&gt;=&amp;gt;&lt;/span&gt;
+    &lt;span class="nc"&gt;Ok&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="n"&gt;views&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;html&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;index&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="nc"&gt;Registrations&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;all&lt;/span&gt;&lt;span class="o"&gt;))&lt;/span&gt;
+  &lt;span class="o"&gt;}&lt;/span&gt;
+&lt;span class="o"&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;The only difference here is the &lt;code&gt;Registrations.all&lt;/code&gt; so we can list the registrations in the UI. Lets jump over the the register controller&lt;/p&gt;
+&lt;pre class="highlight"&gt;&lt;code class="scala"&gt;&lt;span class="k"&gt;object&lt;/span&gt; &lt;span class="nc"&gt;Register&lt;/span&gt; &lt;span class="k"&gt;extends&lt;/span&gt; &lt;span class="nc"&gt;Controller&lt;/span&gt; &lt;span class="o"&gt;{&lt;/span&gt;
+  &lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="n"&gt;registrationForm&lt;/span&gt; &lt;span class="k"&gt;=&lt;/span&gt; &lt;span class="nc"&gt;Form&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;
+    &lt;span class="n"&gt;mapping&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;
+      &lt;span class="s"&gt;"username"&lt;/span&gt; &lt;span class="o"&gt;-&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;nonEmptyText&lt;/span&gt;&lt;span class="o"&gt;,&lt;/span&gt;
+      &lt;span class="s"&gt;"password"&lt;/span&gt; &lt;span class="o"&gt;-&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;nonEmptyText&lt;/span&gt;&lt;span class="o"&gt;,&lt;/span&gt;
+      &lt;span class="s"&gt;"confirm"&lt;/span&gt; &lt;span class="o"&gt;-&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;nonEmptyText&lt;/span&gt;&lt;span class="o"&gt;,&lt;/span&gt;
+      &lt;span class="s"&gt;"realName"&lt;/span&gt; &lt;span class="o"&gt;-&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;text&lt;/span&gt;
+    &lt;span class="o"&gt;)(&lt;/span&gt;&lt;span class="nc"&gt;Registration&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;apply&lt;/span&gt;&lt;span class="o"&gt;)(&lt;/span&gt;&lt;span class="nc"&gt;Registration&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;unapply&lt;/span&gt;&lt;span class="o"&gt;)&lt;/span&gt;
+      &lt;span class="n"&gt;verifying&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="s"&gt;"Passwords must match"&lt;/span&gt;&lt;span class="o"&gt;,&lt;/span&gt; &lt;span class="n"&gt;fields&lt;/span&gt; &lt;span class="k"&gt;=&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;fields&lt;/span&gt; &lt;span class="k"&gt;match&lt;/span&gt; &lt;span class="o"&gt;{&lt;/span&gt;
+        &lt;span class="k"&gt;case&lt;/span&gt; &lt;span class="nc"&gt;Registration&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="k"&gt;_&lt;/span&gt;&lt;span class="o"&gt;,&lt;/span&gt; &lt;span class="n"&gt;password&lt;/span&gt;&lt;span class="o"&gt;,&lt;/span&gt; &lt;span class="n"&gt;confirmation&lt;/span&gt;&lt;span class="o"&gt;,&lt;/span&gt; &lt;span class="k"&gt;_&lt;/span&gt;&lt;span class="o"&gt;)&lt;/span&gt; &lt;span class="k"&gt;=&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;password&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;equals&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="n"&gt;confirmation&lt;/span&gt;&lt;span class="o"&gt;)&lt;/span&gt;
+      &lt;span class="o"&gt;})&lt;/span&gt;
+  &lt;span class="o"&gt;)&lt;/span&gt;
+
+  &lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="n"&gt;index&lt;/span&gt; &lt;span class="k"&gt;=&lt;/span&gt; &lt;span class="nc"&gt;Action&lt;/span&gt; &lt;span class="o"&gt;{&lt;/span&gt; &lt;span class="k"&gt;implicit&lt;/span&gt; &lt;span class="n"&gt;request&lt;/span&gt; &lt;span class="k"&gt;=&amp;gt;&lt;/span&gt;
+    &lt;span class="nc"&gt;Ok&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="n"&gt;views&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;html&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;register&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="n"&gt;registrationForm&lt;/span&gt;&lt;span class="o"&gt;))&lt;/span&gt;
+  &lt;span class="o"&gt;}&lt;/span&gt;
+
+  &lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="n"&gt;register&lt;/span&gt; &lt;span class="k"&gt;=&lt;/span&gt; &lt;span class="nc"&gt;Action&lt;/span&gt; &lt;span class="o"&gt;{&lt;/span&gt; &lt;span class="k"&gt;implicit&lt;/span&gt; &lt;span class="n"&gt;request&lt;/span&gt; &lt;span class="k"&gt;=&amp;gt;&lt;/span&gt;
+    &lt;span class="n"&gt;registrationForm&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;bindFromRequest&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;fold&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;
+      &lt;span class="n"&gt;form&lt;/span&gt; &lt;span class="k"&gt;=&amp;gt;&lt;/span&gt; &lt;span class="nc"&gt;BadRequest&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="n"&gt;views&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;html&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;register&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="n"&gt;form&lt;/span&gt;&lt;span class="o"&gt;)),&lt;/span&gt;
+      &lt;span class="n"&gt;registration&lt;/span&gt; &lt;span class="k"&gt;=&amp;gt;&lt;/span&gt; &lt;span class="o"&gt;{&lt;/span&gt;
+        &lt;span class="nc"&gt;Registrations&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;create&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="n"&gt;registration&lt;/span&gt;&lt;span class="o"&gt;)&lt;/span&gt;
+        &lt;span class="nc"&gt;Redirect&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="n"&gt;routes&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="nc"&gt;Application&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;index&lt;/span&gt;&lt;span class="o"&gt;()).&lt;/span&gt;&lt;span class="n"&gt;flashing&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="s"&gt;"message"&lt;/span&gt; &lt;span class="o"&gt;-&amp;gt;&lt;/span&gt; &lt;span class="s"&gt;"User Registered!"&lt;/span&gt;&lt;span class="o"&gt;)&lt;/span&gt;
+      &lt;span class="o"&gt;}&lt;/span&gt;
+    &lt;span class="o"&gt;)&lt;/span&gt;
+  &lt;span class="o"&gt;}&lt;/span&gt;
+&lt;span class="o"&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;OK thats a lot to take in so lets break it down a bit.&lt;/p&gt;&lt;h3&gt;The Form&lt;/h3&gt;
+&lt;pre class="highlight"&gt;&lt;code class="scala"&gt;&lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="n"&gt;registrationForm&lt;/span&gt; &lt;span class="k"&gt;=&lt;/span&gt; &lt;span class="nc"&gt;Form&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;
+  &lt;span class="n"&gt;mapping&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;
+    &lt;span class="s"&gt;"username"&lt;/span&gt; &lt;span class="o"&gt;-&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;nonEmptyText&lt;/span&gt;&lt;span class="o"&gt;,&lt;/span&gt;
+    &lt;span class="s"&gt;"password"&lt;/span&gt; &lt;span class="o"&gt;-&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;nonEmptyText&lt;/span&gt;&lt;span class="o"&gt;,&lt;/span&gt;
+    &lt;span class="s"&gt;"confirm"&lt;/span&gt; &lt;span class="o"&gt;-&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;nonEmptyText&lt;/span&gt;&lt;span class="o"&gt;,&lt;/span&gt;
+    &lt;span class="s"&gt;"realName"&lt;/span&gt; &lt;span class="o"&gt;-&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;text&lt;/span&gt;
+  &lt;span class="o"&gt;)(&lt;/span&gt;&lt;span class="nc"&gt;Registration&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;apply&lt;/span&gt;&lt;span class="o"&gt;)(&lt;/span&gt;&lt;span class="nc"&gt;Registration&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;unapply&lt;/span&gt;&lt;span class="o"&gt;)&lt;/span&gt;
+    &lt;span class="n"&gt;verifying&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="s"&gt;"Passwords must match"&lt;/span&gt;&lt;span class="o"&gt;,&lt;/span&gt; &lt;span class="n"&gt;fields&lt;/span&gt; &lt;span class="k"&gt;=&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;fields&lt;/span&gt; &lt;span class="k"&gt;match&lt;/span&gt; &lt;span class="o"&gt;{&lt;/span&gt;
+      &lt;span class="k"&gt;case&lt;/span&gt; &lt;span class="nc"&gt;Registration&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="k"&gt;_&lt;/span&gt;&lt;span class="o"&gt;,&lt;/span&gt; &lt;span class="n"&gt;password&lt;/span&gt;&lt;span class="o"&gt;,&lt;/span&gt; &lt;span class="n"&gt;confirmation&lt;/span&gt;&lt;span class="o"&gt;,&lt;/span&gt; &lt;span class="k"&gt;_&lt;/span&gt;&lt;span class="o"&gt;)&lt;/span&gt; &lt;span class="k"&gt;=&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;password&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;equals&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="n"&gt;confirmation&lt;/span&gt;&lt;span class="o"&gt;)&lt;/span&gt;
+    &lt;span class="o"&gt;})&lt;/span&gt;
+&lt;span class="o"&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;The Form concept in Play is a bit like a ViewModel of sorts. It defines validation and mapping rules and allows you to pass a structured object between the controller and the view (inluding error information etc.). In fact you aren't even obliged to bind this to a class, they can exists as themselves. My example above shows you how to bind to and from our &lt;code&gt;Registration&lt;/code&gt; class as well as some field and crossfield/global validation.&lt;/p&gt;&lt;h3&gt;Model Binding&lt;/h3&gt;
+&lt;pre class="highlight"&gt;&lt;code class="scala"&gt;&lt;span class="n"&gt;registrationForm&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;bindFromRequest&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;fold&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;
+  &lt;span class="n"&gt;form&lt;/span&gt; &lt;span class="k"&gt;=&amp;gt;&lt;/span&gt; &lt;span class="nc"&gt;BadRequest&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="n"&gt;views&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;html&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;register&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="n"&gt;form&lt;/span&gt;&lt;span class="o"&gt;)),&lt;/span&gt;
+  &lt;span class="n"&gt;registration&lt;/span&gt; &lt;span class="k"&gt;=&amp;gt;&lt;/span&gt; &lt;span class="o"&gt;{&lt;/span&gt;
+    &lt;span class="nc"&gt;Registrations&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;create&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="n"&gt;registration&lt;/span&gt;&lt;span class="o"&gt;)&lt;/span&gt;
+    &lt;span class="nc"&gt;Redirect&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="n"&gt;routes&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="nc"&gt;Application&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;index&lt;/span&gt;&lt;span class="o"&gt;()).&lt;/span&gt;&lt;span class="n"&gt;flashing&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;
+      &lt;span class="s"&gt;"message"&lt;/span&gt; &lt;span class="o"&gt;-&amp;gt;&lt;/span&gt; &lt;span class="s"&gt;"User Registered!"&lt;/span&gt;
+    &lt;span class="o"&gt;)&lt;/span&gt;
+  &lt;span class="o"&gt;}&lt;/span&gt;
+&lt;span class="o"&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;This little functional approach allows us to bind a request to our &lt;code&gt;registrationForm&lt;/code&gt; and react to invalid input. In the case of an invalid bind the first argument into &lt;code&gt;fold&lt;/code&gt; is executed which returns a bad request with an instance of the form. In the case of the happy path we simply push our &lt;code&gt;registration&lt;/code&gt; instance into the data store and redirect to the &lt;code&gt;index&lt;/code&gt; action along with a flash message.&lt;/p&gt;&lt;h3&gt;Flash&lt;/h3&gt;&lt;p&gt;Flash is like a carefully curated session variable that exists only for the next request. This allows you to pass messages or some very transient data between requests. This is also accessible in the view which is handy.&lt;/p&gt;&lt;h2&gt;Routes&lt;/h2&gt;&lt;p&gt;Routes in Play are written into the &lt;code&gt;config/routes&lt;/code&gt; file and this is used as a basis to generate reverse routes (this gives is us statically typed routes via the &lt;code&gt;routes&lt;/code&gt; object).&lt;/p&gt;
+&lt;pre class="highlight"&gt;&lt;code class="scala"&gt;&lt;span class="k"&gt;#&lt;/span&gt; &lt;span class="nc"&gt;Routes&lt;/span&gt;
+&lt;span class="k"&gt;#&lt;/span&gt; &lt;span class="nc"&gt;This&lt;/span&gt; &lt;span class="n"&gt;file&lt;/span&gt; &lt;span class="n"&gt;defines&lt;/span&gt; &lt;span class="n"&gt;all&lt;/span&gt; &lt;span class="n"&gt;application&lt;/span&gt; &lt;span class="n"&gt;routes&lt;/span&gt; &lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="nc"&gt;Higher&lt;/span&gt; &lt;span class="n"&gt;priority&lt;/span&gt; &lt;span class="n"&gt;routes&lt;/span&gt; &lt;span class="n"&gt;first&lt;/span&gt;&lt;span class="o"&gt;)&lt;/span&gt;
+&lt;span class="k"&gt;#&lt;/span&gt; &lt;span class="o"&gt;~~~~&lt;/span&gt;
+
+&lt;span class="k"&gt;#&lt;/span&gt; &lt;span class="nc"&gt;Home&lt;/span&gt; &lt;span class="n"&gt;page&lt;/span&gt;
+&lt;span class="nc"&gt;GET&lt;/span&gt;     &lt;span class="o"&gt;/&lt;/span&gt;                           &lt;span class="n"&gt;controllers&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="nc"&gt;Application&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;index&lt;/span&gt;
+&lt;span class="nc"&gt;GET&lt;/span&gt;     &lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;register&lt;/span&gt;                   &lt;span class="n"&gt;controllers&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="nc"&gt;Register&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;index&lt;/span&gt;
+&lt;span class="nc"&gt;POST&lt;/span&gt;    &lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;register&lt;/span&gt;                   &lt;span class="n"&gt;controllers&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="nc"&gt;Register&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;register&lt;/span&gt;
+
+&lt;span class="k"&gt;#&lt;/span&gt; &lt;span class="nc"&gt;Map&lt;/span&gt; &lt;span class="n"&gt;static&lt;/span&gt; &lt;span class="n"&gt;resources&lt;/span&gt; &lt;span class="n"&gt;from&lt;/span&gt; &lt;span class="n"&gt;the&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;public&lt;/span&gt; &lt;span class="n"&gt;folder&lt;/span&gt; &lt;span class="n"&gt;to&lt;/span&gt; &lt;span class="n"&gt;the&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;assets&lt;/span&gt; &lt;span class="nc"&gt;URL&lt;/span&gt; &lt;span class="n"&gt;path&lt;/span&gt;
+&lt;span class="nc"&gt;GET&lt;/span&gt;     &lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;assets&lt;/span&gt;&lt;span class="cm"&gt;/*file               controllers.Assets.at(path="/public", file)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;So I added two new routes for register that allows us to view and submit our registration form.&lt;/p&gt;&lt;h2&gt;The Views&lt;/h2&gt;&lt;p&gt;Right lets do something a little neat - remember I mentioned James Ward earlier? Well he curates a little project called &lt;a href="http://webjars.github.com"&gt;webjars&lt;/a&gt; which allows us to add client side resources as managed dependencies to our project. So lets prettify our UI with a bit of &lt;a href="http://twitter.github.com/bootstrap/"&gt;Twitter Bootstrap&lt;/a&gt; love.&lt;/p&gt;&lt;p&gt;First thing we want to do is update our &lt;code&gt;Build.scala&lt;/code&gt; file with webjars resolver and our bootstrap dependency&lt;/p&gt;
+&lt;pre class="highlight"&gt;&lt;code class="scala"&gt;&lt;span class="k"&gt;val&lt;/span&gt; &lt;span class="n"&gt;appDependencies&lt;/span&gt; &lt;span class="k"&gt;=&lt;/span&gt; &lt;span class="nc"&gt;Seq&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;
+  &lt;span class="s"&gt;"com.github.twitter"&lt;/span&gt; &lt;span class="o"&gt;%&lt;/span&gt;  &lt;span class="s"&gt;"bootstrap"&lt;/span&gt;  &lt;span class="o"&gt;%&lt;/span&gt; &lt;span class="s"&gt;"2.0.2"&lt;/span&gt;&lt;span class="o"&gt;,&lt;/span&gt;
+  &lt;span class="c1"&gt;// other deps...&lt;/span&gt;
+&lt;span class="o"&gt;)&lt;/span&gt;
+
+&lt;span class="k"&gt;val&lt;/span&gt; &lt;span class="n"&gt;main&lt;/span&gt; &lt;span class="k"&gt;=&lt;/span&gt; &lt;span class="nc"&gt;PlayProject&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="n"&gt;appName&lt;/span&gt;&lt;span class="o"&gt;,&lt;/span&gt; &lt;span class="n"&gt;appVersion&lt;/span&gt;&lt;span class="o"&gt;,&lt;/span&gt; &lt;span class="n"&gt;appDependencies&lt;/span&gt;&lt;span class="o"&gt;,&lt;/span&gt; &lt;span class="n"&gt;mainLang&lt;/span&gt; &lt;span class="k"&gt;=&lt;/span&gt; &lt;span class="nc"&gt;SCALA&lt;/span&gt;&lt;span class="o"&gt;).&lt;/span&gt;&lt;span class="n"&gt;settings&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;
+  &lt;span class="n"&gt;resolvers&lt;/span&gt; &lt;span class="o"&gt;++=&lt;/span&gt; &lt;span class="nc"&gt;Seq&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;
+    &lt;span class="s"&gt;"webjars"&lt;/span&gt;          &lt;span class="n"&gt;at&lt;/span&gt; &lt;span class="s"&gt;"http://webjars.github.com/m2"&lt;/span&gt;&lt;span class="o"&gt;,&lt;/span&gt;
+    &lt;span class="c1"&gt;// other resolvers...&lt;/span&gt;
+  &lt;span class="o"&gt;)&lt;/span&gt;
+&lt;span class="o"&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Then in our &lt;code&gt;main.scala.html&lt;/code&gt; we can reference the bootstrap assets in the normal way,&lt;/p&gt;
+&lt;pre class="highlight"&gt;&lt;code class="html"&gt;&lt;span class="nt"&gt;&amp;lt;link&lt;/span&gt; &lt;span class="na"&gt;rel=&lt;/span&gt;&lt;span class="s"&gt;"stylesheet"&lt;/span&gt; &lt;span class="na"&gt;media=&lt;/span&gt;&lt;span class="s"&gt;"screen"&lt;/span&gt; &lt;span class="na"&gt;href=&lt;/span&gt;&lt;span class="s"&gt;"@routes.Assets.at("&lt;/span&gt;&lt;span class="na"&gt;stylesheets&lt;/span&gt;&lt;span class="err"&gt;/&lt;/span&gt;&lt;span class="na"&gt;bootstrap&lt;/span&gt;&lt;span class="err"&gt;.&lt;/span&gt;&lt;span class="na"&gt;min&lt;/span&gt;&lt;span class="err"&gt;.&lt;/span&gt;&lt;span class="na"&gt;css&lt;/span&gt;&lt;span class="err"&gt;")"&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;h3&gt;Index (index.scala.html)&lt;/h3&gt;&lt;p&gt;Here we simply list the current registered people,&lt;/p&gt;
+&lt;pre class="highlight"&gt;&lt;code class="html"&gt;@(registrations: List[Registration])(implicit flash: Flash)
+@main("Super Simple Sample") {
+  @if(flash.data.contains("message")){
+    &lt;span class="nt"&gt;&amp;lt;div&lt;/span&gt; &lt;span class="na"&gt;class=&lt;/span&gt;&lt;span class="s"&gt;"alert alert-success"&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&lt;/span&gt;@flash.get("message")&lt;span class="nt"&gt;&amp;lt;/div&amp;gt;&lt;/span&gt;
+  }
+  &lt;span class="nt"&gt;&amp;lt;a&lt;/span&gt; &lt;span class="na"&gt;href=&lt;/span&gt;&lt;span class="s"&gt;"@routes.Register.index"&lt;/span&gt; &lt;span class="na"&gt;class=&lt;/span&gt;&lt;span class="s"&gt;"btn btn-primary"&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&lt;/span&gt;Register&lt;span class="nt"&gt;&amp;lt;/a&amp;gt;&lt;/span&gt;
+  &lt;span class="nt"&gt;&amp;lt;table&lt;/span&gt; &lt;span class="na"&gt;class=&lt;/span&gt;&lt;span class="s"&gt;"table table-bordered"&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class="nt"&gt;&amp;lt;thead&amp;gt;&lt;/span&gt;
+      &lt;span class="nt"&gt;&amp;lt;tr&amp;gt;&lt;/span&gt;
+        &lt;span class="nt"&gt;&amp;lt;th&amp;gt;&lt;/span&gt;Username&lt;span class="nt"&gt;&amp;lt;/th&amp;gt;&lt;/span&gt;
+        &lt;span class="nt"&gt;&amp;lt;th&amp;gt;&lt;/span&gt;Real Name&lt;span class="nt"&gt;&amp;lt;/th&amp;gt;&lt;/span&gt;
+      &lt;span class="nt"&gt;&amp;lt;/tr&amp;gt;&lt;/span&gt;
+    &lt;span class="nt"&gt;&amp;lt;/thead&amp;gt;&lt;/span&gt;
+    &lt;span class="nt"&gt;&amp;lt;tbody&amp;gt;&lt;/span&gt;
+      @registrations.map { registration =&amp;gt;
+        &lt;span class="nt"&gt;&amp;lt;tr&amp;gt;&lt;/span&gt;
+          &lt;span class="nt"&gt;&amp;lt;td&amp;gt;&lt;/span&gt;@registration.username&lt;span class="nt"&gt;&amp;lt;/td&amp;gt;&lt;/span&gt;
+          &lt;span class="nt"&gt;&amp;lt;td&amp;gt;&lt;/span&gt;@registration.realName&lt;span class="nt"&gt;&amp;lt;/td&amp;gt;&lt;/span&gt;
+        &lt;span class="nt"&gt;&amp;lt;/tr&amp;gt;&lt;/span&gt;
+      }
+    &lt;span class="nt"&gt;&amp;lt;/tbody&amp;gt;&lt;/span&gt;
+  &lt;span class="nt"&gt;&amp;lt;/table&amp;gt;&lt;/span&gt;
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;The interesting thing about Play 2 views is that they are just Scala. Yep neat. In fact any .NETters will feel quite at home as they are reminiscent of Razor views too.&lt;/p&gt;&lt;h3&gt;Register (register.scala.html)&lt;/h3&gt;
+&lt;pre class="highlight"&gt;&lt;code class="html"&gt;@(registrationForm: Form[models.Registration])(implicit flash: Flash)
+
+@import play.api.i18n._
+@import views.html.helper._
+
+@input(field: Field, label: String, fieldType: Symbol = 'text) = {
+  &lt;span class="nt"&gt;&amp;lt;div&lt;/span&gt; &lt;span class="na"&gt;class=&lt;/span&gt;&lt;span class="s"&gt;"control-group @if(field.hasErrors) {error}"&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class="nt"&gt;&amp;lt;label&lt;/span&gt; &lt;span class="na"&gt;class=&lt;/span&gt;&lt;span class="s"&gt;"control-label"&lt;/span&gt; &lt;span class="na"&gt;for=&lt;/span&gt;&lt;span class="s"&gt;"@field.id"&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&lt;/span&gt;@label&lt;span class="nt"&gt;&amp;lt;/label&amp;gt;&lt;/span&gt;
+    &lt;span class="nt"&gt;&amp;lt;div&lt;/span&gt; &lt;span class="na"&gt;class=&lt;/span&gt;&lt;span class="s"&gt;"controls"&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&lt;/span&gt;
+      &lt;span class="nt"&gt;&amp;lt;input&lt;/span&gt; &lt;span class="na"&gt;type=&lt;/span&gt;&lt;span class="s"&gt;"@fieldType.name"&lt;/span&gt; &lt;span class="na"&gt;value=&lt;/span&gt;&lt;span class="s"&gt;"@field.value"&lt;/span&gt; &lt;span class="na"&gt;name=&lt;/span&gt;&lt;span class="s"&gt;"@field.id"&lt;/span&gt; &lt;span class="nt"&gt;/&amp;gt;&lt;/span&gt;
+      @if(field.hasErrors){
+        &lt;span class="nt"&gt;&amp;lt;span&lt;/span&gt; &lt;span class="na"&gt;class=&lt;/span&gt;&lt;span class="s"&gt;"help-inline"&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&lt;/span&gt;
+          @Messages(field.error.head.message)
+        &lt;span class="nt"&gt;&amp;lt;/span&amp;gt;&lt;/span&gt;
+      }
+    &lt;span class="nt"&gt;&amp;lt;/div&amp;gt;&lt;/span&gt;
+  &lt;span class="nt"&gt;&amp;lt;/div&amp;gt;&lt;/span&gt;
+}
+
+@main("Super Simple Sample") {
+  @form(action = routes.Register.register, 'class -&amp;gt; "form-horizontal") {
+    &lt;span class="nt"&gt;&amp;lt;fieldset&amp;gt;&lt;/span&gt;
+      &lt;span class="nt"&gt;&amp;lt;legend&amp;gt;&lt;/span&gt;Registration&lt;span class="nt"&gt;&amp;lt;/legend&amp;gt;&lt;/span&gt;
+      @registrationForm.globalError.map { error =&amp;gt;
+        &lt;span class="nt"&gt;&amp;lt;div&lt;/span&gt; &lt;span class="na"&gt;class=&lt;/span&gt;&lt;span class="s"&gt;'row'&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&lt;/span&gt;
+          &lt;span class="nt"&gt;&amp;lt;div&lt;/span&gt; &lt;span class="na"&gt;class=&lt;/span&gt;&lt;span class="s"&gt;"alert alert-error"&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&lt;/span&gt;@error.message&lt;span class="nt"&gt;&amp;lt;/div&amp;gt;&lt;/span&gt;
+        &lt;span class="nt"&gt;&amp;lt;/div&amp;gt;&lt;/span&gt;
+      }
+      @input(registrationForm("name"), "Username")
+      @input(registrationForm("password"), "Password", 'password)
+      @input(registrationForm("confirm"), "Confirm Password", 'password)
+      @input(registrationForm("realName"), "Real Name")
+    &lt;span class="nt"&gt;&amp;lt;/fieldset&amp;gt;&lt;/span&gt;
+    &lt;span class="nt"&gt;&amp;lt;input&lt;/span&gt; &lt;span class="na"&gt;type=&lt;/span&gt;&lt;span class="s"&gt;"submit"&lt;/span&gt; &lt;span class="na"&gt;class=&lt;/span&gt;&lt;span class="s"&gt;"btn"&lt;/span&gt; &lt;span class="na"&gt;value=&lt;/span&gt;&lt;span class="s"&gt;"Register"&lt;/span&gt;&lt;span class="nt"&gt;/&amp;gt;&lt;/span&gt;
+  }
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;You can see from the source there that I've crafted my own helper function to keep things nice and DRY and avoid having to write out the twitter bootstrap required structure over and over.&lt;/p&gt;&lt;h2&gt;Running and Wrap Up&lt;/h2&gt;&lt;p&gt;Right about now the solution is done so with a simple &lt;code&gt;play run&lt;/code&gt; you should be able to register and view current registrations. Excellent. If you want to skip everything and just get my code you can clone the &lt;a href="https://github.com/kouphax/scala-sampleapp"&gt;Github Repo&lt;/a&gt;.&lt;/p&gt;&lt;p&gt;OK so it's not the most useful app in the world - that was never the intention. But look at the code - it's very terse and the time required to write this post was considerably more than the time required to implement the solution. Joy!&lt;/p&gt;</content></entry></feed>

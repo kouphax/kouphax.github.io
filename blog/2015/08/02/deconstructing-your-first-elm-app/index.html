@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><meta content="IE=edge,chrome=1" http-equiv="X-UA-Compatible"><meta content="width=device-width, user-scalable=no" name="viewport"><meta content="Deconstructing Your First Elm App" name="description"><link href="/favicon.ico" rel="shortcut icon" type="image/x-icon"><link href="https://fonts.googleapis.com/css?family=Merriweather:400,700|Open+Sans:400,700" rel="stylesheet" type="text/css"><link href="/bundles/84cd5d4454d9/styles.css" rel="stylesheet" /><title>Deconstructing Your First Elm App</title></head><body><div class="row"><blockquote class="warning">This post is over 6 months old.  Some details,
+       especially technical, may have changed.</blockquote><div itemscope="" itemtype="http://schema.org/Article"><h1 itemprop="name">Deconstructing Your First Elm App</h1><div class="post" itemprop="articleBody"><blockquote><p>This article is similar to the <a href="https://github.com/evancz/elm-architecture-tutorial#the-elm-architecture">Elm Architecture Tutorial</a> so if you fancy a more official explanation you should check that out too.</p>
+</blockquote><p>One of things that has really impressed me in my research of <a href="http://elm-lang.org">Elm</a> has been the simplicity of the architecture of an application. An Elm app is essentially just a reactive stream of actions that transition the model into various states and in turn these state changes cause the view to redraw. You don't mutate anything you just create a new state and the entire application redraws itself. Oh and it's fast too. This is thanks to the <a href="http://elm-lang.org/blog/blazing-fast-html">virtual DOM</a> approach that has risen to fame through the likes of Elm and <a href="http://facebook.github.io/react/">React</a>. </p>
+<blockquote><p>Essentially Elm allows you to treat the UI as an <a href="http://iki.fi/sol/imgui/">Immediate Mode UI</a>.</p>
+</blockquote><h2>Deconstruction</h2><p>What I want to do is demonstrate this simplicity by creating a very simple application firstly using the <code>start-app</code> package and then without using the <code>start-app</code> package. By using the <code>start-app</code> package initially we can see how an Elm app hangs together at a high level then, by removing the use of the package, we can dive a bit deeper into how our application is made reactive with some really simple functional patterns.</p><h2>Using start-app</h2><p>The <a href="https://github.com/evancz/start-app">start-app</a> package abstracts away most of the boilerplate required to wire up a typical Elm application. It is designed to help people new to Elm get their first application up and running without to much upfront cognitive load. You just supply the <code>StartApp.start</code> a type containing</p>
+<ul>
+  <li>Your <code>model</code> that is used to store state</li>
+  <li>Your <code>view</code> that provides a visual representation of the current state, and,</li>
+  <li>Your <code>update</code> method that, through action signals generated from inside or outside your application, transitions your model from one state to another</li>
+</ul><p>If you want to follow along you need to have Elm installed. Have a look at the <a href="http://elm-lang.org/install">official site for instructions</a> and various editor plugins for Elm.</p><p>So lets create our first application. </p>
+<pre class="highlight"><code class="sh">&gt; mkdir elm-demo-start-app <span class="o">&amp;&amp;</span> <span class="nb">cd </span>elm-demo-start-app
+
+&gt; elm package install
+
+Some new packages are needed. Here is the upgrade plan.
+
+  Install:
+    elm-lang/core 2.1.0
+
+Do you approve of this plan? <span class="o">(</span>y/n<span class="o">)</span> y
+Downloading elm-lang/core
+Packages configured successfully!
+</code></pre><p>This gives us the necessary manifests and caches that you get with any package managers in Elms case we get,</p>
+<ul>
+  <li><code>elm-package.json</code> which declares all the metadata and dependencies our application needs</li>
+  <li><code>elm-stuff/</code> which acts as our package cache. You'll see the source of the dependencies we downloaded in the previous steps.</li>
+</ul><p>Then we want to add the extra dependencies that allow us to quickly build our Elm app,</p>
+<pre class="highlight"><code class="sh">&gt; mkdir elm-demo-start-app <span class="o">&amp;&amp;</span> <span class="nb">cd </span>elm-demo-start-app
+
+&gt; elm package install
+
+Some new packages are needed. Here is the upgrade plan.
+
+  Install:
+    elm-lang/core 2.1.0
+
+Do you approve of this plan? <span class="o">(</span>y/n<span class="o">)</span> y
+Downloading elm-lang/core
+Packages configured successfully!
+
+&gt; elm package install evancz/elm-html 3.0.0
+
+To install evancz/elm-html I would like to add the following
+dependency to elm-package.json:
+
+    <span class="s2">"evancz/elm-html"</span>: <span class="s2">"3.0.0 &lt;= v &lt; 4.0.0"</span>
+
+May I add that to elm-package.json <span class="k">for </span>you? <span class="o">(</span>y/n<span class="o">)</span> y
+
+Some new packages are needed. Here is the upgrade plan.
+
+  Install:
+    evancz/elm-html 3.0.0
+    evancz/virtual-dom 1.2.3
+
+Do you approve of this plan? <span class="o">(</span>y/n<span class="o">)</span> y
+Downloading evancz/elm-html
+Downloading evancz/virtual-dom
+Packages configured successfully!
+
+&gt; elm package install evancz/start-app 1.0.0
+
+To install evancz/start-app I would like to add the following
+dependency to elm-package.json:
+
+    <span class="s2">"evancz/start-app"</span>: <span class="s2">"1.0.0 &lt;= v &lt; 2.0.0"</span>
+
+May I add that to elm-package.json <span class="k">for </span>you? <span class="o">(</span>y/n<span class="o">)</span> y
+
+Some new packages are needed. Here is the upgrade plan.
+
+  Install:
+    evancz/start-app 1.0.1
+
+Do you approve of this plan? <span class="o">(</span>y/n<span class="o">)</span> y
+Downloading evancz/start-app
+Packages configured successfully!
+</code></pre><p>So far, via the most polite package manager I've ever encountered, we have installed</p>
+<ul>
+  <li><code>evancz/elm-html</code> which allows us to work and build HTML and associated elements attributes, events and CSS styling</li>
+  <li><code>evancz/virtual-dom</code> is installed as dependency of <code>elm-html</code> and provides the virtual DOM implementation that Elm uses.</li>
+  <li><code>evancz/start-app</code> a small library for making writing standard Elm apps with less upfront wiring.</li>
+</ul><h2>TO THE CODE!!</h2><p>The app is going to be really basic, and I really do mean basic. Just enough to demonstrate the core components of the Elm architecture - the <strong>model</strong> for holding state, the <strong>view</strong> for visualising app state and the <strong>update</strong> function for transitioning our state.</p><p><img src="/images/blog/elm-demo.png" alt="App States" _="_" /></p><p>The app will have 2 buttons - "Mark" and "Reset". When you click "Mark" the app will append a <strong>block</strong> (█) character to represent that event to the event log and increment the number of events logged. When you click "Reset" the app will clear the event log and zero the number of events logged. Contrived? Yes of course. But acceptably so.</p><h2>Starting Point</h2><p>So lets create an <code>EventLog.elm</code> file. This will be our one and only code file for the application. We'll start by declaring the module and importing the necessary packages,</p>
+<pre class="highlight"><code class="haskell"><span class="kr">module</span> <span class="nn">EventLog</span> <span class="kr">where</span>
+
+<span class="kr">import</span> <span class="nn">Html</span>            <span class="n">exposing</span> <span class="p">(</span><span class="o">..</span><span class="p">)</span>
+<span class="kr">import</span> <span class="nn">Html.Events</span>     <span class="n">exposing</span> <span class="p">(</span><span class="o">..</span><span class="p">)</span>
+<span class="kr">import</span> <span class="nn">Html.Attributes</span> <span class="n">exposing</span> <span class="p">(</span><span class="o">..</span><span class="p">)</span>
+<span class="kr">import</span> <span class="nn">Signal</span>          <span class="n">exposing</span> <span class="p">(</span><span class="o">..</span><span class="p">)</span>
+<span class="kr">import</span> <span class="nn">StartApp</span>
+</code></pre><p>I've just imported a lot more than we will need for this app but feel free to curate your imports a bit better if you so desire. </p><p>Now we will start from the bottom up and declare our <code>main</code> function. This is the starting point for all Elm apps. It will usually return a <code>Signal</code> of some type that can be used by the Elm infrastructure to perform the necessary (re)rendering of your application. You can think of a <code>Signal</code> as a typed stream that emits items as and when they are generated. </p><p>As we are using the <code>start-app</code> package ours will look like this,</p>
+<pre class="highlight"><code class="haskell"><span class="nf">main</span> <span class="kt">:</span> <span class="kt">Signal</span> <span class="kt">Html</span>
+<span class="nf">main</span> <span class="ow">=</span>
+  <span class="kt">StartApp</span><span class="o">.</span><span class="n">start</span>
+    <span class="p">{</span> <span class="n">model</span> <span class="ow">=</span> <span class="n">initialModel</span><span class="p">,</span>
+      <span class="n">view</span> <span class="ow">=</span> <span class="n">view</span><span class="p">,</span>
+      <span class="n">update</span> <span class="ow">=</span> <span class="n">update</span> <span class="p">}</span>
+</code></pre><p>I have included the type signature in here for good measure. Our <code>main</code> simply calls into <code>StartApp.start</code> passing in our 3 main components. Of course we still need to define these so lets go ahead and do this.</p><h2>Model</h2><p>Our model will define the entire state of our application. In our case this won't be very big at all, in fact it could literally just be a counter the we increment but for the sake of this experiment we will make it slightly more verbose,</p>
+<pre class="highlight"><code class="haskell"><span class="kr">type</span> <span class="n">alias</span> <span class="kt">Model</span> <span class="ow">=</span>
+  <span class="p">{</span> <span class="n">events</span><span class="kt">:</span> <span class="kt">List</span> <span class="kt">String</span> <span class="p">}</span>
+
+<span class="nf">initialModel</span> <span class="kt">:</span> <span class="kt">Model</span>
+<span class="nf">initialModel</span> <span class="ow">=</span>
+  <span class="p">{</span> <span class="n">events</span> <span class="ow">=</span> <span class="kt">[]</span> <span class="p">}</span>
+</code></pre><p>I defined a <code>type alias</code> because it avoids the mess of having to declare the type as <code>{ events: List String }</code> in every type signature that includes it. Then I defined our <code>initialModel</code> using the <code>alias</code>. The <code>initialModel</code>, as the name suggests, is our starting state for our application. An empty model.</p><h2>View</h2><p>So now we have our state we can create a visual representation of that state by creating our <code>view</code>,</p>
+<pre class="highlight"><code class="haskell"><span class="nf">view</span> <span class="kt">:</span> <span class="kt">Address</span> <span class="kt">Action</span> <span class="ow">-&gt;</span> <span class="kt">Model</span> <span class="ow">-&gt;</span> <span class="kt">Html</span>
+<span class="nf">view</span> <span class="n">address</span> <span class="n">model</span> <span class="ow">=</span>
+  <span class="n">div</span> <span class="kt">[]</span>
+    <span class="p">[</span> <span class="n">button</span> <span class="p">[</span> <span class="n">onClick</span> <span class="n">address</span> <span class="p">(</span><span class="kt">Mark</span> <span class="s">"?"</span><span class="p">)</span> <span class="p">]</span> 
+        <span class="p">[</span> <span class="n">text</span> <span class="s">"Mark"</span> <span class="p">],</span>
+      <span class="n">button</span> <span class="p">[</span> <span class="n">onClick</span> <span class="n">address</span> <span class="kt">Reset</span> <span class="p">]</span> 
+        <span class="p">[</span> <span class="n">text</span> <span class="s">"Reset"</span> <span class="p">],</span>
+      <span class="n">h2</span> <span class="kt">[]</span> 
+        <span class="p">[</span> <span class="n">text</span> <span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">events</span> <span class="o">|&gt;</span> <span class="kt">List</span><span class="o">.</span><span class="n">length</span> <span class="o">|&gt;</span> <span class="n">toString</span><span class="p">),</span> <span class="n">text</span> <span class="s">" Events"</span> <span class="p">],</span>
+      <span class="n">div</span> <span class="kt">[]</span> 
+        <span class="p">(</span><span class="kt">List</span><span class="o">.</span><span class="n">map</span> <span class="p">(</span><span class="nf">\</span><span class="n">t</span> <span class="ow">-&gt;</span> <span class="n">text</span> <span class="n">t</span><span class="p">)</span> <span class="n">model</span><span class="o">.</span><span class="n">events</span><span class="p">)]</span>
+</code></pre><p>I'd typically break this into smaller functions to keep it a bit cleaner but for explanation purposes this is good enough. Our view takes an <code>address</code> and <code>model</code>. The <code>address</code> is passed in from the work done by <code>start-app</code> and provides a mailbox to send messages our actions to in order to update the model. The model in this case is the current state of the entire application.</p><p>With these key bits of data we construct a primitive HTML representation. </p>
+<ul>
+  <li>We define buttons that have <code>onClick</code> handlers. These handlers simply send actions (we define this type later) to the supplied address.</li>
+  <li>We define an <code>h2</code> element that counts the number of events in our event list and displays it</li>
+  <li>Finally we define a <code>div</code> that converts our events list into HTML elements</li>
+</ul><h2>Actions</h2><p>Lets go back to this <code>address</code> and <code>actions</code>. As mentioned the <code>start-app</code> package creates an internal mailbox and address that you can send things to which will get passed into our <code>view</code> function. When we send stuff to the address this will ultimately trigger a call to the apps <code>update</code> function. As you can see from the type signature of <code>view</code> the <code>Address</code> is of type <code>Address Action</code>. <code>Action</code> is a type that we will define so lets do that and talk about it after.</p>
+<pre class="highlight"><code class="haskell"><span class="kr">type</span> <span class="kt">Action</span> <span class="ow">=</span> <span class="kt">Mark</span> <span class="kt">String</span>
+            <span class="o">|</span> <span class="kt">Reset</span>
+</code></pre><p>If you think back to the UI we had 2 buttons - Mark and Reset. What the <code>Action</code> type does is create a representation of these UI interactions that can be used within our app to signal intent. Types like the <code>Action</code> type - the ones that use <code>|</code> - are called union types. In some ways you can think of them as enums that can accept data as well. By defining this <code>Action</code> type we explicitly declare all the actions that will change the state within our application. No just <strong>can</strong> but <strong>must</strong>. That's predictable, thats wonderful and lovely and makes me feel all warm inside.</p><p>So, yes sorry I got all excited, the buttons we defined in our <code>view</code> method, each, sends one of these types to the supplied mailbox address. So lets define what happens when we do this,</p><h2>Update</h2><p>Right. We have a model, a view and a way to signal changes in state via actions. Now we need to actually manage those state changes. This is where the final piece of the puzzle falls into place,</p>
+<pre class="highlight"><code class="haskell"><span class="nf">update</span> <span class="kt">:</span> <span class="kt">Action</span> <span class="ow">-&gt;</span> <span class="kt">Model</span> <span class="ow">-&gt;</span> <span class="kt">Model</span>
+<span class="nf">update</span> <span class="n">action</span> <span class="n">log</span> <span class="ow">=</span>
+  <span class="kr">case</span> <span class="n">action</span> <span class="kr">of</span>
+    <span class="kt">Mark</span> <span class="n">date</span> <span class="ow">-&gt;</span>
+      <span class="p">{</span> <span class="n">log</span> <span class="o">|</span> <span class="n">events</span> <span class="ow">&lt;-</span> <span class="n">log</span><span class="o">.</span><span class="n">events</span> <span class="o">++</span> <span class="p">[</span><span class="n">date</span><span class="p">]</span> <span class="p">}</span>
+    <span class="kt">Reset</span> <span class="ow">-&gt;</span>
+      <span class="p">{</span> <span class="n">log</span> <span class="o">|</span> <span class="n">events</span> <span class="ow">&lt;-</span> <span class="kt">[]</span> <span class="p">}</span>
+</code></pre><p>The <code>update</code> function is just one big <code>case</code> statement. It gets passed an action and the current state of our application and depending on the action we return a new state for our application. This generation of new state causes our application to be re-rendered and the glorious cycle begin again.</p><p>For completeness sake here is the entire <code>EventLog.elm</code></p>
+<pre class="highlight"><code class="haskell"><span class="kr">module</span> <span class="nn">EventLog</span> <span class="kr">where</span>
+
+<span class="kr">import</span> <span class="nn">Html</span>            <span class="n">exposing</span> <span class="p">(</span><span class="o">..</span><span class="p">)</span>
+<span class="kr">import</span> <span class="nn">Html.Events</span>     <span class="n">exposing</span> <span class="p">(</span><span class="o">..</span><span class="p">)</span>
+<span class="kr">import</span> <span class="nn">Html.Attributes</span> <span class="n">exposing</span> <span class="p">(</span><span class="o">..</span><span class="p">)</span>
+<span class="kr">import</span> <span class="nn">Signal</span>          <span class="n">exposing</span> <span class="p">(</span><span class="o">..</span><span class="p">)</span>
+<span class="kr">import</span> <span class="nn">StartApp</span>
+
+<span class="kr">type</span> <span class="n">alias</span> <span class="kt">Model</span> <span class="ow">=</span>
+  <span class="p">{</span> <span class="n">events</span><span class="kt">:</span> <span class="kt">List</span> <span class="kt">String</span> <span class="p">}</span>
+
+<span class="nf">initialModel</span> <span class="kt">:</span> <span class="kt">Model</span>
+<span class="nf">initialModel</span> <span class="ow">=</span>
+  <span class="p">{</span> <span class="n">events</span> <span class="ow">=</span> <span class="kt">[]</span> <span class="p">}</span>
+
+<span class="kr">type</span> <span class="kt">Action</span> <span class="ow">=</span> <span class="kt">Mark</span> <span class="kt">String</span>
+            <span class="o">|</span> <span class="kt">Reset</span>
+
+<span class="nf">update</span> <span class="kt">:</span> <span class="kt">Action</span> <span class="ow">-&gt;</span> <span class="kt">Model</span> <span class="ow">-&gt;</span> <span class="kt">Model</span>
+<span class="nf">update</span> <span class="n">action</span> <span class="n">log</span> <span class="ow">=</span>
+  <span class="kr">case</span> <span class="n">action</span> <span class="kr">of</span>
+    <span class="kt">Mark</span> <span class="n">date</span> <span class="ow">-&gt;</span>
+      <span class="p">{</span> <span class="n">log</span> <span class="o">|</span> <span class="n">events</span> <span class="ow">&lt;-</span> <span class="n">log</span><span class="o">.</span><span class="n">events</span> <span class="o">++</span> <span class="p">[</span><span class="n">date</span><span class="p">]</span> <span class="p">}</span>
+    <span class="kt">Reset</span> <span class="ow">-&gt;</span>
+      <span class="p">{</span> <span class="n">log</span> <span class="o">|</span> <span class="n">events</span> <span class="ow">&lt;-</span> <span class="kt">[]</span> <span class="p">}</span>
+
+<span class="nf">view</span> <span class="kt">:</span> <span class="kt">Address</span> <span class="kt">Action</span> <span class="ow">-&gt;</span> <span class="kt">Model</span> <span class="ow">-&gt;</span> <span class="kt">Html</span>
+<span class="nf">view</span> <span class="n">address</span> <span class="n">model</span> <span class="ow">=</span>
+  <span class="n">div</span> <span class="kt">[]</span>
+    <span class="p">[</span> <span class="n">button</span> <span class="p">[</span> <span class="n">onClick</span> <span class="n">address</span> <span class="p">(</span><span class="kt">Mark</span> <span class="s">"?"</span><span class="p">)</span> <span class="p">]</span> <span class="p">[</span> <span class="n">text</span> <span class="s">"Mark"</span> <span class="p">],</span>
+      <span class="n">button</span> <span class="p">[</span> <span class="n">onClick</span> <span class="n">address</span> <span class="kt">Reset</span> <span class="p">]</span> <span class="p">[</span> <span class="n">text</span> <span class="s">"Reset"</span> <span class="p">],</span>
+      <span class="n">h2</span> <span class="kt">[]</span> <span class="p">[</span> <span class="n">text</span> <span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">events</span> <span class="o">|&gt;</span> <span class="kt">List</span><span class="o">.</span><span class="n">length</span> <span class="o">|&gt;</span> <span class="n">toString</span><span class="p">),</span> <span class="n">text</span> <span class="s">" Events"</span> <span class="p">],</span>
+      <span class="n">div</span> <span class="kt">[]</span> <span class="p">(</span><span class="kt">List</span><span class="o">.</span><span class="n">map</span> <span class="p">(</span><span class="nf">\</span><span class="n">t</span> <span class="ow">-&gt;</span> <span class="n">text</span> <span class="n">t</span><span class="p">)</span> <span class="n">model</span><span class="o">.</span><span class="n">events</span><span class="p">)</span>
+    <span class="p">]</span>
+
+<span class="nf">main</span> <span class="kt">:</span> <span class="kt">Signal</span> <span class="kt">Html</span>
+<span class="nf">main</span> <span class="ow">=</span>
+  <span class="kt">StartApp</span><span class="o">.</span><span class="n">start</span>
+    <span class="p">{</span> <span class="n">model</span> <span class="ow">=</span> <span class="n">initialModel</span><span class="p">,</span>
+      <span class="n">view</span> <span class="ow">=</span> <span class="n">view</span><span class="p">,</span>
+      <span class="n">update</span> <span class="ow">=</span> <span class="n">update</span> <span class="p">}</span>
+</code></pre><h2>Running the App</h2><p>Elm comes with some lovely tools to get your first app up and running without having to worry about the usually front end infrastructure such as grunt, gulp, bower, npm and so on and so forth. One of these is <code>reactor</code></p>
+<pre class="highlight"><code class="sh">&gt; elm reactor
+
+Elm Reactor 0.3.2 <span class="o">(</span>Elm Platform 0.15.1<span class="o">)</span>
+Listening on http://0.0.0.0:8000/
+</code></pre><p>Running <code>elm reactor</code> starts up a little file server (typically on port 8000) and if you navigate to <code>http://localhost:8000</code> you will see the project files listed. By clicking <code>EventLog.elm</code> reactor will compile your Elm code to JavaScript and inject it into an ephemeral HTML document so you can see and play with our utterly useless creation.</p><h2>Wrapping Up start-app</h2><p>So in summary</p>
+<ul>
+  <li>The <code>main</code> function starts our app using <code>StartApp.start</code> which we pass our three main components</li>
+  <li>The <code>model</code> represents the current state of our entire application</li>
+  <li>The <code>view</code> provides a visual representation of our current application state and also generates action signals from user interaction that trigger an update in our application</li>
+  <li>The <code>update</code> function takes these actions and creates a new state model for our application which triggers a re-rendering of our view</li>
+</ul><p>This is a deceptively simple approach that avoids one of the main pain points in application development - mutable state. Having to manage mutable state introduces a lot of complexity and unpredictability - two things that should never really mix.</p><h2>Removing start-app</h2><p>So the next question is "what does start-app do?". As I've demonstrated <code>start-app</code> has provided the glue for realising our application - we just provided the components. Knowing how these things glue together really helps with understanding Elm and its additional features such as signals and ports.</p><h2>The Mailbox</h2><p>As we've seen in the previous implementation our view function gets passed an <code>address</code> something that we didn't create ourselves. Internally <code>start-app</code> creates a mailbox - a concept in Elm that provides a typed address that we can send messages to and a signal that emits a value when the address receives a message. So you can see that when we send an action message to the address via the <code>onClick</code> handler in our view we can then trigger a state update.</p><p>Without the <code>start-app</code> we need to create the mailbox ourselves,</p>
+<pre class="highlight"><code class="haskell"><span class="nf">actions</span><span class="kt">:</span> <span class="kt">Mailbox</span> <span class="kt">Action</span>
+<span class="nf">actions</span> <span class="ow">=</span>
+  <span class="n">mailbox</span> <span class="kt">Reset</span>
+</code></pre><p>Our <code>actions</code> mailbox has a type of <code>Action</code> and when we create our mailbox we supply it an example of our <code>Action</code> type (in this case <code>Reset</code>). Often you'll see action types defined with a <code>NoOp</code> and that is often used as an example. Either way he have our mailbox.</p><h2>Reactive Model</h2><p>Next up we need to take our initial state and turn it into a reactive model. So that when an action message is received it will cause the <code>update</code> method to alter our state. Now this part is, IMHO, just the cleverest little pattern. The reactive model is just a fold over the signal that is a property of our mailbox starting with our initialState</p>
+<pre class="highlight"><code class="haskell"><span class="nf">model</span><span class="kt">:</span> <span class="kt">Signal</span> <span class="kt">Model</span>
+<span class="nf">model</span> <span class="ow">=</span>
+  <span class="n">foldp</span> <span class="n">update</span> <span class="n">initialModel</span> <span class="n">actions</span><span class="o">.</span><span class="n">signal</span>
+</code></pre><p>OK technically it's a <code>foldp</code> which is a special signal variant of <code>fold</code> that can yield intermediate results (as an when actions are generated). But thats it. Starting with our initial data when actions occur call the update method - the result of which is yielded by <code>foldp</code>. We have our reactive model.</p><h2>Mapping Main</h2><p>Finally we need to replace our <code>main</code> method and wire up all these parts to create our working application. </p>
+<pre class="highlight"><code class="haskell"><span class="nf">main</span> <span class="kt">:</span> <span class="kt">Signal</span> <span class="kt">Html</span>
+<span class="nf">main</span> <span class="ow">=</span>
+  <span class="n">map</span> <span class="p">(</span><span class="n">view</span> <span class="n">actions</span><span class="o">.</span><span class="n">address</span><span class="p">)</span> <span class="n">model</span>
+</code></pre><p>Now <code>main</code> becomes a <code>map</code> over the view using our <code>model</code> (the one we made reactive in the last step). As <code>view</code> takes both an <code>address</code> and a <code>model</code> so we create a partially applied or curried function of <code>(view actions.address)</code> that takes the address from our mailbox. So when the model updates the <code>map</code> will cause the view function to be called with the new state which will build our HTML representation and yield a signal value with that HTML representation into the core of Elms rendering engine. Once again the <code>map</code> function (from the <code>Signal</code> package) yields intermediate responses.</p><h2>And rest...</h2><p>So that covers the basic architecture of a typical Elm application. You can see how <code>start-app</code> removes some of the extra steps required to wire up an Elm application and would certainly lower the barrier of entry for people new to Elm. That said there are times you want access to the Mailbox (such as when trying to merge in external signals from <code>ports</code>) and <code>start-app</code> hides the mailbox it creates on your behalf.</p><p>The underlying principles of Elm are surprisingly simple yet very powerful. They aren't niche concepts either. Fundamentally they are common functional patterns which means, with a modicum of functional thinking, that application design is less made complex as we have to incur less cost in understanding concepts specific to Elm.</p></div><a class="twitter" href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fyobriefca.se%2Fblog%2F2015%2F08%2F02%2Fdeconstructing-your-first-elm-app%2F&amp;text=Deconstructing%20Your%20First%20Elm%20App&amp;via=kouphax" itemprop="discussionUrl" target="_blank">Tweet This</a><div class="dater"><time datetime="02-08-2015" itemprop="datePublished">August 02, 2015</time></div><div class="categories">Published in <a href="/categories/elm/">Elm</a> on August 02, 2015</div></div></div><div class="homer"><a href="/"><i class="icon-briefcase" style="font-size:32px;"></i></a></div><script type="text/javascript">(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-19143623-5', 'yobriefca.se');
+  ga('send', 'pageview');</script></body></html>

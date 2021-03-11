@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><meta content="IE=edge,chrome=1" http-equiv="X-UA-Compatible"><meta content="width=device-width, user-scalable=no" name="viewport"><meta content="Notes on Wake" name="description"><link href="/favicon.ico" rel="shortcut icon" type="image/x-icon"><link href="https://fonts.googleapis.com/css?family=Merriweather:400,700|Open+Sans:400,700" rel="stylesheet" type="text/css"><link href="/bundles/84cd5d4454d9/styles.css" rel="stylesheet" /><title>Notes on Wake</title></head><body><div class="row"><blockquote class="warning">This post is over 6 months old.  Some details,
+       especially technical, may have changed.</blockquote><div itemscope="" itemtype="http://schema.org/Article"><h1 itemprop="name">Notes on Wake</h1><div class="post" itemprop="articleBody"><p>I've spent the morning tinkering with <a href="http://www.wakelang.com/">Wake</a> because I had time and it popped up on Twitter at the right time.</p><p>It's an interesting language that aims to be</p>
+<blockquote><p><em>a fast, expressive, type safe language that gives you testability from the ground up.</em></p>
+</blockquote><p>What follows is a write up of my thoughts from the short time I've spent with <a href="http://www.wakelang.com/">Wake</a>.</p><h2>Baked in Dependency Injection</h2><p>I have plenty of experience in Java and have seen my fair share of codebases that make extensive use of dependency injection. The verbosity of Java has created many a monster. <code>Providers</code>, <code>Factories</code>, <code>FactoryProviders</code> and <code>ProviderFactoryProviders</code> fill project hierarchies all in an attempt to make the language bend to our will.</p><p>The main problem, aside from the obvious verbosity of Java, is its lack of syntax to support dependency injection. Vast technologies have been built around this simple concept alone. However without the language level support you are forced to go for either wizardry (see <code>@Inject</code>) or verbosity (through additional annotations) - neither of which are <a href="http://yobriefca.se/blog/2014/08/25/invasion-of-privacy/">desirable</a>.</p><p>One of <a href="http://www.wakelang.com/">Wake</a>s fundamental features is the use of <a href="http://wakelang.com/#provisions">provisions</a> which is essentially a means to bind dependencies to particular behaviour. Classes define exactly what they <code>need</code> and <code>provide</code> in order to get the job done.</p>
+<pre class="highlight"><code class="java"><span class="kn">import</span> <span class="nn">Printer</span><span class="o">;</span>
+
+<span class="n">every</span> <span class="n">Main</span> <span class="nl">is:</span>
+
+  <span class="n">needs</span> <span class="n">Printer</span> <span class="n">out</span><span class="o">;</span>
+
+  <span class="n">main</span><span class="o">()</span> <span class="o">{</span>
+    <span class="n">out</span><span class="o">.</span><span class="na">printLine</span><span class="o">(</span><span class="s">"Hello"</span><span class="o">);</span>
+  <span class="o">}</span>
+</code></pre><p>In the example above we can see that Main explicitly <code>needs</code> <code>Printer</code>. When the application is executed an instance of <code>Printer</code> will be injected into our <code>Main</code>. In this case Wake knows how to inject <code>Printer</code> as it is from the standard library. We can also <code>provide</code> our own dependencies including any rules required to construct them.</p>
+<pre class="highlight"><code class="java"><span class="kn">import</span> <span class="nn">Printer</span><span class="o">;</span>
+
+<span class="n">every</span> <span class="n">Main</span> <span class="nl">is:</span>
+
+  <span class="n">needs</span>
+    <span class="n">Printer</span><span class="o">;</span>
+
+  <span class="n">provides</span>
+    <span class="n">Person</span> <span class="o">&lt;-</span> <span class="n">Person</span><span class="o">(</span><span class="n">Printer</span><span class="o">,</span> <span class="o">?</span><span class="n">Text</span><span class="o">),</span>
+    <span class="n">Printer</span><span class="o">;</span>
+
+  <span class="n">main</span><span class="o">()</span> <span class="o">{</span>
+    <span class="o">(</span><span class="n">Person</span><span class="o">(</span><span class="s">"James"</span><span class="o">)</span> <span class="n">from</span> <span class="k">this</span><span class="o">).</span><span class="na">sayHi</span><span class="o">(</span><span class="s">"Internet"</span><span class="o">);</span>
+  <span class="o">}</span>
+
+<span class="n">every</span> <span class="n">Person</span> <span class="nl">is:</span>
+
+  <span class="n">needs</span>
+    <span class="n">Printer</span> <span class="n">out</span><span class="o">,</span>
+    <span class="n">Text</span>    <span class="n">me</span><span class="o">;</span>
+
+  <span class="n">sayHi</span><span class="o">(</span><span class="n">Text</span> <span class="n">otherPerson</span><span class="o">)</span> <span class="o">{</span>
+    <span class="n">out</span><span class="o">.</span><span class="na">printLine</span><span class="o">(</span><span class="s">"Hello "</span> <span class="o">+</span> <span class="n">otherPerson</span> <span class="o">+</span> <span class="s">" I'm "</span> <span class="o">+</span> <span class="n">me</span> <span class="o">+</span> <span class="s">"!"</span><span class="o">);</span>
+  <span class="o">}</span>
+</code></pre><p>There is a bit more code here so let me break down some of the important lines.</p>
+<ul>
+  <li>We have a <code>Person</code> class. This class <code>needs</code> both a <code>Printer</code> and some <code>Text</code> that represents the persons name.</li>
+  <li>The <code>Person</code> class has a <code>void</code> method that takes a single <code>Text</code> argument and uses the injected <code>Printer</code> to print a greeting.</li>
+  <li>The <code>Main</code> class, as before, <code>needs</code> a <code>Printer</code></li>
+  <li>This time the <code>Main</code> class also <code>provides</code> a few things. It <code>provides</code> a <code>Printer</code> which I will expand on shortly and it also <code>provides</code> a <code>Person</code> type. More so it specifies a way to construct a <code>Person</code> instance without having to specify a <code>Printer</code> each time - <code>Person(Printer, ?Text)</code>. In essence this is saying <em>when Main is asked to provide and instance of Person always use this particular <code>Printer</code> instance and take a <code>Text</code> argument</em></li>
+  <li>Our <code>Main</code> class is called via the <code>main()</code> entry point and at this point creates a new <code>Person</code> instance using the <code>Person</code> provider defined in <code>Main</code> (hence the use of <code>this</code> - <code>(Person("James") from this)</code>)</li>
+  <li>We call <code>sayHi</code> on this provided instance.</li>
+</ul><p>It may seem initially weird for an object to define its own <code>needs</code> and <code>provides</code> but this need not be the case. It is possible to create discrete provider classes that encapsulate construction behaviour which can be injected into our target class. So instead of <code>from this</code> we could say, for instance, <code>from PersonProvider</code>.</p><p>This syntax allows us to create defined contracts for our classes without a lot of extra verbosity that could mask intent. It also gives us certain guarantees around type safety and compile time checking the our object graphs are correctly defined. Finally, as an added bonus, this syntax gives us a rather clean way of wiring up stubs and mocks during testing by simply swapping out our providers with stubbed providers.</p><h2>Testing</h2><p>On the subject of testing I was a little surprised to read <em>"gives you testability from the ground up"</em> and to not see any examples of how to write tests. Of course the language is still quite young and things are changing. After a bit of poking around I discovered tests are annotation based,</p>
+<pre class="highlight"><code class="java"><span class="kn">import</span> <span class="nn">Asserts</span><span class="o">;</span>
+
+<span class="nd">@TestClass</span>
+<span class="n">every</span> <span class="n">MyFirstTest</span> <span class="nl">is:</span>
+
+  <span class="nd">@Test</span>
+  <span class="n">itIsWhatItIs</span><span class="o">(</span><span class="n">Asserts</span><span class="o">)</span> <span class="o">{</span>
+    <span class="n">var</span> <span class="n">Text</span> <span class="o">=</span> <span class="s">"test"</span><span class="o">;</span>
+    <span class="n">Asserts</span><span class="o">.</span><span class="na">that</span><span class="o">(</span><span class="n">Text</span><span class="o">)</span><span class="n">Equals</span><span class="o">(</span><span class="s">"test"</span><span class="o">);</span>
+  <span class="o">}</span>
+</code></pre><p>Running <code>make</code> will run all the discovered tests in the <code>tests/</code> folder. Fairly straightforward.</p><h2>Other Nuances</h2><p>There are few things in Wake that exist in an attempt to make code more concise, more readable and potentially drive design down a particular route.</p><h3>Naming Variables</h3><p>Most variables do not need to be given a name. Our <code>Person</code> class above could be written in a more concise manner,</p>
+<pre class="highlight"><code class="java"><span class="n">every</span> <span class="n">Person</span> <span class="nl">is:</span>
+
+  <span class="n">needs</span> <span class="n">Printer</span><span class="o">,</span> <span class="n">Text</span><span class="o">;</span>
+
+  <span class="n">sayHi</span><span class="o">(</span><span class="n">$Text</span><span class="o">)</span> <span class="o">{</span>
+    <span class="n">Printer</span><span class="o">.</span><span class="na">printLine</span><span class="o">(</span><span class="s">"Hello "</span> <span class="o">+</span> <span class="n">$Text</span> <span class="o">+</span> <span class="s">" I'm "</span> <span class="o">+</span> <span class="n">Text</span> <span class="o">+</span> <span class="s">"!"</span><span class="o">);</span>
+  <span class="o">}</span>
+</code></pre>
+<ul>
+  <li>We have one instance of <code>Printer</code> so we don't need to give it a variable name and can refer to it directly by its type.</li>
+  <li>The same applies for <code>Text</code> however as we have 2 <code>Text</code> instances we can make use of the <code>$</code> symbol to avoid <a href="http://www.wakelang.com/#shadowing">conflicts</a>.</li>
+</ul><p>The argument here is that the type of a variable is often the most meaningful name. This is easily a very contentious point which makes sense in some situations but not necessarily in others. Thankfully its possible to give variables names which I did in the first instance in order to avoid introducing too many new concepts in one go. This approach can take you down the "thinking in types" path where you make the types more rich rather than just place holders for rich data.</p><h3>Method Names</h3><p>Like in Swift and Objective-C, Wake methods names don't need to follow the <name>(<args>) structure. Arguments can in fact be spread throughout the name. While it may seem odd at first it can make complex methods a bit clearer.</args></name></p>
+<pre class="highlight"><code class="java"><span class="n">sayHelloTo</span><span class="o">(</span><span class="n">Text</span><span class="o">)</span><span class="n">As</span><span class="o">(</span><span class="n">$Text</span><span class="o">)</span> <span class="o">{</span>
+  <span class="n">Printer</span><span class="o">.</span><span class="na">printLine</span><span class="o">(</span><span class="s">"Hello "</span> <span class="o">+</span> <span class="n">Text</span> <span class="o">+</span> <span class="s">" I'm "</span> <span class="o">+</span> <span class="n">$Text</span> <span class="o">+</span> <span class="s">"!"</span><span class="o">);</span>
+<span class="o">}</span>
+
+<span class="n">main</span><span class="o">()</span> <span class="o">{</span>
+  <span class="n">sayHelloTo</span><span class="o">(</span><span class="s">"Emma"</span><span class="o">)</span><span class="n">As</span><span class="o">(</span><span class="s">"James"</span><span class="o">);</span>
+<span class="o">}</span>
+</code></pre><h2>Wrapping Up</h2><p>I've spent more time putting this article together than I have spent with the language but all in all there are some compelling features in <a href="http://www.wakelang.com/">Wake</a>.</p><p>The contract based approach of <code>needs</code> and <code>provides</code> makes the structure of your application very clear and aids testing</p><p>The ability to reduce the volume of code by eliminating unnecessary cruft (variable names for example), <strong>where it fits</strong>, goes a step further to allowing us to create more maintainable code.</p><p>As of right now the documentation has some holes in it (for example around testing) and the language is still very young but I think its a language worth keeping an eye on.</p><p>I've only scratched the surface of the language and its future plans so I recommend, if this is the first time you're reading about Wake, you check out the site for more information - <a href="http://www.wakelang.com/">http://www.wakelang.com/</a></p></div><a class="twitter" href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fyobriefca.se%2Fblog%2F2015%2F02%2F16%2Fnotes-on-wake%2F&amp;text=Notes%20on%20Wake&amp;via=kouphax" itemprop="discussionUrl" target="_blank">Tweet This</a><div class="dater"><time datetime="16-02-2015" itemprop="datePublished">February 16, 2015</time></div><div class="categories">Published in <a href="/categories/wake/">Wake</a> on February 16, 2015</div></div></div><div class="homer"><a href="/"><i class="icon-briefcase" style="font-size:32px;"></i></a></div><script type="text/javascript">(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-19143623-5', 'yobriefca.se');
+  ga('send', 'pageview');</script></body></html>

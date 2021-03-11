@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><meta content="IE=edge,chrome=1" http-equiv="X-UA-Compatible"><meta content="width=device-width, user-scalable=no" name="viewport"><meta content="entr" name="description"><link href="/favicon.ico" rel="shortcut icon" type="image/x-icon"><link href="https://fonts.googleapis.com/css?family=Merriweather:400,700|Open+Sans:400,700" rel="stylesheet" type="text/css"><link href="/bundles/84cd5d4454d9/styles.css" rel="stylesheet" /><title>entr</title></head><body><div class="row"><blockquote class="warning">This post is over 6 months old.  Some details,
+       especially technical, may have changed.</blockquote><div itemscope="" itemtype="http://schema.org/Article"><h1 itemprop="name">entr</h1><div class="post" itemprop="articleBody"><p><a href="http://entrproject.org/"><code>entr</code></a> is a command line utility for running arbitrary commands when files change.</p>
+<blockquote><p>Just for clarification - I did not contribute to this project. I just happen to find it useful.</p>
+</blockquote><p>Yes, yes you already have all this with guard, live-reload, guardian, watcher, watchy, watch, bouncy, bounce, bouncer, sir-loads-alot, loady, loadup, springy, trampoline, hot-rocket<a name="_1"></a><a href="#1"><sup>1</sup></a> etc. but <a href="http://entrproject.org/"><code>entr</code></a> is worth a look. Why? Well it has a few criteria that make it compelling,</p>
+<ol>
+  <li>It's not locked into a particular use case, language or ecosystem</li>
+  <li>It has no external dependencies</li>
+  <li>It works on more than just Linux</li>
+  <li>It's command line friendly (works with pipes)</li>
+</ol><p>So lets just see it in action,</p><h2>Install it</h2><p>You can either build it from <a href="https://bitbucket.org/eradman/entr/">source</a> or if you're using a mac you an use brew</p>
+<pre class="highlight"><code class="bash">brew update <span class="o">&amp;&amp;</span> brew install entr
+</code></pre><h2>Use it</h2><p>What you want to do is get a list of files you are interested in i.e. ones that should trigger "something" when they change. This can be something as simple as <code>ls</code> or as convoluted as <code>find . -iname '*.cr' -not -path './.crystal/*'</code> something like. One way or another a command that spits out a file list is the first part.</p><p>Next you pipe this into <code>entr</code> with the command you want to run.</p>
+<pre class="highlight"><code class="bash">ls -d * | entr make
+</code></pre><p>In this case when a file listed by <code>ls</code> changes <code>make</code> will be ran.</p><h2>Further betterness</h2><p>This is good enough for many use cases but there are always edge cases. One good example is live reloading a web server. In this case the process that you spawn typically blocks until killed which would cause issues with the above command. To cater for this use case <code>entr</code> gives us the <code>-r</code> flag.</p>
+<pre class="highlight"><code class="bash">ls -d * | entr -r lein ring server-headless
+</code></pre><p>With the <code>-r</code> <code>entr</code> will attempt to terminate then running process prior to starting it again.</p><p>We also have the <code>-c</code> option. This does nothing more than clear the screen before running the command.</p><p>Finally, <code>entr</code> provides the ability to pass a special argument, <code>/_</code>, into the command it is configured to run. This argument will be replaced with the path to the first file that has changed. This is useful when you specifically need to execute the changed file, for example, when working with data loading scripts,</p>
+<pre class="highlight"><code class="bash">ls ./data/*.js | entr mongo &lt; /_
+</code></pre><p><a href="http://entrproject.org/"><code>entr</code></a> is nice and simple with no external dependencies and not specific to any particular technology stack. </p>
+<hr /><p><sup><a name="1"></a><a href="#_1">1</a>: I may have made some or all of these up.</sup></p></div><a class="twitter" href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fyobriefca.se%2Fblog%2F2016%2F01%2F13%2Fentr%2F&amp;text=entr&amp;via=kouphax" itemprop="discussionUrl" target="_blank">Tweet This</a><div class="dater"><time datetime="13-01-2016" itemprop="datePublished">January 13, 2016</time></div><div class="categories">Published in <a href="/categories/random/">Random</a> on January 13, 2016</div></div></div><div class="homer"><a href="/"><i class="icon-briefcase" style="font-size:32px;"></i></a></div><script type="text/javascript">(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-19143623-5', 'yobriefca.se');
+  ga('send', 'pageview');</script></body></html>

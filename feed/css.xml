@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?><feed xmlns="http://www.w3.org/2005/Atom"><id>urn:yobriefca-se:feed:css</id><updated>Wed Jan 13 00:00:00 UTC 2010</updated><title type="text">Yo! Briefcase: css</title><link rel="self" href="https://yobriefca.se/feed/css.xml"></link><entry><title>CSS Hacks for IE - Unnecessary</title><updated>Wed Jan 13 00:00:00 UTC 2010</updated><author><name>James Hughes</name></author><link href="https://yobriefca.se/blog/2010/01/13/css-hacks-for-ie-unnecessary/"></link><id>urn:yobriefca-se:feed:post:CSS Hacks for IE - Unnecessary</id><content type="html">
+&lt;p&gt;There are lots of CSS tricks floating aroud to accomodate IE quirks and more specifically in most cases IE6 the problem is these hacks - which is exactly what they are - invalidate your CSS and break future-proofing (what if a another browser learns to understand this hack with different rendering effects?). These things are parsed by every browser that comes across them - the browser then has to attempt to parse it, fail and then carry on - not exactly the most performant styling mechanism! They are useful and often quite nice but aren't exactly self explanatory making them a maintenance nightmare if someone doesn;t understand that order can be very important in these cases.&lt;/p&gt;&lt;p&gt;So - Why hack when a system already exists?&lt;/p&gt;&lt;p&gt;Hello &lt;a href="http://www.quirksmode.org/css/condcom.html"&gt;Conditional Comments&lt;/a&gt;.&lt;/p&gt;&lt;p&gt;Conditional Comments are a feature implemented in IE (though other browsers COULD implement them if they wanted to but none have). It's a specially marked up HTML comment node (so you include it in your HTML not CSS) that is only parsed by IE. A few examples are below....&lt;/p&gt;&lt;p&gt;&lt;div class="highlight"&gt;&lt;pre&gt;&lt;code&gt;&lt;span class="c"&gt;&amp;lt;!--[if IE 6]&amp;gt;&lt;/span&gt;
+&lt;span class="c"&gt;IE specific Styling&lt;/span&gt;
+&lt;span class="c"&gt;&amp;lt;![endif]--&amp;gt;&lt;/span&gt;
+
+&lt;span class="c"&gt;&amp;lt;!--[if IE 6]&amp;gt;&lt;/span&gt;
+&lt;span class="c"&gt;IE6 Styling&lt;/span&gt;
+&lt;span class="c"&gt;&amp;lt;![endif]--&amp;gt;&lt;/span&gt;
+
+&lt;span class="c"&gt;&amp;lt;!--[if gt IE 6]&amp;gt;&lt;/span&gt;
+&lt;span class="c"&gt;IE7 + Styling&lt;/span&gt;
+&lt;span class="c"&gt;&amp;lt;![endif]--&amp;gt;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;/p&gt;&lt;p&gt;So basically you have you all normal CSS link tag then you can include a conditional comment to cater for specifics to IE or some specific version or rnge of versions. OK you would still need hacks for the other browsers but NIWater only had to use IE6 conditional comments (no hacks for other browsers) and looks fine in Chrome/Safari/FF - plus it means you CSS is valid and IE specific CSS is only pulled down by IE slightly reducing page weight (very slightly most likely!!!).&lt;/p&gt;</content></entry><entry><title>.less - Dynamic CSS for .NET</title><updated>Mon Nov 23 00:00:00 UTC 2009</updated><author><name>James Hughes</name></author><link href="https://yobriefca.se/blog/2009/11/23/dot-less-dynamic-css-for-net/"></link><id>urn:yobriefca-se:feed:post:.less - Dynamic CSS for .NET</id><content type="html">
+&lt;p&gt;Link: &lt;a href="http://www.dotlesscss.com/"&gt;http://www.dotlesscss.com/&lt;/a&gt;&lt;/p&gt;&lt;p&gt;There is a &lt;a href="http://lesscss.org/"&gt;Ruby library (LESS)&lt;/a&gt; that gets a fair bit of buzz in Ruby circles.  It's purpose is to introduce the &lt;a href="http://en.wikipedia.org/wiki/Don't_repeat_yourself"&gt;DRY principle&lt;/a&gt; into CSS but also adds a lot of other useful features.  Well now there is a &lt;a href="http://www.dotlesscss.com/"&gt;.NET port&lt;/a&gt; of it - so what can it do (ripped from the original page as this pretty much sums it up)?&lt;/p&gt;&lt;h2&gt;Variables&lt;/h2&gt;&lt;p&gt;Variables allow you to specify widely used values in a single place, and then re-use them throughout the style sheet, making global changes as easy as changing one line of code.&lt;/p&gt;&lt;p&gt;&lt;div class="highlight"&gt;&lt;pre&gt;&lt;code&gt;&lt;span class="k"&gt;@brand_color&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="nf"&gt;#4D926F&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+
+&lt;span class="nf"&gt;#header&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+  &lt;span class="k"&gt;color&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="o"&gt;@&lt;/span&gt;&lt;span class="n"&gt;brand_color&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+
+&lt;span class="nt"&gt;h2&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+  &lt;span class="k"&gt;color&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="o"&gt;@&lt;/span&gt;&lt;span class="n"&gt;brand_color&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;/p&gt;&lt;p&gt;And variables are a god-send in CSS world though other people disagree (&lt;a href="http://www.w3.org/People/Bos/CSS-variables" rel="nofollow"&gt;http://www.w3.org/People/Bos/CSS-variables&lt;/a&gt;) - but at least this is still generating plain old CSS for consumption&lt;/p&gt;&lt;h2&gt;Mixins&lt;/h2&gt;&lt;p&gt;Mixins allow you to embed all the properties of a class into another class by simply including the class name as one of its properties. It's just like variables, but for whole classes.&lt;/p&gt;&lt;p&gt;&lt;/p&gt;&lt;div class="highlight"&gt;&lt;pre&gt;&lt;code&gt;&lt;span class="nc"&gt;.rounded_corners&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+  &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;moz&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="k"&gt;border&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;radius&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="m"&gt;8px&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+  &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;webkit&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="k"&gt;border&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;radius&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="m"&gt;8px&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+  &lt;span class="k"&gt;border&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;radius&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="m"&gt;8px&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+
+&lt;span class="nf"&gt;#header&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+  &lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;rounded_corners&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+
+&lt;span class="nf"&gt;#footer&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+  &lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;rounded_corners&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;h2&gt;Operations&lt;/h2&gt;&lt;p&gt;Are some elements in your style sheet proportional to other elements? Operations let you add, subtract, divide and multiply property values and colors, giving you the power to do create complex relationships between properties.&lt;/p&gt;&lt;p&gt;&lt;/p&gt;&lt;div class="highlight"&gt;&lt;pre&gt;&lt;code&gt;&lt;span class="k"&gt;@the-border&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="nt"&gt;1px&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="k"&gt;@base-color&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="nf"&gt;#111&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+
+&lt;span class="nf"&gt;#header&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+  &lt;span class="k"&gt;color&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="o"&gt;@&lt;/span&gt;&lt;span class="n"&gt;base&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="k"&gt;color&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="m"&gt;3&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+  &lt;span class="k"&gt;border-left&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="o"&gt;@&lt;/span&gt;&lt;span class="n"&gt;the&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="k"&gt;border&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+  &lt;span class="k"&gt;border-right&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="o"&gt;@&lt;/span&gt;&lt;span class="n"&gt;the&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="k"&gt;border&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="m"&gt;2&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+
+&lt;span class="nf"&gt;#footer&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+  &lt;span class="k"&gt;color&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="o"&gt;@&lt;/span&gt;&lt;span class="n"&gt;base&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="k"&gt;color&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="m"&gt;#111&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="m"&gt;1&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="m"&gt;5&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Operations are "OK" i guess but I am not sold on them.&lt;/p&gt;&lt;h2&gt;Nesting&lt;/h2&gt;&lt;p&gt;Rather than constructing long selector names to specify inheritance, in Less you can simply nest selectors inside other selectors. This makes inheritance clear and style sheets shorter.&lt;/p&gt;&lt;p&gt;&lt;/p&gt;&lt;div class="highlight"&gt;&lt;pre&gt;&lt;code&gt;&lt;span class="nf"&gt;#header&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+  &lt;span class="k"&gt;color&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="nb"&gt;red&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+  &lt;span class="n"&gt;a&lt;/span&gt; &lt;span class="err"&gt;{&lt;/span&gt;
+       &lt;span class="k"&gt;font-weight&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="k"&gt;bold&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+       &lt;span class="k"&gt;text-decoration&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="k"&gt;none&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="p"&gt;}&lt;/span&gt;
+&lt;span class="err"&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;I like the nesting as it moves the structure closer to the nexted DOM tree format that you are actually trying to map against&lt;/p&gt;&lt;h2&gt;Compression &amp;amp; Caching&lt;/h2&gt;&lt;p&gt;Now you can configure if you enable Caching and minifying or the CSS output.&lt;/p&gt;&lt;p&gt;&lt;/p&gt;&lt;div class="highlight"&gt;&lt;pre&gt;&lt;code&gt;&lt;span class="nt"&gt;&amp;lt;dotless&lt;/span&gt; 
+    &lt;span class="na"&gt;minifyCss=&lt;/span&gt;&lt;span class="s"&gt;"false"&lt;/span&gt; 
+    &lt;span class="na"&gt;cacheEnabled=&lt;/span&gt;&lt;span class="s"&gt;"true"&lt;/span&gt; &lt;span class="nt"&gt;/&amp;gt;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;It's still in beta and I haven't had a chance to properly tinker with it but it's a great idea as CSS bloat is something that is often overlooked and can make rebranding a nightmare if not carefully managed.  I might post more on this when I get a chance to have proper play with it.&lt;/p&gt;</content></entry></feed>

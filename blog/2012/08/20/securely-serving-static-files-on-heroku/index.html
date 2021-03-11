@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><meta content="IE=edge,chrome=1" http-equiv="X-UA-Compatible"><meta content="width=device-width, user-scalable=no" name="viewport"><meta content="Securely Serving Static Files on Heroku" name="description"><link href="/favicon.ico" rel="shortcut icon" type="image/x-icon"><link href="https://fonts.googleapis.com/css?family=Merriweather:400,700|Open+Sans:400,700" rel="stylesheet" type="text/css"><link href="/bundles/84cd5d4454d9/styles.css" rel="stylesheet" /><title>Securely Serving Static Files on Heroku</title></head><body><div class="row"><blockquote class="warning">This post is over 6 months old.  Some details,
+       especially technical, may have changed.</blockquote><div itemscope="" itemtype="http://schema.org/Article"><h1 itemprop="name">Securely Serving Static Files on Heroku</h1><div class="post" itemprop="articleBody"><p>More than once I've had a need to host what is essentially static content on Heroku. For example when building a simple internal web app for my company that used an existing API or Parse. Invariably in this situation I have also needed to secure this app - nothing to drastic, no need for multiple user accounts or roles or any such nonsense (we generally run our non-essential systems on the honour system). Basic auth is more than enough.</p><p>So, static content plus basic auth. Heroku itself doesn't offer basic auth as an option (why would it?) and so you'd need to roll it into your app. Once I hosted my static stuff inside a Scala/Play! app, once a Sinatra app and the other a Rails app - variety is the spice of life. But each time I did it I felt a little dirty - it was noticeably slower serving this content from within an app and it seemed rather wasteful. So, in a bid to stamp out technical debt, I've ripped out all those web frameworks an replaced them with good old Apache.</p><p>Now anyone with any knowledge of Apache will already be able to deduce the steps required here - but I want to note it for posterity, for myself, when I forget, in about a week.</p><h2>BuildPack</h2><p>First things first you'll want to get your hands on a custom <a href="https://devcenter.heroku.com/articles/buildpacks">Heroku BuildPack</a> - these are the things that prepare your app instance with all the software and support it needs to run.</p><p>I recommend you fork and clone the <a href="https://github.com/pearkes/heroku-buildpack-static">heroku-buildpack-static</a> buildpack available from pearkes on GitHub.</p><h2>.htpassword</h2><p>Next you need to generate your <code>.htpasswd</code> file that will serve as your store for your Basic Auth credentials. The two simplest ways to generate one of these is to either use <a href="http://www.htaccesstools.com/htpasswd-generator/">htaccesstools.com's htpasswd generator</a> or generate on via the command line.</p><p>The simplest command to generate one is this,</p>
+<pre class="highlight"><code>htpasswd -cb &lt;password_file&gt; &lt;username&gt; &lt;password&gt;
+</code></pre><p>For example,</p>
+<pre class="highlight"><code>htpasswd -cb .htpasswd james password
+</code></pre><p>Will generate a file in the current directory called .htpasswd (the standard name for these files) with a single entry of username = james and password = password.</p><h2>Updating the BuildPack</h2><p>Either run the above command in the <code>heroku-buildpack-static/conf</code> folder or move your <code>.htpasswd</code> file into the that folder.</p><p>Next up you want to configure apache to authenticate against that generate password file. Adding the following lines to the <code>httpd.conf</code> file in the <code>heroku-buildpack-static/conf</code> will lock all assets under your apps site down,</p>
+<pre class="highlight"><code class="apache ">    <span class="nb">AuthType</span>      Basic
+    <span class="nb">AuthName</span>      <span class="s2">"Authentication Required"</span>
+    <span class="nb">AuthUserFile</span>  <span class="s2">"/app/apache/conf/.htpasswd"</span>
+    <span class="nb">Require</span>       valid-user
+</code></pre><p>This block should be added to the configuration section starting <code>&lt;Directory /&gt;</code> i.e.</p>
+<pre class="highlight"><code class="apache ">  <span class="nt">&lt;Directory</span> <span class="s">/</span><span class="nt">&gt;</span>
+      <span class="nb">Options</span> FollowSymLinks
+      <span class="nb">AllowOverride</span> <span class="k">None</span>
+
+      <span class="nb">AuthType</span>      Basic
+      <span class="nb">AuthName</span>      <span class="s2">"Authentication Required"</span>
+      <span class="nb">AuthUserFile</span>  <span class="s2">"/app/apache/conf/.htpasswd"</span>
+      <span class="nb">Require</span>       valid-user
+
+      <span class="nb">Order</span> deny,allow
+      <span class="nb">Deny</span> from <span class="k">all</span>
+  <span class="nt">&lt;/Directory&gt;</span>
+</code></pre><p>You'll notice the <code>AuthUserFile</code> points to the correct absolute path for our custom .htpasswd file. If you called it anything else please update this line accordingly.</p><p>Commit and push that to your forked repo.</p><h2>Using the BuildPack</h2><p>Finally we need to tell Heroku to use the custom buildpack. If you have yet to create an app then you can specify the buildpack during creation,</p>
+<pre class="highlight"><code>heroku create &lt;app name&gt; --buildpack &lt;url to your repo&gt;
+</code></pre><p>If you have created you app already you can add the buildpack through an additional config setting</p>
+<pre class="highlight"><code>heroku config:add BUILDPACK_URL=&lt;url to your repo&gt;
+</code></pre><p>Push your new or updated site to Heroku and watch in awe as your site is that bit more secure.</p></div><a class="twitter" href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fyobriefca.se%2Fblog%2F2012%2F08%2F20%2Fsecurely-serving-static-files-on-heroku%2F&amp;text=Securely%20Serving%20Static%20Files%20on%20Heroku&amp;via=kouphax" itemprop="discussionUrl" target="_blank">Tweet This</a><div class="dater"><time datetime="20-08-2012" itemprop="datePublished">August 20, 2012</time></div><div class="categories">Published in <a href="/categories/cloud/">Cloud</a> on August 20, 2012</div></div></div><div class="homer"><a href="/"><i class="icon-briefcase" style="font-size:32px;"></i></a></div><script type="text/javascript">(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-19143623-5', 'yobriefca.se');
+  ga('send', 'pageview');</script></body></html>

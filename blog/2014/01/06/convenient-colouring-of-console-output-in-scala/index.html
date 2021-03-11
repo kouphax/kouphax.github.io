@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><meta content="IE=edge,chrome=1" http-equiv="X-UA-Compatible"><meta content="width=device-width, user-scalable=no" name="viewport"><meta content="Convenient Colouring of Console Output in Scala" name="description"><link href="/favicon.ico" rel="shortcut icon" type="image/x-icon"><link href="https://fonts.googleapis.com/css?family=Merriweather:400,700|Open+Sans:400,700" rel="stylesheet" type="text/css"><link href="/bundles/84cd5d4454d9/styles.css" rel="stylesheet" /><title>Convenient Colouring of Console Output in Scala</title></head><body><div class="row"><blockquote class="warning">This post is over 6 months old.  Some details,
+       especially technical, may have changed.</blockquote><div itemscope="" itemtype="http://schema.org/Article"><h1 itemprop="name">Convenient Colouring of Console Output in Scala</h1><div class="post" itemprop="articleBody"><p>If you're writing console based applications or anything that may write meaningful information out to a console/terminal then you should probably consider making the output less bland. It's not just because people using your software like shiny things but it helps identify the severity or context of certain output. Look at tools like <a href="http://gruntjs.com/">grunt</a> or any of the modern test frameworks compared to <a href="http://maven.apache.org/">maven</a>. For a start they are much less noisy, maven is a bit of a chatty cathy, but they also make clever use of colours - red for bad things, green for good etc. This is something that maven could do with, discerning useful information out of the monochrome wall of text that maven spews out is a slow task.</p><p>In a recent Scala project this was something that I needed to do and found the default way of doing it rather noisy. For example writing out a red line and resetting the output requires this,</p>
+<pre class="highlight"><code class="scala"><span class="n">print</span><span class="o">(</span><span class="s">"${Console.RED}[ERROR] "</span><span class="o">)</span>
+<span class="n">println</span><span class="o">(</span><span class="s">"${Console.WHITE}$errorMsg"</span><span class="o">)</span>
+</code></pre><p>Thats just to spit out a tiny bit of red, imagine what this looks like for more complex examples. So to tidy this up a bit I created an implicit class to add some colour features to strings (I come from a C# background and always liked <strong>sensible</strong> use of <a href="http://msdn.microsoft.com/en-us//library/bb383977.aspx">extension methods</a>, and therefore implicit classes).</p>
+<pre class="highlight"><code class="scala"><span class="k">implicit</span> <span class="k">class</span> <span class="nc">ConsoleColorise</span><span class="o">(</span><span class="k">val</span> <span class="n">str</span><span class="k">:</span> <span class="kt">String</span><span class="o">)</span> <span class="k">extends</span> <span class="nc">AnyVal</span> <span class="o">{</span>
+  <span class="k">import</span> <span class="nn">Console._</span>
+
+  <span class="k">def</span> <span class="n">black</span>     <span class="k">=</span> <span class="n">s</span><span class="s">"$BLACK$str"</span>
+  <span class="k">def</span> <span class="n">red</span>       <span class="k">=</span> <span class="n">s</span><span class="s">"$RED$str"</span>
+  <span class="k">def</span> <span class="n">green</span>     <span class="k">=</span> <span class="n">s</span><span class="s">"$GREEN$str"</span>
+  <span class="k">def</span> <span class="n">yellow</span>    <span class="k">=</span> <span class="n">s</span><span class="s">"$YELLOW$str"</span>
+  <span class="k">def</span> <span class="n">blue</span>      <span class="k">=</span> <span class="n">s</span><span class="s">"$BLUE$str"</span>
+  <span class="k">def</span> <span class="n">magenta</span>   <span class="k">=</span> <span class="n">s</span><span class="s">"$MAGENTA$str"</span>
+  <span class="k">def</span> <span class="n">cyan</span>      <span class="k">=</span> <span class="n">s</span><span class="s">"$CYAN$str"</span>
+  <span class="k">def</span> <span class="n">white</span>     <span class="k">=</span> <span class="n">s</span><span class="s">"$WHITE$str"</span>
+
+  <span class="k">def</span> <span class="n">blackBg</span>   <span class="k">=</span> <span class="n">s</span><span class="s">"$BLACK_B$str"</span>
+  <span class="k">def</span> <span class="n">redBg</span>     <span class="k">=</span> <span class="n">s</span><span class="s">"$RED_B$str"</span>
+  <span class="k">def</span> <span class="n">greenBg</span>   <span class="k">=</span> <span class="n">s</span><span class="s">"$GREEN_B$str"</span>
+  <span class="k">def</span> <span class="n">yellowBg</span>  <span class="k">=</span> <span class="n">s</span><span class="s">"$YELLOW_B$str"</span>
+  <span class="k">def</span> <span class="n">blueBg</span>    <span class="k">=</span> <span class="n">s</span><span class="s">"$BLUE_B$str"</span>
+  <span class="k">def</span> <span class="n">magentaBg</span> <span class="k">=</span> <span class="n">s</span><span class="s">"$MAGENTA_B$str"</span>
+  <span class="k">def</span> <span class="n">cyanBg</span>    <span class="k">=</span> <span class="n">s</span><span class="s">"$CYAN_B$str"</span>
+  <span class="k">def</span> <span class="n">whiteBg</span>   <span class="k">=</span> <span class="n">s</span><span class="s">"$WHITE_B$str"</span>
+<span class="o">}</span>
+</code></pre><p>You can use this class in your code by importing it and then,</p>
+<pre class="highlight"><code class="scala"><span class="n">print</span><span class="o">(</span><span class="s">"[ERROR] "</span><span class="o">.</span><span class="n">red</span><span class="o">)</span>
+<span class="n">println</span><span class="o">(</span><span class="n">errorMsg</span><span class="o">.</span><span class="n">white</span><span class="o">)</span>
+</code></pre><p>You can see it in action below,</p>
+<script type="text/javascript" src="http://asciinema.org/a/7084.js" id="asciicast-7084" async="async"></script></div><a class="twitter" href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fyobriefca.se%2Fblog%2F2014%2F01%2F06%2Fconvenient-colouring-of-console-output-in-scala%2F&amp;text=Convenient%20Colouring%20of%20Console%20Output%20in%20Scala&amp;via=kouphax" itemprop="discussionUrl" target="_blank">Tweet This</a><div class="dater"><time datetime="06-01-2014" itemprop="datePublished">January 06, 2014</time></div><div class="categories">Published in <a href="/categories/scala/">Scala</a> on January 06, 2014</div></div></div><div class="homer"><a href="/"><i class="icon-briefcase" style="font-size:32px;"></i></a></div><script type="text/javascript">(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-19143623-5', 'yobriefca.se');
+  ga('send', 'pageview');</script></body></html>

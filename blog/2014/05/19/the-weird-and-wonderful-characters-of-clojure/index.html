@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><meta content="IE=edge,chrome=1" http-equiv="X-UA-Compatible"><meta content="width=device-width, user-scalable=no" name="viewport"><meta content="The Weird and Wonderful Characters of Clojure" name="description"><link href="/favicon.ico" rel="shortcut icon" type="image/x-icon"><link href="https://fonts.googleapis.com/css?family=Merriweather:400,700|Open+Sans:400,700" rel="stylesheet" type="text/css"><link href="/bundles/84cd5d4454d9/styles.css" rel="stylesheet" /><title>The Weird and Wonderful Characters of Clojure</title></head><body><div class="row"><blockquote class="warning">This post is over 6 months old.  Some details,
+       especially technical, may have changed.</blockquote><div itemscope="" itemtype="http://schema.org/Article"><h1 itemprop="name">The Weird and Wonderful Characters of Clojure</h1><div class="post" itemprop="articleBody"><style>
+  h2 code {background-color: transparent;}
+</style>
+<blockquote class="warning" style="text-align:left">This ancient article has been superseded by a <a href="https://clojure.org/guides/weird_characters">much better and up to date article on the Clojure website</a></blockquote>
+<blockquote><p>A reference collection of characters used in Clojure that are difficult to "google". Descriptions sourced from various blogs, <a href="http://stackoverflow.com/questions/tagged/clojure">StackOverflow</a>, <a href="http://en.wikibooks.org/wiki/Learning_Clojure">Learning Clojure</a> and the <a href="http://clojure.org/documentation">official Clojure docs</a> - sources attributed where necessary. Type the symbols into the box below to search (or use <code>CTRL-F</code>). Sections not in any particular order but related items are grouped for ease. If I'm wrong or missing anything worthy of inclusion tweet me <a href="http://twitter.com/kouphax">@kouphax</a> or mail me at <a href="mailto:james@yobriefca.se">james@yobriefca.se</a>.</p>
+</blockquote><h2><code>#</code> - Dispatch macro</h2><p>You'll see this macro character beside another e.g. <code>#(</code> or <code>#"</code>. This topic will act as a bit preamble before looking at your specific case.</p><p><code>#</code> is the dispatch macro, a reader macro that tells the Clojure reader (the thing that takes a file of Clojure text and parses it for consumption in the compiler) to go and look at another <strong>read table</strong> for the definition of the next character - in essence this allows extending default reader behaviour.</p><p>Clojure doesn't provide support for creating reader macros but it is possible through <a href="http://briancarper.net/blog/449/">a bit of hackery</a>.</p><p>If you see <code>#</code> <strong>at the end</strong> of a symbol then this is used to automatically generate a new symbol. This is useful inside macros to keep macro specifics from leaking into the userspace. A regular <code>let</code> will fail in a macro definition</p>
+<pre class="highlight"><code class="clojure"><span class="nv">user=&gt;</span> <span class="p">(</span><span class="kd">defmacro </span><span class="nv">m</span> <span class="p">[]</span> <span class="o">`</span><span class="p">(</span><span class="k">let </span><span class="p">[</span><span class="nv">x</span> <span class="mi">1</span><span class="p">]</span> <span class="nv">x</span><span class="p">))</span>
+<span class="o">#</span><span class="ss">'user/m</span>
+<span class="nv">user=&gt;</span> <span class="p">(</span><span class="nf">m</span><span class="p">)</span>
+<span class="nv">CompilerException</span> <span class="nv">java.lang.RuntimeException</span><span class="err">:</span> <span class="nv">Can</span><span class="ss">'t</span> <span class="k">let </span><span class="nv">qualified</span> <span class="nv">name</span><span class="err">:</span> <span class="nv">user/x</span>, <span class="nv">compiling</span><span class="err">:</span><span class="p">(</span><span class="nf">NO_SOURCE_PATH</span><span class="ss">:1</span><span class="p">)</span>
+</code></pre><p>Instead you need to append <code>#</code> to the end of the variable name and let Clojure generate a unique symbol for it.</p>
+<pre class="highlight"><code class="clojure"><span class="nv">user=&gt;</span> <span class="p">(</span><span class="kd">defmacro </span><span class="nv">m</span> <span class="p">[]</span> <span class="o">`</span><span class="p">(</span><span class="k">let </span><span class="p">[</span><span class="nv">x#</span> <span class="mi">1</span><span class="p">]</span> <span class="nv">x#</span><span class="p">))</span>
+<span class="o">#</span><span class="ss">'user/m</span>
+<span class="nv">user=&gt;</span> <span class="p">(</span><span class="nf">m</span><span class="p">)</span>
+<span class="mi">1</span>
+<span class="nv">user=&gt;</span>
+</code></pre><p>If we expand this macro we can see the <code>gensym</code>'d name</p>
+<pre class="highlight"><code class="clojure"><span class="nv">user=&gt;</span> <span class="p">(</span><span class="nb">macroexpand </span><span class="o">'</span><span class="p">(</span><span class="nf">m</span><span class="p">))</span>
+<span class="p">(</span><span class="nf">let*</span> <span class="p">[</span><span class="nv">x__681__auto__</span> <span class="mi">1</span><span class="p">]</span> <span class="nv">x__681__auto__</span><span class="p">)</span>
+</code></pre><p>Another place you'll see the <code>#</code> is in <a href="http://clojure.org/reader#The%20Reader--Tagged%20Literals">tagged literals</a>. Most commonly you'll see this use in <a href="https://github.com/edn-format/edn">EDN</a> (extensible data notation - a rich data format that can be used in Clojure) and in ClojureScript (<code>#js</code>). Search for <code>#inst</code>, <code>#uuid</code> or <code>#js</code> for some more info.</p>
+<ul>
+  <li><a href="http://clojure.org/reader">Clojure Documentation - Reader</a></li>
+  <li><a href="http://briancarper.net/blog/449/">Clojure Reader Macros</a></li>
+  <li><a href="http://clojuredocs.org/clojure_core/clojure.core/gensym">ClojureDocs - gensym</a></li>
+</ul>
+<hr /><h2><code>#{</code> - Set macro</h2><p>See the dispatch (<code>#</code>) macro for additional details.</p><p><code>#{</code> defines a set (a collection of unique values) specifically a <code>hash-set</code>. The following are equivalent,</p>
+<pre class="highlight"><code class="clojure"><span class="nv">user=&gt;</span> <span class="o">#</span><span class="p">{</span><span class="mi">1</span> <span class="mi">2</span> <span class="mi">3</span> <span class="mi">4</span><span class="p">}</span>
+<span class="o">#</span><span class="p">{</span><span class="mi">1</span> <span class="mi">2</span> <span class="mi">3</span> <span class="mi">4</span><span class="p">}</span>
+<span class="nv">user=&gt;</span> <span class="p">(</span><span class="nb">hash-set </span><span class="mi">1</span> <span class="mi">2</span> <span class="mi">3</span> <span class="mi">4</span><span class="p">)</span>
+<span class="o">#</span><span class="p">{</span><span class="mi">1</span> <span class="mi">2</span> <span class="mi">3</span> <span class="mi">4</span><span class="p">}</span>
+</code></pre><p>Attempting to create a <code>set</code> using this literal form will throw if there are duplicates. Instead the <code>hash-set</code> function should be used on a vector</p>
+<pre class="highlight"><code class="clojure"><span class="nv">user=&gt;</span> <span class="o">#</span><span class="p">{</span><span class="mi">1</span> <span class="mi">2</span> <span class="mi">3</span> <span class="mi">4</span> <span class="mi">1</span><span class="p">}</span>
+
+<span class="nv">IllegalArgumentException</span> <span class="nv">Duplicate</span> <span class="nv">key</span><span class="err">:</span> <span class="mi">1</span>  <span class="nv">clojure.lang.PersistentHashSet.createWithCheck</span> <span class="p">(</span><span class="nf">PersistentHashSet.java</span><span class="ss">:68</span><span class="p">)</span>
+<span class="nv">user=&gt;</span> <span class="p">(</span><span class="nb">set </span><span class="p">[</span><span class="mi">1</span> <span class="mi">2</span> <span class="mi">3</span> <span class="mi">4</span> <span class="mi">1</span><span class="p">])</span> <span class="c1">; convert vector to set, removing duplicates</span>
+<span class="o">#</span><span class="p">{</span><span class="mi">1</span> <span class="mi">2</span> <span class="mi">3</span> <span class="mi">4</span><span class="p">}</span>
+</code></pre>
+<ul>
+  <li><a href="http://clojure.org/data_structures#Data%20Structures-Sets">Clojure Documentation: Sets</a></li>
+</ul>
+<hr /><h2><code>#_</code> - Discard macro</h2><p>See the dispatch (<code>#</code>) macro for additional details.</p><p><code>#_</code> tells the reader to ignore the next form completely.</p>
+<pre class="highlight"><code class="clojure"><span class="nv">user=&gt;</span> <span class="p">[</span><span class="mi">1</span> <span class="mi">2</span> <span class="mi">3</span> <span class="o">#</span><span class="nv">_</span> <span class="mi">4</span> <span class="mi">5</span><span class="p">]</span>
+<span class="p">[</span><span class="mi">1</span> <span class="mi">2</span> <span class="mi">3</span> <span class="mi">5</span><span class="p">]</span>
+</code></pre><p>The docs suggest that "The form following <code>#_</code> is completely skipped by the reader. (This is a more complete removal than the comment macro which yields nil).". This can prove useful for debugging situations or for multline comments. I've never used it.</p>
+<ul>
+  <li><a href="http://clojure.org/reader">Clojure Documentation - Reader</a></li>
+</ul>
+<hr /><h2><code>#"</code> - Regular Expression macro</h2><p>See the dispatch (<code>#</code>) macro for additional details.</p><p><code>#"</code> indicates the start of a regular expression pattern.</p>
+<pre class="highlight"><code class="clojure"><span class="nv">user=&gt;</span> <span class="p">(</span><span class="nb">re-matches </span><span class="o">#</span><span class="s">"^test$"</span> <span class="s">"test"</span><span class="p">)</span>
+<span class="s">"test"</span>
+</code></pre><p>This form is compiled at <em>read time</em> into a <code>java.util.regex.Pattern</code>.</p>
+<ul>
+  <li><a href="http://clojure.org/other_functions#Other%20Useful%20Functions%20and%20Macros-Regex%20Support">Clojure Documentation: Regex Support</a></li>
+</ul>
+<hr /><h2><code>#(</code> - Function macro</h2><p>See the dispatch (<code>#</code>) macro for additional details.</p><p><code>#(</code> begins the short hand syntax for an inline function definition. The following 2 bits of code are similar,</p>
+<pre class="highlight"><code class="clojure"><span class="c1">; anonymous function takin a single argument and printing it</span>
+<span class="p">(</span><span class="k">fn </span><span class="p">[</span><span class="nv">line</span><span class="p">]</span> <span class="p">(</span><span class="nb">println </span><span class="nv">line</span><span class="p">))</span> <span class="c1">;</span>
+
+<span class="c1">; anonymous function takin a single argument and printing it - shorthand</span>
+<span class="o">#</span><span class="p">(</span><span class="nb">println </span><span class="nv">%</span><span class="p">)</span>
+</code></pre><p>The macro expands the shorthand syntax into a function definition whose arity (the number of arguments it takes) is defined by how the <code>%</code> placeholders are declared. See the <code>%</code> character for discussion around arity.</p>
+<pre class="highlight"><code class="clojure"><span class="nv">user=&gt;</span> <span class="p">(</span><span class="nb">macroexpand </span><span class="o">`#</span><span class="p">(</span><span class="nb">println </span><span class="nv">%</span><span class="p">))</span>
+<span class="p">(</span><span class="nf">fn*</span> <span class="p">[</span><span class="nv">arg</span><span class="p">]</span> <span class="p">(</span><span class="nf">clojure.core/println</span> <span class="nv">arg</span><span class="p">))</span> <span class="c1">; argument names shortened for clarity</span>
+</code></pre>
+<hr /><h2><code>#'</code> - Var macro</h2><p><code>#'</code> is the var quote. It is the same a the <code>var</code> method,</p>
+<pre class="highlight"><code class="clojure"><span class="nv">user=&gt;</span> <span class="p">(</span><span class="k">def </span><span class="nv">nine</span> <span class="mi">9</span><span class="p">)</span>
+<span class="o">#</span><span class="ss">'user/nine</span>
+<span class="nv">user=&gt;</span> <span class="nv">nine</span>
+<span class="mi">9</span>
+<span class="nv">user=&gt;</span> <span class="p">(</span><span class="k">var </span><span class="nv">nine</span><span class="p">)</span>
+<span class="o">#</span><span class="ss">'user/nine</span>
+<span class="nv">user=&gt;</span> <span class="o">#</span><span class="ss">'nine</span>
+<span class="o">#</span><span class="ss">'user/nine</span>
+</code></pre><p>When used it will attempt to return the referenced var. This is useful when you want to talk about the reference/declaration instead of the value it represents. See the use of <code>meta</code> in the metadata (<code>^</code>) discussion.</p>
+<ul>
+  <li><a href="http://clojure.org/special_forms#var">Clojure Official Documentation: Special Forms</a></li>
+</ul>
+<hr /><h2><code>#inst</code>, <code>#uuid</code> &amp; <code>#js</code> etc. - tagged literals</h2><p>Commonly found in EDN and ClojureScript this use of <code>#</code> is called the tagged literal. Look at this example,</p>
+<pre class="highlight"><code class="clojure"><span class="nv">user=&gt;</span> <span class="p">(</span><span class="nf">java.util.Date.</span><span class="p">)</span>
+<span class="o">#</span><span class="nv">inst</span> <span class="s">"2014-05-19T19:12:37.925-00:00"</span>
+</code></pre><p>When we create a new date it is represented as a tagged literal, or in this case a tagged string. We can use Clojures <code>read-string</code> to read this back (or use it directly)</p>
+<pre class="highlight"><code class="clojure"><span class="nv">user=&gt;</span> <span class="p">(</span><span class="nf">type</span> <span class="o">#</span><span class="nv">inst</span> <span class="s">"2014-05-19T19:12:37.925-00:00"</span><span class="p">)</span>
+<span class="nv">java.util.Date</span>
+<span class="p">(</span><span class="nf">read-string</span> <span class="s">"#inst \"2014-05-19T19:12:37.925-00:00\""</span><span class="p">)</span>
+<span class="o">#</span><span class="nv">inst</span> <span class="s">"2014-05-19T19:12:37.925-00:00"</span>
+<span class="nv">user=&gt;</span> <span class="p">(</span><span class="nf">type</span> <span class="p">(</span><span class="nf">read-string</span> <span class="s">"#inst \"2014-05-19T19:12:37.925-00:00\""</span><span class="p">))</span>
+<span class="nv">java.util.Date</span>
+</code></pre><p>A tagged literal tells the reader how to parse the literal value. Other common uses include <code>#uuid</code> for generating UUIDs and in the ClojureScript world an extremely common use of tagged literals is <code>#js</code> which can be used to convert ClojureScript data structures into JavaScript structures directly.</p>
+<ul>
+  <li><a href="https://github.com/edn-format/edn#tagged-elements">EDN Tagged Elements</a></li>
+</ul>
+<hr /><h2><code>%</code> - Argument placeholder</h2><p><code>%</code> is not a macro but a placeholder for use in the <code>#(</code> macro. It represents an argument that will be passed into the function when it is expanded.</p>
+<pre class="highlight"><code class="clojure"><span class="nv">user=&gt;</span> <span class="p">(</span><span class="nb">macroexpand </span><span class="o">`#</span><span class="p">(</span><span class="nb">println </span><span class="nv">%</span><span class="p">))</span>
+<span class="p">(</span><span class="nf">fn*</span> <span class="p">[</span><span class="nv">arg</span><span class="p">]</span> <span class="p">(</span><span class="nf">clojure.core/println</span> <span class="nv">arg</span><span class="p">))</span> <span class="c1">; takes a single arg, uses it once</span>
+
+<span class="nv">user=&gt;</span> <span class="p">(</span><span class="nb">macroexpand </span><span class="o">`#</span><span class="p">(</span><span class="nb">println </span><span class="nv">%</span> <span class="nv">%</span><span class="p">))</span>
+<span class="p">(</span><span class="nf">fn*</span> <span class="p">[</span><span class="nv">arg</span><span class="p">]</span> <span class="p">(</span><span class="nf">clojure.core/println</span> <span class="nv">arg</span> <span class="nv">arg</span><span class="p">))</span> <span class="c1">; takes a single arg, uses it twice</span>
+</code></pre><p>Numbers can be placed directly after the <code>%</code> to indicate the arguments position. Numbers are also used by the <code>#(</code> macro to determine the number of arguments to pass in.</p>
+<pre class="highlight"><code class="clojure"><span class="nv">user=&gt;</span> <span class="p">(</span><span class="nb">macroexpand </span><span class="o">`#</span><span class="p">(</span><span class="nb">println </span><span class="nv">%1</span> <span class="nv">%2</span><span class="p">))</span>
+<span class="p">(</span><span class="nf">fn*</span> <span class="p">[</span><span class="nv">arg1</span> <span class="nv">arg2</span><span class="p">]</span> <span class="p">(</span><span class="nf">clojure.core/println</span> <span class="nv">arg1</span> <span class="nv">arg2</span><span class="p">))</span> <span class="c1">; takes 2 args</span>
+
+<span class="nv">user=&gt;</span> <span class="p">(</span><span class="nb">macroexpand </span><span class="o">`#</span><span class="p">(</span><span class="nb">println </span><span class="nv">%4</span><span class="p">))</span>
+<span class="p">(</span><span class="nf">fn*</span> <span class="p">[</span><span class="nv">arg1</span> <span class="nv">arg2</span> <span class="nv">arg3</span> <span class="nv">arg4</span><span class="p">]</span> <span class="p">(</span><span class="nf">clojure.core/println</span> <span class="nv">arg4</span><span class="p">))</span> <span class="c1">; takes 4 args doesn't use 3</span>
+</code></pre><p>So you don't have to use the arguments but you do need to declare them in the order you'd expect an external caller to pass them in.</p><p><code>%</code> and <code>%1</code> can be used interchangably,</p>
+<pre class="highlight"><code class="clojure"><span class="nv">user=&gt;</span> <span class="p">(</span><span class="nb">macroexpand </span><span class="o">`#</span><span class="p">(</span><span class="nb">println </span><span class="nv">%</span> <span class="nv">%1</span><span class="p">))</span> <span class="c1">; use both % and %1</span>
+<span class="p">(</span><span class="nf">fn*</span> <span class="p">[</span><span class="nv">arg1</span><span class="p">]</span> <span class="p">(</span><span class="nf">clojure.core/println</span> <span class="nv">arg1</span> <span class="nv">arg1</span><span class="p">))</span> <span class="c1">; still only takes 1 argument</span>
+</code></pre>
+<hr /><h2><code>@</code> - Deref macro</h2><p><code>@</code> is the deref macro, it is the shorthand equivalent of the <code>deref</code> function so these 2 forms are the same,</p>
+<pre class="highlight"><code class="clojure"><span class="nv">user=&gt;</span> <span class="p">(</span><span class="k">def </span><span class="nv">x</span> <span class="p">(</span><span class="nf">atom</span> <span class="mi">1</span><span class="p">))</span>
+<span class="o">#</span><span class="ss">'user/x</span>
+<span class="nv">user=&gt;</span> <span class="o">@</span><span class="nv">x</span>
+<span class="mi">1</span>
+<span class="nv">user=&gt;</span> <span class="p">(</span><span class="nb">deref </span><span class="nv">x</span><span class="p">)</span>
+<span class="mi">1</span>
+<span class="nv">user=&gt;</span>
+</code></pre><p><code>@</code> is used to get the current value of a reference. The above example uses <code>@</code> to get the current value of an <a href="http://clojure.org/atoms">atom</a> but <code>@</code> can be applied to other things such as <code>future</code>s, <code>delay</code>s, <code>promise</code>s etc. to force computation and potentially block.</p>
+<hr /><h2><code>^</code> - Metadata</h2><p><code>^</code> is the metadata marker. Metadata is a map of values (with shorthand option) that can be attached to various forms in Clojure. This provides extra information for these forms and can be used for documentation, compilation warnings, typehints and other features.</p>
+<pre class="highlight"><code class="clojure"><span class="nv">user=&gt;</span> <span class="p">(</span><span class="k">def </span><span class="o">^</span><span class="p">{</span> <span class="ss">:debug</span> <span class="nv">true</span> <span class="p">}</span> <span class="nv">five</span> <span class="mi">5</span><span class="p">)</span> <span class="c1">; meta map with single boolean value</span>
+<span class="o">#</span><span class="ss">'user/five</span>
+</code></pre><p>We can access the metadata by the <code>meta</code> method which should be executed against the declaration itself (rather than the returned value).</p>
+<pre class="highlight"><code class="clojure"><span class="nv">user=&gt;</span> <span class="p">(</span><span class="k">def </span><span class="o">^</span><span class="p">{</span> <span class="ss">:debug</span> <span class="nv">true</span> <span class="p">}</span> <span class="nv">five</span> <span class="mi">5</span><span class="p">)</span>
+<span class="o">#</span><span class="ss">'user/five</span>
+<span class="nv">user=&gt;</span> <span class="p">(</span><span class="nb">meta </span><span class="o">#</span><span class="ss">'five</span><span class="p">)</span>
+<span class="p">{</span><span class="ss">:ns</span> <span class="o">#</span><span class="nv">&lt;Namespace</span> <span class="nv">user&gt;</span>, <span class="ss">:name</span> <span class="nv">five</span>, <span class="ss">:column</span> <span class="mi">1</span>, <span class="ss">:debug</span> <span class="nv">true</span>, <span class="ss">:line</span> <span class="mi">1</span>, <span class="ss">:file</span> <span class="s">"NO_SOURCE_PATH"</span><span class="p">}</span>
+</code></pre><p>As we have a single value here we can use a shorthand notation for declaring the metadata <code>^:name</code> which is useful for flags as the value will be set to true.</p>
+<pre class="highlight"><code class="clojure"><span class="nv">user=&gt;</span> <span class="p">(</span><span class="k">def </span><span class="o">^</span><span class="ss">:debug</span> <span class="nv">five</span> <span class="mi">5</span><span class="p">)</span>
+<span class="o">#</span><span class="ss">'user/five</span>
+<span class="nv">user=&gt;</span> <span class="p">(</span><span class="nb">meta </span><span class="o">#</span><span class="ss">'five</span><span class="p">)</span>
+<span class="p">{</span><span class="ss">:ns</span> <span class="o">#</span><span class="nv">&lt;Namespace</span> <span class="nv">user&gt;</span>, <span class="ss">:name</span> <span class="nv">five</span>, <span class="ss">:column</span> <span class="mi">1</span>, <span class="ss">:debug</span> <span class="nv">true</span>, <span class="ss">:line</span> <span class="mi">1</span>, <span class="ss">:file</span> <span class="s">"NO_SOURCE_PATH"</span><span class="p">}</span>
+</code></pre><p>Another use of <code>^</code> is for type hints. These are used to tell the compiler what type the value will be and allow it to perform type specific optimisations thus potentially making resultant code a bit faster.</p>
+<pre class="highlight"><code class="clojure"><span class="nv">user=&gt;</span> <span class="p">(</span><span class="k">def </span><span class="o">^</span><span class="nv">Integer</span> <span class="nv">five</span> <span class="mi">5</span><span class="p">)</span>
+<span class="o">#</span><span class="ss">'user/five</span>
+<span class="nv">user=&gt;</span> <span class="p">(</span><span class="nb">meta </span><span class="o">#</span><span class="ss">'five</span><span class="p">)</span>
+<span class="p">{</span><span class="ss">:ns</span> <span class="o">#</span><span class="nv">&lt;Namespace</span> <span class="nv">user&gt;</span>, <span class="ss">:name</span> <span class="nv">five</span>, <span class="ss">:column</span> <span class="mi">1</span>, <span class="ss">:line</span> <span class="mi">1</span>, <span class="ss">:file</span> <span class="s">"NO_SOURCE_PATH"</span>, <span class="ss">:tag</span> <span class="nv">java.lang.Integer</span><span class="p">}</span>
+</code></pre><p>We can see in that example the <code>:tag</code> property is set.</p><p>You can also stack the shorthand notations,</p>
+<pre class="highlight"><code class="clojure"><span class="nv">user=&gt;</span> <span class="p">(</span><span class="k">def </span><span class="o">^</span><span class="nv">Integer</span> <span class="o">^</span><span class="ss">:debug</span> <span class="o">^</span><span class="ss">:private</span> <span class="nv">five</span> <span class="mi">5</span><span class="p">)</span>
+<span class="o">#</span><span class="ss">'user/five</span>
+<span class="nv">user=&gt;</span> <span class="p">(</span><span class="nb">meta </span><span class="o">#</span><span class="ss">'five</span><span class="p">)</span>
+<span class="p">{</span><span class="ss">:ns</span> <span class="o">#</span><span class="nv">&lt;Namespace</span> <span class="nv">user&gt;</span>, <span class="ss">:name</span> <span class="nv">five</span>, <span class="ss">:column</span> <span class="mi">1</span>, <span class="ss">:private</span> <span class="nv">true</span>, <span class="ss">:debug</span> <span class="nv">true</span>, <span class="ss">:line</span> <span class="mi">1</span>, <span class="ss">:file</span> <span class="s">"NO_SOURCE_PATH"</span>, <span class="ss">:tag</span> <span class="nv">java.lang.Integer</span><span class="p">}</span>
+</code></pre>
+<ul>
+  <li><a href="http://clojure.org/metadata">Clojure Official Documentation: Metadata</a></li>
+  <li><a href="http://en.wikibooks.org/wiki/Learning_Clojure/Meta_Data">Learning Clojure: Meta Data</a></li>
+</ul>
+<hr /><h2><code>'</code> - Quote macro</h2><p>Can be used against symbols as part of a dispatch macro (see <code>#'</code>). Also used to quote forms and prevent their evaluation as with the <code>quote</code> function.</p>
+<pre class="highlight"><code class="clojure"><span class="nv">user=&gt;</span> <span class="p">(</span><span class="mi">1</span> <span class="mi">3</span> <span class="mi">4</span><span class="p">)</span> <span class="c1">; fails as it tries to evaluate 1 as a function</span>
+
+<span class="nv">ClassCastException</span> <span class="nv">java.lang.Long</span> <span class="nv">cannot</span> <span class="nv">be</span> <span class="nb">cast </span><span class="nv">to</span> <span class="nv">clojure.lang.IFn</span>  <span class="nv">user/eval925</span> <span class="p">(</span><span class="nf">NO_SOURCE_FILE</span><span class="ss">:1</span><span class="p">)</span>
+<span class="nv">user=&gt;</span> <span class="o">'</span><span class="p">(</span><span class="mi">1</span> <span class="mi">3</span> <span class="mi">4</span><span class="p">)</span> <span class="c1">; quote</span>
+<span class="p">(</span><span class="mi">1</span> <span class="mi">3</span> <span class="mi">4</span><span class="p">)</span>
+<span class="nv">user=&gt;</span> <span class="p">(</span><span class="k">quote </span><span class="p">(</span><span class="mi">1</span> <span class="mi">2</span> <span class="mi">3</span><span class="p">))</span> <span class="c1">; using the longer quote method</span>
+<span class="p">(</span><span class="mi">1</span> <span class="mi">2</span> <span class="mi">3</span><span class="p">)</span>
+<span class="nv">user=&gt;</span>
+</code></pre>
+<ul>
+  <li><a href="http://clojure.org/special_forms#quote">Clojure Official Documentation</a></li>
+</ul>
+<hr /><h2><code>;</code> - Comment</h2><p><code>;</code> is a comment. In fact its a comment <strong>macro</strong> that takes all input from its starting point to the end of the line and ensures the reader ignore it.</p>
+<pre class="highlight"><code class="clojure"><span class="nv">user=&gt;</span> <span class="p">(</span><span class="k">def </span><span class="nv">x</span> <span class="s">"x"</span><span class="p">)</span> <span class="c1">; this is a comment</span>
+<span class="o">#</span><span class="ss">'user/x</span>
+<span class="nv">user=&gt;</span> <span class="c1">; this is a comment too</span>
+<span class="nv">&lt;returns</span> <span class="nv">nothing&gt;</span>
+</code></pre>
+<hr /><h2><code>:</code> - Keyword</h2><p><code>:</code> is the indicator for a Keyword which is an interned string that provides fast comparison and lower memory overhead.</p>
+<pre class="highlight"><code class="clojure"><span class="nv">user=&gt;</span> <span class="p">(</span><span class="nf">type</span> <span class="ss">:test</span><span class="p">)</span>
+<span class="nv">clojure.lang.Keyword</span>
+</code></pre><p>Alternativley you can use <code>keyword</code> to create a keyword from a string</p>
+<pre class="highlight"><code class="clojure"><span class="nv">user=&gt;</span> <span class="p">(</span><span class="nb">keyword </span><span class="s">"test"</span><span class="p">)</span>
+<span class="ss">:test</span>
+</code></pre><p>A neat thing about keywords is they also implement <code>IFn</code> and can act as functions for extracting values from maps which is very nice.</p>
+<pre class="highlight"><code class="clojure"><span class="nv">user=&gt;</span> <span class="p">(</span><span class="k">def </span><span class="nv">my-map</span> <span class="p">{</span> <span class="ss">:one</span> <span class="mi">1</span> <span class="ss">:two</span> <span class="mi">2</span> <span class="p">})</span>
+<span class="o">#</span><span class="ss">'user/my-map</span>
+<span class="nv">user=&gt;</span> <span class="p">(</span><span class="ss">:one</span> <span class="nv">my-map</span><span class="p">)</span> <span class="c1">; get the value for :one by invoking it as function</span>
+<span class="mi">1</span>
+<span class="nv">user=&gt;</span> <span class="p">(</span><span class="ss">:three</span> <span class="nv">my-map</span><span class="p">)</span> <span class="c1">; it can safely access non-keys</span>
+<span class="nv">nil</span>
+<span class="nv">user=&gt;</span> <span class="p">(</span><span class="ss">:three</span> <span class="nv">my-map</span> <span class="mi">3</span><span class="p">)</span> <span class="c1">; it can return a default if specified</span>
+<span class="mi">3</span>
+</code></pre>
+<ul>
+  <li><a href="http://clojure.org/data_structures#Data%20Structures-Keywords">Clojure Official Documentation</a></li>
+</ul>
+<hr /><h2><code>::</code> - Qualified keyword</h2><p><code>::</code> is used to fully qualify a keyword with the current namespace.</p>
+<pre class="highlight"><code class="clojure"><span class="nv">user=&gt;</span> <span class="ss">:my-keyword</span>
+<span class="ss">:my-keyword</span>
+<span class="nv">user=&gt;</span> <span class="ss">::my-keyword</span>
+<span class="ss">:user/my-keyword</span>
+<span class="nv">user=&gt;</span> <span class="p">(</span><span class="nb">= </span><span class="ss">::my-keyword</span> <span class="ss">:my-keyword</span><span class="p">)</span>
+<span class="nv">false</span>
+</code></pre><p>I have found this useful when creating macros. If I want to ensure a macro, that calls another method in the macro namespace, correctly expands to call the method I have used ::my-method to refer to the fully qualified name.</p>
+<ul>
+  <li><a href="http://stackoverflow.com/questions/5771168/what-is-the-used-for-in-clojure">What is the :: used for in clojure?</a></li>
+</ul>
+<hr /><h2><code>/</code> - Namespace separator</h2><p>Can be the division function <code>/</code> but can also act as a separator in a symbol name to break apart the symbol name and the namespace it resides in <code>my-namepace/utils</code>. This allows symbols to be fully qualified to prevent collisions or spread.</p>
+<ul>
+  <li><a href="http://clojure.org/reader">Cloure Official Documentation</a></li>
+</ul>
+<hr /><h2><code>$</code> - Inner class reference</h2><p>Used to reference inner classes and interfaces in Java. Seperates the container class name and the inner class name,</p>
+<pre class="highlight"><code class="clojure"><span class="p">(</span><span class="ss">:import</span> <span class="p">(</span><span class="nf">basex.core</span> <span class="nv">BaseXClient$EventNotifier</span><span class="p">)</span>
+
+<span class="p">(</span><span class="kd">defn- </span><span class="nv">build-notifier</span> <span class="p">[</span><span class="nv">notifier-action</span><span class="p">]</span>
+  <span class="p">(</span><span class="nf">reify</span> <span class="nv">BaseXClient$EventNotifier</span>
+    <span class="p">(</span><span class="nf">notify</span> <span class="p">[</span><span class="nv">this</span> <span class="nv">value</span><span class="p">]</span>
+      <span class="p">(</span><span class="nf">notifier-action</span> <span class="nv">value</span><span class="p">))))</span>
+</code></pre><p><code>EventNotifier</code> is an inner interface of the <code>BaseXClient</code> class which is an imported Java class.</p>
+<ul>
+  <li><a href="http://blog.jayfields.com/2011/01/clojure-using-java-inner-classes.html">Clojure: Using Java Inner Classes</a></li>
+</ul>
+<hr /><h2><code>-&gt; -&gt;&gt; some-&gt; cond-&gt; as-&gt;</code> etc. - Threading macros</h2><p>These are threading macros. Almost all of them take an initial value and <strong>thread</strong> this value through a number of forms. Lets imagine (for reasons unknown) we wanted to take a number, find the square root, cast it to an int, then a string then back to an integer again. We could write it like this,</p>
+<pre class="highlight"><code class="clojure"><span class="nv">user=&gt;</span> <span class="p">(</span><span class="nf">Integer.</span> <span class="p">(</span><span class="nb">str </span><span class="p">(</span><span class="nb">int </span><span class="p">(</span><span class="nf">Math/sqrt</span> <span class="mi">25</span><span class="p">))))</span>
+<span class="mi">5</span>
+</code></pre><p>The threading macro allows us to unravel this deep nesting,</p>
+<pre class="highlight"><code class="clojure"><span class="nv">user=&gt;</span> <span class="p">(</span><span class="nb">-&gt; </span><span class="mi">25</span> <span class="p">(</span><span class="nf">Math/sqrt</span><span class="p">)</span> <span class="nb">int str </span><span class="nv">Integer.</span><span class="p">)</span>
+<span class="mi">5</span>
+</code></pre><p>Or if you prefer multiline and consistent brackettering</p>
+<pre class="highlight"><code class="clojure"><span class="p">(</span><span class="nb">-&gt; </span><span class="mi">25</span>
+    <span class="p">(</span><span class="nf">Math/sqrt</span><span class="p">)</span>
+    <span class="p">(</span><span class="nf">int</span><span class="p">)</span>
+    <span class="p">(</span><span class="nf">str</span><span class="p">)</span>
+    <span class="p">(</span><span class="nf">Integer.</span><span class="p">))</span>
+</code></pre><p>What the macro does is take the value returned from each expression and push it in as the first argument to the next one.</p><p><code>-&gt;&gt;</code> is the same but different. Rather than push the last value in as the <strong>first</strong> argument it passes it in as the <strong>last</strong> argument.</p><p>The "etc." in the title refers to the fact there are a whole host of threading macros that perform variations on the same theme (<code>cond-&gt;</code>, <code>some-&gt;</code>, <code>as-&gt;</code> and their <code>-&gt;&gt;</code> equivalents). There is also an entire library, <a href="https://github.com/rplevy/swiss-arrows">swiss-arrows</a>, dedicated to the threading macros.</p>
+<ul>
+  <li><a href="http://blog.fogus.me/2009/09/04/understanding-the-clojure-macro/">Understanding the Clojure -&gt; macro</a></li>
+  <li><a href="https://github.com/clojure/clojure/blob/67571d1844e7b9a0cab6089245d7e5cde208c67e/changes.md">Clojure Changelog</a></li>
+</ul>
+<hr /><h2><code>~</code> - Unquote macro</h2><p>See <code>`</code> (syntax quote) for additional information.</p><p><code>~</code> is unquote. That is within as syntax quoted (<code>`</code>) block <code>~</code> will <strong>unquote</strong> the associated symbol i.e. resolve it in the current context.</p>
+<pre class="highlight"><code class="clojure"><span class="nv">user=&gt;</span> <span class="p">(</span><span class="k">def </span><span class="nv">five</span> <span class="mi">5</span><span class="p">)</span> <span class="c1">; create a named ref representing the number 5</span>
+<span class="o">#</span><span class="ss">'user/five</span>
+<span class="nv">user=&gt;</span> <span class="nv">five</span> <span class="c1">; five will yeild its internal value</span>
+<span class="mi">5</span>
+<span class="nv">user=&gt;</span> <span class="o">`</span><span class="nv">five</span> <span class="c1">; syntax quoting five will fully resolve the SYMBOL</span>
+<span class="nv">user/five</span>
+<span class="nv">user=&gt;</span> <span class="o">`~</span><span class="nv">five</span> <span class="c1">; within a syntax quoted block ~ wil resolve the value in the current context</span>
+<span class="mi">5</span>
+</code></pre><p>This forms the meat and potatoes of creating macros which are, to be highly reductionist, functions that return blocks of syntax with parts evaluated in varying contexts.</p>
+<ul>
+  <li><a href="http://www.braveclojure.com/writing-macros/">Clojure for the Brave and True - Writing Macros</a></li>
+  <li><a href="http://aphyr.com/posts/305-clojure-from-the-ground-up-macros">Clojure from the ground up: macros</a></li>
+  <li><a href="http://clojure.org/macros">Clojure Official Documentation</a></li>
+</ul>
+<hr /><h2><code>~@</code> - Unquote splicing macro</h2><p>See <code>`</code> (syntax quote) and <code>~</code> (unquote) for additional information.</p><p><code>~@</code> is unquote-splicing. Where unquote (<code>~</code>) deals with single values (or treats its attached item as a single item) <code>~@</code> works on lists and expands them out into multiple statements. Think JavaScripts <code>.apply</code> method that takes an array and expands it out as arguments to the applied function.</p>
+<pre class="highlight"><code class="clojure"><span class="nv">user=&gt;</span> <span class="p">(</span><span class="k">def </span><span class="nv">three-and-four</span> <span class="p">(</span><span class="nb">list </span><span class="mi">3</span> <span class="mi">4</span><span class="p">))</span>
+<span class="o">#</span><span class="ss">'user/three-and-four</span>
+<span class="nv">user=&gt;</span> <span class="o">`</span><span class="p">(</span><span class="mi">1</span> <span class="o">~</span><span class="nv">three-and-four</span><span class="p">)</span> <span class="c1">; treates as a single statement produces a nested list</span>
+<span class="p">(</span><span class="mi">1</span> <span class="p">(</span><span class="mi">3</span> <span class="mi">4</span><span class="p">))</span>
+<span class="nv">user=&gt;</span> <span class="o">`</span><span class="p">(</span><span class="mi">1</span> <span class="o">~@</span><span class="nv">three-and-four</span><span class="p">)</span> <span class="c1">; expand out as seperate statements</span>
+<span class="p">(</span><span class="mi">1</span> <span class="mi">3</span> <span class="mi">4</span><span class="p">)</span>
+</code></pre><p>Again this gives us a lot of power in macros.</p>
+<ul>
+  <li><a href="http://www.braveclojure.com/writing-macros/">Clojure for the Brave and True - Writing Macros</a></li>
+  <li><a href="http://aphyr.com/posts/305-clojure-from-the-ground-up-macros">Clojure from the ground up: macros</a></li>
+  <li><a href="http://clojure.org/macros">Clojure Official Documentation</a></li>
+</ul>
+<hr /><h2><code>`</code> - Syntax quote</h2><p>See <code>~@</code> (unquote splicing) and <code>~</code> (unquote) for additional information.</p><p><code>`</code> is the syntax quote. When used on a symbol it resolves the symbol in the current context,</p>
+<pre class="highlight"><code class="clojure"><span class="nv">user=&gt;</span> <span class="p">(</span><span class="k">def </span><span class="nv">five</span> <span class="mi">5</span><span class="p">)</span>
+<span class="o">#</span><span class="ss">'user/five</span>
+<span class="nv">user=&gt;</span> <span class="o">`</span><span class="nv">five</span>
+<span class="nv">user/five</span>
+</code></pre><p>When used with lists (remember every thing in Clojure is data) it forms a <strong>template</strong> for the data structure and won't immediately resolve it.</p>
+<pre class="highlight"><code class="clojure"><span class="nv">user=&gt;</span> <span class="p">(</span><span class="mi">1</span> <span class="mi">2</span> <span class="mi">3</span><span class="p">)</span>
+<span class="nv">ClassCastException</span> <span class="nv">java.lang.Long</span> <span class="nv">cannot</span> <span class="nv">be</span> <span class="nb">cast </span><span class="nv">to</span> <span class="nv">clojure.lang.IFn</span>  <span class="nv">user/eval832</span> <span class="p">(</span><span class="nf">NO_SOURCE_FILE</span><span class="ss">:1</span><span class="p">)</span>
+<span class="nv">user=&gt;</span> <span class="o">`</span><span class="p">(</span><span class="mi">1</span> <span class="mi">2</span> <span class="mi">3</span><span class="p">)</span>
+<span class="p">(</span><span class="mi">1</span> <span class="mi">2</span> <span class="mi">3</span><span class="p">)</span>
+</code></pre><p>You'll see this most often in the context of macros. We can write one now,</p>
+<pre class="highlight"><code class="clojure"><span class="nv">user=&gt;</span> <span class="p">(</span><span class="kd">defmacro </span><span class="nv">debug</span> <span class="p">[</span><span class="nv">body</span><span class="p">]</span>
+  <span class="o">#</span><span class="nv">_=&gt;</span>   <span class="o">`</span><span class="p">(</span><span class="k">let </span><span class="p">[</span><span class="nv">val#</span> <span class="o">~</span><span class="nv">body</span><span class="p">]</span>
+  <span class="o">#</span><span class="nv">_=&gt;</span>      <span class="p">(</span><span class="nb">println </span><span class="s">"DEBUG: "</span> <span class="nv">val#</span><span class="p">)</span>
+  <span class="o">#</span><span class="nv">_=&gt;</span>      <span class="nv">val#</span><span class="p">))</span>
+<span class="o">#</span><span class="ss">'user/debug</span>
+<span class="nv">user=&gt;</span> <span class="p">(</span><span class="nf">debug</span> <span class="p">(</span><span class="nb">+ </span><span class="mi">2</span> <span class="mi">2</span><span class="p">))</span>
+<span class="nv">DEBUG</span><span class="err">:</span>  <span class="mi">4</span>
+<span class="mi">4</span>
+</code></pre>
+<blockquote><p>Code updated based on recommendations from Leif Foged</p>
+</blockquote><p>The macro takes a single statement wraps it in a <strong>quoted</strong> <code>let</code> block, evaluates and prints the result and then evaluates the body. In effect this <code>defmacro</code> call returns a quoted data structure representing the program we are writing with it. The <code>`</code> allows this to happen.</p>
+<ul>
+  <li><a href="http://www.braveclojure.com/writing-macros/">Clojure for the Brave and True - Writing Macros</a></li>
+  <li><a href="http://aphyr.com/posts/305-clojure-from-the-ground-up-macros">Clojure from the ground up: macros</a></li>
+  <li><a href="http://clojure.org/macros">Clojure Official Documentation</a></li>
+</ul>
+<hr /><h2><code>*var-name*</code> - Earmuffs</h2><p>Earmuffs (a pair of asterisk bookending var names) is a <strong>naming convention</strong> in many LISPs used to denote <strong>special vars</strong>. Most commonly in Clojure this seems to be used to denote <strong>dynamic</strong> vars i.e. ones that can change depending on where you are in the program. The earmuffs act as a warning that "here be dragons" and to never assume the state of the var. Remember this is a <strong>convention</strong> not a <strong>rule</strong>.</p><p>Core Clojure examples are <code>*out*</code> and <code>*in*</code> which represent the standard in and out Writers for Clojure.</p>
+<ul>
+  <li><a href="http://stackoverflow.com/questions/1986961/how-is-the-var-name-naming-convention-used-in-clojure">How is the <em>var-name</em> naming-convention used in clojure?</a></li>
+  <li><a href="http://clojure.github.io/clojure/clojure.core-api.html#clojure.core/*out*">Clojure API Docs</a></li>
+</ul>
+<hr /><h2><code>&gt;!!</code>, <code>&lt;!!</code>, <code>&gt;!</code> &amp; <code>&lt;!</code> - core.async channel macros</h2><p>These symbols are channel operations in <code>core.async</code> - a Clojure/ClojureScript library for channel based asynchronous programming (specifically <a href="http://en.wikipedia.org/wiki/Communicating_sequential_processes">CSP - Communicating Sequential Processes</a>).</p><p>If you imagine, for the sake of argument, a channel is a bit like a queue that things can put stuff on and take stuff off then these symbols support that simple API.</p>
+<ul>
+  <li><code>&gt;!!</code> &amp; <code>&lt;!!</code> are <strong>blocking</strong> <strong>put</strong> and <strong>take</strong> respectively</li>
+  <li><code>&gt;!</code> &amp; <code>&lt;!</code> are, simply, <strong>put</strong> and <strong>take</strong></li>
+</ul><p>The difference being the blocking versions operate outside <code>go</code> blocks and block the thread they operate on.</p>
+<pre class="highlight"><code class="clojure"><span class="nv">user=&gt;</span> <span class="p">(</span><span class="k">def </span><span class="nv">my-channel</span> <span class="p">(</span><span class="nf">chan</span> <span class="mi">10</span><span class="p">))</span> <span class="c1">; create a channel</span>
+<span class="nv">user=&gt;</span> <span class="p">(</span><span class="nf">&gt;!!</span> <span class="nv">my-channel</span> <span class="s">"hello"</span><span class="p">)</span>   <span class="c1">; put stuff on the channel</span>
+<span class="nv">user=&gt;</span> <span class="p">(</span><span class="nb">println </span><span class="p">(</span><span class="nf">&lt;!!</span> <span class="nv">my-channel</span><span class="p">))</span> <span class="c1">; take stuff off the channel</span>
+<span class="nv">hello</span>
+</code></pre><p>The non-blocking versions need to be executed within a <code>go</code> block otherwise they'll throw an exception</p>
+<pre class="highlight"><code class="clojure"><span class="nv">user=&gt;</span> <span class="p">(</span><span class="k">def </span><span class="nv">c</span> <span class="p">(</span><span class="nf">chan</span><span class="p">))</span>
+<span class="o">#</span><span class="ss">'user/c</span>
+<span class="nv">user=&gt;</span> <span class="p">(</span><span class="nf">&gt;!</span> <span class="nv">c</span> <span class="s">"nope"</span><span class="p">)</span>
+<span class="nv">AssertionError</span> <span class="nv">Assert</span> <span class="nv">failed</span><span class="err">:</span> <span class="nv">&gt;!</span> <span class="nv">used</span> <span class="nb">not </span><span class="nv">in</span> <span class="p">(</span><span class="nf">go</span> <span class="nv">...</span><span class="p">)</span> <span class="nv">block</span>
+<span class="nv">nil</span>  <span class="nv">clojure.core.async/&gt;!</span> <span class="p">(</span><span class="nf">async.clj</span><span class="ss">:123</span><span class="p">)</span>
+</code></pre><p>While the difference between these is well outside the scope of this article fundamentally the <code>go</code> blocks operate and manage their own resources pausing <strong>execution</strong> of code without blocking threads. This makes asynchronously executed code appear to be synchronous and removing the pain of managing asynchronous code from the code base.</p>
+<ul>
+  <li><a href="https://github.com/clojure/core.async/blob/master/examples/walkthrough.clj">core.async Code Walkthrough</a></li>
+  <li><a href="https://github.com/clojure/core.async/wiki">core.async Wiki</a></li>
+</ul>
+<hr /><h2><code>&lt;symbol&gt;?</code> - Predicate Marker</h2><p>Putting <code>?</code> at the end of a symbol is a <strong>naming convention</strong> common across many languages that support special characters in their symbol names It is used to indicate the thing is a predicate i.e. that it <strong>poses a question</strong>. For example imagine using an API that dealt with buffer manipulation</p>
+<pre class="highlight"><code class="clojure"><span class="p">(</span><span class="k">def </span><span class="nv">my-buffer</span> <span class="p">(</span><span class="nf">buffers/create-buffer</span> <span class="p">[</span><span class="mi">1</span> <span class="mi">2</span> <span class="mi">3</span><span class="p">]))</span>
+<span class="p">(</span><span class="nf">buffers/empty</span> <span class="nv">my-buffer</span><span class="p">)</span>
+</code></pre><p>At a glance how would you know if the method <code>empty</code> in this case,</p>
+<ul>
+  <li>Returned true if the passed in buffer was empty, or,</li>
+  <li>Cleared the buffer</li>
+</ul><p>While the author could have renamed <code>empty</code> to <code>is-empty</code> the richness of symbol naming in Clojure allows us to express intent more symbolically.</p>
+<pre class="highlight"><code class="clojure"><span class="p">(</span><span class="k">def </span><span class="nv">my-buffer</span> <span class="p">(</span><span class="nf">buffers/create-buffer</span> <span class="p">[</span><span class="mi">1</span> <span class="mi">2</span> <span class="mi">3</span><span class="p">]))</span>
+<span class="p">(</span><span class="nf">buffers/empty?</span> <span class="nv">my-buffer</span><span class="p">)</span>
+<span class="nv">false</span>
+</code></pre><p>This is simply a recommended <strong>convention</strong> not a <strong>requirement</strong></p>
+<ul>
+  <li><a href="https://github.com/bbatsov/clojure-style-guide#naming">Clojure Style Guide</a></li>
+</ul>
+<hr /><h2><code>&lt;symbol&gt;!</code> - Unsafe Operations</h2><p>The Clojure style guide has this to say</p>
+<blockquote><p>The names of functions/macros that are not safe in STM transactions should end with an exclamation mark (e.g. <code>reset!</code>).</p>
+</blockquote><p>You'll most commonly see this appended to function names whose purpose is to mutate state e.g connecting to a data store, updating an atom or closing a file stream.</p>
+<pre class="highlight"><code class="clojure"><span class="nv">user=&gt;</span> <span class="p">(</span><span class="k">def </span><span class="nv">my-stateful-thing</span> <span class="p">(</span><span class="nf">atom</span> <span class="mi">0</span><span class="p">))</span>
+<span class="o">#</span><span class="ss">'user/my-stateful-thing</span>
+<span class="nv">user=&gt;</span> <span class="p">(</span><span class="nf">swap!</span> <span class="nv">my-stateful-thing</span> <span class="nv">inc</span><span class="p">)</span>
+<span class="mi">1</span>
+<span class="nv">user=&gt;</span> <span class="o">@</span><span class="nv">my-stateful-thing</span>
+<span class="mi">1</span>
+</code></pre><p>This is simply a recommended <strong>convention</strong> not a <strong>requirement</strong></p>
+<ul>
+  <li><a href="https://github.com/bbatsov/clojure-style-guide#naming">Clojure Style Guide</a></li>
+</ul>
+<hr /><h2><code>_</code> - Irrelevant var</h2><p>When you see this used as function arguments or similar it is a common naming convention for vars or arguments you are not interested in using. That is you don't intend to use them so you aren't really interested in thinking of a useful name for them.</p><p>This is an example using the <code>add-watch</code> function that can be used to add callback style behavior when atoms change value. Imagine, given an atom, we want to print the new value everytime it changes,</p>
+<pre class="highlight"><code class="clojure"><span class="p">(</span><span class="k">def </span><span class="nv">value</span> <span class="p">(</span><span class="nf">atom</span> <span class="mi">0</span><span class="p">))</span>
+
+<span class="p">(</span><span class="nf">add-watch</span> <span class="nv">value</span> <span class="nv">nil</span> <span class="p">(</span><span class="k">fn </span><span class="p">[</span><span class="nv">_</span> <span class="nv">_</span> <span class="nv">_</span> <span class="nv">new-value</span><span class="p">]</span>
+                       <span class="p">(</span><span class="nb">println </span><span class="nv">new-value</span><span class="p">))</span>
+
+<span class="p">(</span><span class="nf">reset!</span> <span class="nv">value</span> <span class="mi">6</span><span class="p">)</span>
+<span class="c1">; prints 6</span>
+<span class="p">(</span><span class="nf">reset!</span> <span class="nv">value</span> <span class="mi">9</span><span class="p">)</span>
+<span class="c1">; prints 9</span>
+</code></pre><p><code>add-watch</code> takes 4 arguments but in our case we only really care about the last argument - the new value of the atom. I don't really want to spend time thinking of names for these arguments I'll never use, nor do I want to generate a long line of text unnecessarily (of course I could have used the shorthand <code>#(println %4)</code> but that defeats the purpose of this example).</p>
+<hr />
+<script>
+(function(){
+  var script = document.createElement('script');
+  script.src = "https://code.jquery.com/jquery-1.11.3.min.js"
+  script.onload = function(){
+    // wraps h3 in block
+    jQuery("h2").each(function(){
+      jQuery(this).nextUntil("h2")
+           .andSelf()
+           .wrapAll("<div class='block'/>")
+    })
+
+    jQuery('blockquote:first').after(jQuery("<input type='search' id='filter' placeholder='Search symbols..'/>").css({
+      "font-size"      : "1.5em",
+      "width"          : "100%",
+      "border"         : "1px solid #e0e0e0",
+      "text-indent"    : "0.5em",
+      "color"          : "#999",
+      "font-family"    : "Open Sans",
+      "padding-top"    : "0.2em",
+      "padding-bottom" : "0.2em"
+    }))
+
+    var all = jQuery('h2').parents(".block")
+
+    var filter = function(e){
+      if(this.value === "") {
+        all.show();
+      } else {
+        all.hide()
+        jQuery('h2 code:contains(' + this.value + ')').parents(".block").show();
+      }
+    };
+
+    jQuery('#filter').on("keyup", filter).on("click", filter);
+  }
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+<blockquote><p>Many thanks to everyone who has contributed ideas and [the copious amounts of] spelling corrections (crikey I'm bad at speelingz - so thanks Michael R. Mayne, lobsang_ludd). I've tried to call out people who have specifically asked for things. Sorry if I've missed you.</p>
+</blockquote></div><a class="twitter" href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fyobriefca.se%2Fblog%2F2014%2F05%2F19%2Fthe-weird-and-wonderful-characters-of-clojure%2F&amp;text=The%20Weird%20and%20Wonderful%20Characters%20of%20Clojure&amp;via=kouphax" itemprop="discussionUrl" target="_blank">Tweet This</a><div class="dater"><time datetime="19-05-2014" itemprop="datePublished">May 19, 2014</time></div><div class="categories">Published in <a href="/categories/clojure/">Clojure</a> on May 19, 2014</div></div></div><div class="homer"><a href="/"><i class="icon-briefcase" style="font-size:32px;"></i></a></div><script type="text/javascript">(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-19143623-5', 'yobriefca.se');
+  ga('send', 'pageview');</script></body></html>

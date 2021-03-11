@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="UTF-8"?><feed xmlns="http://www.w3.org/2005/Atom"><id>urn:yobriefca-se:feed:dropwizard</id><updated>Wed Nov 06 00:00:00 UTC 2013</updated><title type="text">Yo! Briefcase: dropwizard</title><link rel="self" href="https://yobriefca.se/feed/dropwizard.xml"></link><entry><title>Dropwizard - Production Ready Web Services</title><updated>Wed Nov 06 00:00:00 UTC 2013</updated><author><name>James Hughes</name></author><link href="/presentations/dropwizard.pdf"></link><id>urn:yobriefca-se:feed:post:Dropwizard - Production Ready Web Services</id><content type="html"></content></entry><entry><title>[Quick and Dirty, Super Ugly,] Starter for 10 - Dropwizard</title><updated>Mon Jul 02 23:00:00 UTC 2012</updated><author><name>James Hughes</name></author><link href="https://yobriefca.se/blog/2012/07/02/quick-and-dirty-super-ugly-starter-for-10-dropwizard/"></link><id>urn:yobriefca-se:feed:post:[Quick and Dirty, Super Ugly,] Starter for 10 - Dropwizard</id><content type="html">&lt;p&gt;So once again I'm writing Java without a gun to my head, and once again I'm finding it enjoyable. Don't get me wrong Java as a language feels very long winded, old and cumbersome but the frameworks and stuff that exist around it actually make those issues, less prominent, so much so I think I could easily live with the noise that Java brings.&lt;/p&gt;&lt;p&gt;Anywho.&lt;/p&gt;&lt;p&gt;&lt;a href="http://dropwizard.codahale.com/"&gt;Dropwizard&lt;/a&gt; is a framework for creating very simple ReSTful Web Services in Java. Not just that but it also bundles some nice best practise in with it as well. Things like pluggable health checks, logging, configuration, content negotiation etc. And, because it's fairly lightweight its fast. Very fast.&lt;/p&gt;&lt;p&gt;In fact you can think of Dropwizard as a collection of pre-existing tools glued together with some simple features to create a cohesive stack for HTTP+JSON web services. You've got &lt;a href="http://www.eclipse.org/jetty/"&gt;Jetty&lt;/a&gt;, &lt;a href="http://jersey.java.net/"&gt;Jersey&lt;/a&gt;, &lt;a href="http://jackson.codehaus.org/"&gt;Jackson&lt;/a&gt;, &lt;a href="http://metrics.codahale.com/"&gt;Metrics&lt;/a&gt;, &lt;a href="http://logback.qos.ch/"&gt;Logback&lt;/a&gt;, &lt;a href="http://www.jdbi.org/"&gt;JDBI&lt;/a&gt; and more. Dropwizard give you the glue that binds these along with a simple pipeline that makes use of these technologies.&lt;/p&gt;&lt;h2&gt;Simple Todo&lt;/h2&gt;&lt;p&gt;I had intended to do something a little more substantial but I am about to make a small annoucemnet that has kind of effectivley stopped me expanding this app much further. So lets create a simple Todo App.&lt;/p&gt;&lt;h3&gt;pom.xml&lt;/h3&gt;&lt;p&gt;As with most Java projects lets start with the &lt;code&gt;pom.xml&lt;/code&gt; which is effectively our project definition. I'll not show you my entire POM, at least not on the first date, but let me reveal the important parts.&lt;/p&gt;&lt;p&gt;Beause it's awesome I want to include WebJars so I add my repository,&lt;/p&gt;
+&lt;pre class="highlight"&gt;&lt;code class="xml"&gt;    &lt;span class="nt"&gt;&amp;lt;repositories&amp;gt;&lt;/span&gt;
+        &lt;span class="nt"&gt;&amp;lt;repository&amp;gt;&lt;/span&gt;
+            &lt;span class="nt"&gt;&amp;lt;id&amp;gt;&lt;/span&gt;webjars&lt;span class="nt"&gt;&amp;lt;/id&amp;gt;&lt;/span&gt;
+            &lt;span class="nt"&gt;&amp;lt;url&amp;gt;&lt;/span&gt;http://webjars.github.com/m2&lt;span class="nt"&gt;&amp;lt;/url&amp;gt;&lt;/span&gt;
+        &lt;span class="nt"&gt;&amp;lt;/repository&amp;gt;&lt;/span&gt;
+    &lt;span class="nt"&gt;&amp;lt;/repositories&amp;gt;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Next I add my dependencies,&lt;/p&gt;
+&lt;ol&gt;
+  &lt;li&gt;Dropwizard Core which has everything you'll need for this&lt;/li&gt;
+  &lt;li&gt;jQuery from the WebJar repository&lt;/li&gt;
+&lt;/ol&gt;
+&lt;pre class="highlight"&gt;&lt;code class="xml"&gt;    &lt;span class="nt"&gt;&amp;lt;dependencies&amp;gt;&lt;/span&gt;
+        &lt;span class="nt"&gt;&amp;lt;dependency&amp;gt;&lt;/span&gt;
+          &lt;span class="nt"&gt;&amp;lt;groupId&amp;gt;&lt;/span&gt;com.yammer.dropwizard&lt;span class="nt"&gt;&amp;lt;/groupId&amp;gt;&lt;/span&gt;
+          &lt;span class="nt"&gt;&amp;lt;artifactId&amp;gt;&lt;/span&gt;dropwizard-core&lt;span class="nt"&gt;&amp;lt;/artifactId&amp;gt;&lt;/span&gt;
+          &lt;span class="nt"&gt;&amp;lt;version&amp;gt;&lt;/span&gt;0.4.2&lt;span class="nt"&gt;&amp;lt;/version&amp;gt;&lt;/span&gt;
+        &lt;span class="nt"&gt;&amp;lt;/dependency&amp;gt;&lt;/span&gt;
+        &lt;span class="nt"&gt;&amp;lt;dependency&amp;gt;&lt;/span&gt;
+          &lt;span class="nt"&gt;&amp;lt;groupId&amp;gt;&lt;/span&gt;com.jquery&lt;span class="nt"&gt;&amp;lt;/groupId&amp;gt;&lt;/span&gt;
+          &lt;span class="nt"&gt;&amp;lt;artifactId&amp;gt;&lt;/span&gt;jquery&lt;span class="nt"&gt;&amp;lt;/artifactId&amp;gt;&lt;/span&gt;
+          &lt;span class="nt"&gt;&amp;lt;version&amp;gt;&lt;/span&gt;1.7.2-1&lt;span class="nt"&gt;&amp;lt;/version&amp;gt;&lt;/span&gt;
+        &lt;span class="nt"&gt;&amp;lt;/dependency&amp;gt;&lt;/span&gt;
+    &lt;span class="nt"&gt;&amp;lt;/dependencies&amp;gt;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;I also add the &lt;a href="http://maven.apache.org/plugins/maven-shade-plugin/"&gt;shade plugin&lt;/a&gt; which will let me build a Fat Jar (a jar with all my dependencies and what not in it).&lt;/p&gt;
+&lt;pre class="highlight"&gt;&lt;code class="xml"&gt;    &lt;span class="nt"&gt;&amp;lt;plugin&amp;gt;&lt;/span&gt;
+        &lt;span class="nt"&gt;&amp;lt;groupId&amp;gt;&lt;/span&gt;org.apache.maven.plugins&lt;span class="nt"&gt;&amp;lt;/groupId&amp;gt;&lt;/span&gt;
+        &lt;span class="nt"&gt;&amp;lt;artifactId&amp;gt;&lt;/span&gt;maven-shade-plugin&lt;span class="nt"&gt;&amp;lt;/artifactId&amp;gt;&lt;/span&gt;
+        &lt;span class="nt"&gt;&amp;lt;version&amp;gt;&lt;/span&gt;1.6&lt;span class="nt"&gt;&amp;lt;/version&amp;gt;&lt;/span&gt;
+        &lt;span class="nt"&gt;&amp;lt;configuration&amp;gt;&lt;/span&gt;
+            &lt;span class="nt"&gt;&amp;lt;createDependencyReducedPom&amp;gt;&lt;/span&gt;true&lt;span class="nt"&gt;&amp;lt;/createDependencyReducedPom&amp;gt;&lt;/span&gt;
+            &lt;span class="nt"&gt;&amp;lt;filters&amp;gt;&lt;/span&gt;
+                &lt;span class="nt"&gt;&amp;lt;filter&amp;gt;&lt;/span&gt;
+                    &lt;span class="nt"&gt;&amp;lt;artifact&amp;gt;&lt;/span&gt;*:*&lt;span class="nt"&gt;&amp;lt;/artifact&amp;gt;&lt;/span&gt;
+                    &lt;span class="nt"&gt;&amp;lt;excludes&amp;gt;&lt;/span&gt;
+                        &lt;span class="nt"&gt;&amp;lt;exclude&amp;gt;&lt;/span&gt;META-INF/*.SF&lt;span class="nt"&gt;&amp;lt;/exclude&amp;gt;&lt;/span&gt;
+                        &lt;span class="nt"&gt;&amp;lt;exclude&amp;gt;&lt;/span&gt;META-INF/*.DSA&lt;span class="nt"&gt;&amp;lt;/exclude&amp;gt;&lt;/span&gt;
+                        &lt;span class="nt"&gt;&amp;lt;exclude&amp;gt;&lt;/span&gt;META-INF/*.RSA&lt;span class="nt"&gt;&amp;lt;/exclude&amp;gt;&lt;/span&gt;
+                    &lt;span class="nt"&gt;&amp;lt;/excludes&amp;gt;&lt;/span&gt;
+                &lt;span class="nt"&gt;&amp;lt;/filter&amp;gt;&lt;/span&gt;
+            &lt;span class="nt"&gt;&amp;lt;/filters&amp;gt;&lt;/span&gt;
+        &lt;span class="nt"&gt;&amp;lt;/configuration&amp;gt;&lt;/span&gt;
+        &lt;span class="nt"&gt;&amp;lt;executions&amp;gt;&lt;/span&gt;
+            &lt;span class="nt"&gt;&amp;lt;execution&amp;gt;&lt;/span&gt;
+                &lt;span class="nt"&gt;&amp;lt;phase&amp;gt;&lt;/span&gt;package&lt;span class="nt"&gt;&amp;lt;/phase&amp;gt;&lt;/span&gt;
+                &lt;span class="nt"&gt;&amp;lt;goals&amp;gt;&lt;/span&gt;
+                    &lt;span class="nt"&gt;&amp;lt;goal&amp;gt;&lt;/span&gt;shade&lt;span class="nt"&gt;&amp;lt;/goal&amp;gt;&lt;/span&gt;
+                &lt;span class="nt"&gt;&amp;lt;/goals&amp;gt;&lt;/span&gt;
+                &lt;span class="nt"&gt;&amp;lt;configuration&amp;gt;&lt;/span&gt;
+                    &lt;span class="nt"&gt;&amp;lt;transformers&amp;gt;&lt;/span&gt;
+                        &lt;span class="nt"&gt;&amp;lt;transformer&lt;/span&gt; &lt;span class="na"&gt;implementation=&lt;/span&gt;&lt;span class="s"&gt;"org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"&lt;/span&gt;&lt;span class="nt"&gt;/&amp;gt;&lt;/span&gt;
+                        &lt;span class="nt"&gt;&amp;lt;transformer&lt;/span&gt; &lt;span class="na"&gt;implementation=&lt;/span&gt;&lt;span class="s"&gt;"org.apache.maven.plugins.shade.resource.ManifestResourceTransformer"&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&lt;/span&gt;
+                            &lt;span class="nt"&gt;&amp;lt;mainClass&amp;gt;&lt;/span&gt;se.yobriefca.TodoService&lt;span class="nt"&gt;&amp;lt;/mainClass&amp;gt;&lt;/span&gt;
+                        &lt;span class="nt"&gt;&amp;lt;/transformer&amp;gt;&lt;/span&gt;
+                    &lt;span class="nt"&gt;&amp;lt;/transformers&amp;gt;&lt;/span&gt;
+                &lt;span class="nt"&gt;&amp;lt;/configuration&amp;gt;&lt;/span&gt;
+            &lt;span class="nt"&gt;&amp;lt;/execution&amp;gt;&lt;/span&gt;
+        &lt;span class="nt"&gt;&amp;lt;/executions&amp;gt;&lt;/span&gt;
+    &lt;span class="nt"&gt;&amp;lt;/plugin&amp;gt;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;h3&gt;Configuration&lt;/h3&gt;&lt;p&gt;Dropwizard has the ability to map configuration options (from a YML or JSON file) into concrete classes that can be accessed by your services. So first I created a todo.yml at the root of the project (beside the pom.xml) with some basic configuration&lt;/p&gt;
+&lt;pre class="highlight"&gt;&lt;code class="xml"&gt;http:
+    rootPath: "/app/*"
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;This configuration tells Dropwizard that my services are located at a url starting with &lt;code&gt;/app&lt;/code&gt; - eg &lt;code&gt;/app/todo&lt;/code&gt;. This is necessary as I want to create an asset later that maps to the root url &lt;code&gt;/&lt;/code&gt; that is the default of Dropwizard. At this point I haven't needed any of my own configuration but if I did I could create a POJO that maps to proeprties in this file. The &lt;a href="http://dropwizard.codahale.com/getting-started/#creating-a-configuration-class"&gt;official guide&lt;/a&gt; has more on this. For now I will create an empty &lt;code&gt;Configuration&lt;/code&gt; class in case I want to extend it later (yeah I know YAGNI YAGNI KISS YAGNI - shutuppayourface!)&lt;/p&gt;
+&lt;pre class="highlight"&gt;&lt;code class="java"&gt;&lt;span class="kn"&gt;package&lt;/span&gt; &lt;span class="n"&gt;se&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;yobriefca&lt;/span&gt;&lt;span class="o"&gt;;&lt;/span&gt;
+
+&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;com.yammer.dropwizard.config.Configuration&lt;/span&gt;&lt;span class="o"&gt;;&lt;/span&gt;
+
+&lt;span class="kd"&gt;public&lt;/span&gt; &lt;span class="kd"&gt;class&lt;/span&gt; &lt;span class="nc"&gt;TodoConfiguration&lt;/span&gt; &lt;span class="kd"&gt;extends&lt;/span&gt; &lt;span class="n"&gt;Configuration&lt;/span&gt; &lt;span class="o"&gt;{&lt;/span&gt;
+&lt;span class="o"&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;h3&gt;Service&lt;/h3&gt;&lt;p&gt;The service is the core class in our solution. It's the thing that has the &lt;code&gt;main&lt;/code&gt; as an entry point. The thing that "set us up the resouces" and registers healthchecks and controls our service lifecycle. You'd think there would be loads of code here? Right? Wrong!&lt;/p&gt;
+&lt;pre class="highlight"&gt;&lt;code class="java"&gt;&lt;span class="kn"&gt;package&lt;/span&gt; &lt;span class="n"&gt;se&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;yobriefca&lt;/span&gt;&lt;span class="o"&gt;;&lt;/span&gt;
+
+&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;com.yammer.dropwizard.Service&lt;/span&gt;&lt;span class="o"&gt;;&lt;/span&gt;
+&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;com.yammer.dropwizard.bundles.AssetsBundle&lt;/span&gt;&lt;span class="o"&gt;;&lt;/span&gt;
+&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;com.yammer.dropwizard.config.Environment&lt;/span&gt;&lt;span class="o"&gt;;&lt;/span&gt;
+&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;se.yobriefca.resources.TodoResource&lt;/span&gt;&lt;span class="o"&gt;;&lt;/span&gt;
+
+&lt;span class="kd"&gt;public&lt;/span&gt; &lt;span class="kd"&gt;class&lt;/span&gt; &lt;span class="nc"&gt;TodoService&lt;/span&gt; &lt;span class="kd"&gt;extends&lt;/span&gt; &lt;span class="n"&gt;Service&lt;/span&gt;&lt;span class="o"&gt;&amp;lt;&lt;/span&gt;&lt;span class="n"&gt;TodoConfiguration&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt; &lt;span class="o"&gt;{&lt;/span&gt;
+    &lt;span class="kd"&gt;public&lt;/span&gt; &lt;span class="kd"&gt;static&lt;/span&gt; &lt;span class="kt"&gt;void&lt;/span&gt; &lt;span class="nf"&gt;main&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="n"&gt;String&lt;/span&gt;&lt;span class="o"&gt;[]&lt;/span&gt; &lt;span class="n"&gt;args&lt;/span&gt;&lt;span class="o"&gt;)&lt;/span&gt; &lt;span class="kd"&gt;throws&lt;/span&gt; &lt;span class="n"&gt;Exception&lt;/span&gt; &lt;span class="o"&gt;{&lt;/span&gt;
+        &lt;span class="k"&gt;new&lt;/span&gt; &lt;span class="nf"&gt;TodoService&lt;/span&gt;&lt;span class="o"&gt;().&lt;/span&gt;&lt;span class="na"&gt;run&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="n"&gt;args&lt;/span&gt;&lt;span class="o"&gt;);&lt;/span&gt;
+    &lt;span class="o"&gt;}&lt;/span&gt;
+
+    &lt;span class="kd"&gt;private&lt;/span&gt; &lt;span class="nf"&gt;TodoService&lt;/span&gt;&lt;span class="o"&gt;()&lt;/span&gt; &lt;span class="o"&gt;{&lt;/span&gt;
+        &lt;span class="kd"&gt;super&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="s"&gt;"todo"&lt;/span&gt;&lt;span class="o"&gt;);&lt;/span&gt;
+
+        &lt;span class="n"&gt;addBundle&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="k"&gt;new&lt;/span&gt; &lt;span class="n"&gt;AssetsBundle&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="s"&gt;"/assets"&lt;/span&gt;&lt;span class="o"&gt;,&lt;/span&gt; &lt;span class="s"&gt;"/"&lt;/span&gt;&lt;span class="o"&gt;));&lt;/span&gt;
+        &lt;span class="n"&gt;addBundle&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="k"&gt;new&lt;/span&gt; &lt;span class="n"&gt;AssetsBundle&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="s"&gt;"/public"&lt;/span&gt;&lt;span class="o"&gt;,&lt;/span&gt; &lt;span class="s"&gt;"/public/"&lt;/span&gt;&lt;span class="o"&gt;));&lt;/span&gt;
+    &lt;span class="o"&gt;}&lt;/span&gt;
+
+    &lt;span class="nd"&gt;@Override&lt;/span&gt;
+    &lt;span class="kd"&gt;protected&lt;/span&gt; &lt;span class="kt"&gt;void&lt;/span&gt; &lt;span class="nf"&gt;initialize&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="n"&gt;TodoConfiguration&lt;/span&gt; &lt;span class="n"&gt;configuration&lt;/span&gt;&lt;span class="o"&gt;,&lt;/span&gt; &lt;span class="n"&gt;Environment&lt;/span&gt; &lt;span class="n"&gt;environment&lt;/span&gt;&lt;span class="o"&gt;)&lt;/span&gt; &lt;span class="o"&gt;{&lt;/span&gt;
+        &lt;span class="n"&gt;environment&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;addResource&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="k"&gt;new&lt;/span&gt; &lt;span class="n"&gt;TodoResource&lt;/span&gt;&lt;span class="o"&gt;());&lt;/span&gt;
+    &lt;span class="o"&gt;}&lt;/span&gt;
+&lt;span class="o"&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;So all services extend &lt;code&gt;Service&lt;/code&gt; and have a &lt;code&gt;Configuration&lt;/code&gt; type (FYI these config types can be nested so its not as restrictive as I first thought). Basically what we have is a &lt;code&gt;main&lt;/code&gt; method that create an instance of our service and runs it. Upon creation we add two bundles to the service. A bundle is bascially a bit of functionality and in this case we create two &lt;code&gt;AssetBundles&lt;/code&gt; which can be used to serve static content (embedded resources) upon request to a specific URL (think things like CSS, JavaScript, HTML etc.) You'll notice I am mapping 2 things bundles here and this is because I need to map to the WebJars directroy as well. So when I got to &lt;code&gt;localhost/index.html&lt;/code&gt; it will match the url pattern in the first AssetsBundle and look for a file &lt;code&gt;src/main/resources/assets/index.html&lt;/code&gt;.&lt;/p&gt;&lt;p&gt;Finally we have the &lt;code&gt;initialize&lt;/code&gt; method that allows us to decare mutliple resources and healthchecks against our environment. We also get handed our configuration class we decalred in advance.&lt;/p&gt;&lt;h3&gt;A bit about healthchecks&lt;/h3&gt;&lt;p&gt;Healthchecks are little classes that perform some sort of test on a part of your solution. For example we could have a database connectivity check. These healthchecks are made available on the &lt;a href="http://dropwizard.codahale.com/manual/core/#health-checks"&gt;admin section that is bound to another port&lt;/a&gt; when your app starts. &lt;/p&gt;&lt;p&gt;Now I didn't define any for this example and for that I feel absolutely terrible. Seriously I kind of feel sick thinkging about it. And whats worse Dropwizard kindly reminds me everytime I start the app - using LOTS of exclamantion marks and CAPS!!! IRL you should really not follow my example here.&lt;/p&gt;&lt;h3&gt;Resources&lt;/h3&gt;&lt;p&gt;Resources are resources as they are identified in ReSTy things. For example a &lt;code&gt;User&lt;/code&gt; is a resource or an &lt;code&gt;Order&lt;/code&gt; etc. These things will respond to HTTP requests matched against the URL and the HTTP Method used. In my example I have defined a resource &lt;code&gt;Todo&lt;/code&gt; that can be used to list, create and delete (I didn't need anything else for this).&lt;/p&gt;
+&lt;pre class="highlight"&gt;&lt;code class="java"&gt;&lt;span class="nd"&gt;@Path&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="s"&gt;"/todos"&lt;/span&gt;&lt;span class="o"&gt;)&lt;/span&gt;
+&lt;span class="nd"&gt;@Produces&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="n"&gt;MediaType&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;APPLICATION_JSON&lt;/span&gt;&lt;span class="o"&gt;)&lt;/span&gt;
+&lt;span class="kd"&gt;public&lt;/span&gt; &lt;span class="kd"&gt;class&lt;/span&gt; &lt;span class="nc"&gt;TodoResource&lt;/span&gt; &lt;span class="o"&gt;{&lt;/span&gt;
+    &lt;span class="kd"&gt;private&lt;/span&gt; &lt;span class="kd"&gt;static&lt;/span&gt; &lt;span class="kd"&gt;final&lt;/span&gt; &lt;span class="n"&gt;ArrayList&lt;/span&gt;&lt;span class="o"&gt;&amp;lt;&lt;/span&gt;&lt;span class="n"&gt;Todo&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;todos&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;Lists&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;newArrayList&lt;/span&gt;&lt;span class="o"&gt;();&lt;/span&gt;
+
+    &lt;span class="nd"&gt;@GET&lt;/span&gt;
+    &lt;span class="kd"&gt;public&lt;/span&gt; &lt;span class="n"&gt;Collection&lt;/span&gt;&lt;span class="o"&gt;&amp;lt;&lt;/span&gt;&lt;span class="n"&gt;Todo&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt; &lt;span class="nf"&gt;list&lt;/span&gt;&lt;span class="o"&gt;()&lt;/span&gt; &lt;span class="o"&gt;{&lt;/span&gt;
+        &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="n"&gt;todos&lt;/span&gt;&lt;span class="o"&gt;;&lt;/span&gt;
+    &lt;span class="o"&gt;}&lt;/span&gt;
+
+    &lt;span class="nd"&gt;@POST&lt;/span&gt;
+    &lt;span class="kd"&gt;public&lt;/span&gt; &lt;span class="n"&gt;Todo&lt;/span&gt; &lt;span class="nf"&gt;add&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="nd"&gt;@Valid&lt;/span&gt; &lt;span class="n"&gt;Todo&lt;/span&gt; &lt;span class="n"&gt;todo&lt;/span&gt;&lt;span class="o"&gt;){&lt;/span&gt;
+        &lt;span class="n"&gt;todos&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;add&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="n"&gt;todo&lt;/span&gt;&lt;span class="o"&gt;);&lt;/span&gt;
+        &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="n"&gt;todo&lt;/span&gt;&lt;span class="o"&gt;;&lt;/span&gt;
+    &lt;span class="o"&gt;}&lt;/span&gt;
+
+    &lt;span class="nd"&gt;@DELETE&lt;/span&gt;
+    &lt;span class="nd"&gt;@Path&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="s"&gt;"/{id}"&lt;/span&gt;&lt;span class="o"&gt;)&lt;/span&gt;
+    &lt;span class="kd"&gt;public&lt;/span&gt; &lt;span class="n"&gt;Todo&lt;/span&gt; &lt;span class="nf"&gt;delete&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="nd"&gt;@PathParam&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="s"&gt;"id"&lt;/span&gt;&lt;span class="o"&gt;)&lt;/span&gt; &lt;span class="kd"&gt;final&lt;/span&gt; &lt;span class="n"&gt;LongParam&lt;/span&gt; &lt;span class="n"&gt;id&lt;/span&gt;&lt;span class="o"&gt;){&lt;/span&gt;
+        &lt;span class="n"&gt;Todo&lt;/span&gt; &lt;span class="n"&gt;todo&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="kc"&gt;null&lt;/span&gt;&lt;span class="o"&gt;;&lt;/span&gt;
+        &lt;span class="n"&gt;List&lt;/span&gt;&lt;span class="o"&gt;&amp;lt;&lt;/span&gt;&lt;span class="n"&gt;Todo&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;todoCopy&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;Lists&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;newArrayList&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="n"&gt;todos&lt;/span&gt;&lt;span class="o"&gt;);&lt;/span&gt;
+
+        &lt;span class="n"&gt;todos&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;clear&lt;/span&gt;&lt;span class="o"&gt;();&lt;/span&gt;
+
+        &lt;span class="c1"&gt;// loop past all items in the list and replace the changed one&lt;/span&gt;
+        &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="n"&gt;Todo&lt;/span&gt; &lt;span class="nl"&gt;element:&lt;/span&gt; &lt;span class="n"&gt;todoCopy&lt;/span&gt;&lt;span class="o"&gt;)&lt;/span&gt; &lt;span class="o"&gt;{&lt;/span&gt;
+            &lt;span class="k"&gt;if&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="n"&gt;element&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;getId&lt;/span&gt;&lt;span class="o"&gt;()&lt;/span&gt; &lt;span class="o"&gt;!=&lt;/span&gt; &lt;span class="n"&gt;id&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;get&lt;/span&gt;&lt;span class="o"&gt;()){&lt;/span&gt;
+                &lt;span class="n"&gt;todos&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;add&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="n"&gt;element&lt;/span&gt;&lt;span class="o"&gt;);&lt;/span&gt;
+            &lt;span class="o"&gt;}&lt;/span&gt;&lt;span class="k"&gt;else&lt;/span&gt;&lt;span class="o"&gt;{&lt;/span&gt;
+                &lt;span class="n"&gt;todo&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;element&lt;/span&gt;&lt;span class="o"&gt;;&lt;/span&gt;
+            &lt;span class="o"&gt;}&lt;/span&gt;
+        &lt;span class="o"&gt;}&lt;/span&gt;
+
+        &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="n"&gt;todo&lt;/span&gt;&lt;span class="o"&gt;;&lt;/span&gt;
+    &lt;span class="o"&gt;}&lt;/span&gt;
+&lt;span class="o"&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Again not a great deal of code and what code that is there is fairly straightforward - some would say boilerplate. We use annotations to map our HTTP Methods &lt;code&gt;@GET&lt;/code&gt;, &lt;code&gt;@POST&lt;/code&gt; and &lt;code&gt;@DELETE&lt;/code&gt; as well as a &lt;code&gt;@Path(...)&lt;/code&gt; annotation to specify what url this resource resonds to. Another nice feature we can see annotated here is we get both validation (via the @Valid annotation which is based on Hibernates Validation framework) and JSON model binding via Jackson and model annotations (get to that in a minute).&lt;/p&gt;&lt;p&gt;For this simple demo I am storing a list of Todos in an ArrayList in memory (top of the class).&lt;/p&gt;&lt;h3&gt;Model&lt;/h3&gt;&lt;p&gt;The model is, bar all the annotations to enable serialisation, fairly POJO-like,&lt;/p&gt;
+&lt;pre class="highlight"&gt;&lt;code class="java"&gt;&lt;span class="kd"&gt;public&lt;/span&gt; &lt;span class="kd"&gt;class&lt;/span&gt; &lt;span class="nc"&gt;Todo&lt;/span&gt; &lt;span class="o"&gt;{&lt;/span&gt;
+
+    &lt;span class="c1"&gt;// Not So Universally Unique!&lt;/span&gt;
+    &lt;span class="kd"&gt;private&lt;/span&gt; &lt;span class="kd"&gt;static&lt;/span&gt; &lt;span class="kd"&gt;final&lt;/span&gt; &lt;span class="n"&gt;AtomicLong&lt;/span&gt; &lt;span class="n"&gt;NSUUID&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="k"&gt;new&lt;/span&gt; &lt;span class="n"&gt;AtomicLong&lt;/span&gt;&lt;span class="o"&gt;();&lt;/span&gt;
+
+    &lt;span class="nd"&gt;@JsonProperty&lt;/span&gt;
+    &lt;span class="kd"&gt;private&lt;/span&gt; &lt;span class="kd"&gt;final&lt;/span&gt; &lt;span class="n"&gt;Long&lt;/span&gt; &lt;span class="n"&gt;id&lt;/span&gt;&lt;span class="o"&gt;;&lt;/span&gt;
+
+    &lt;span class="nd"&gt;@NotEmpty&lt;/span&gt;
+    &lt;span class="nd"&gt;@JsonProperty&lt;/span&gt;
+    &lt;span class="kd"&gt;private&lt;/span&gt; &lt;span class="kd"&gt;final&lt;/span&gt; &lt;span class="n"&gt;String&lt;/span&gt; &lt;span class="n"&gt;content&lt;/span&gt;&lt;span class="o"&gt;;&lt;/span&gt;
+
+    &lt;span class="nd"&gt;@JsonCreator&lt;/span&gt;
+    &lt;span class="kd"&gt;public&lt;/span&gt; &lt;span class="nf"&gt;Todo&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="nd"&gt;@JsonProperty&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="s"&gt;"content"&lt;/span&gt;&lt;span class="o"&gt;)&lt;/span&gt; &lt;span class="n"&gt;String&lt;/span&gt; &lt;span class="n"&gt;content&lt;/span&gt;&lt;span class="o"&gt;)&lt;/span&gt; &lt;span class="o"&gt;{&lt;/span&gt;
+        &lt;span class="k"&gt;this&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;id&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;NSUUID&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;incrementAndGet&lt;/span&gt;&lt;span class="o"&gt;();&lt;/span&gt;
+        &lt;span class="k"&gt;this&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;content&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;content&lt;/span&gt;&lt;span class="o"&gt;;&lt;/span&gt;
+    &lt;span class="o"&gt;}&lt;/span&gt;
+
+    &lt;span class="kd"&gt;public&lt;/span&gt; &lt;span class="n"&gt;String&lt;/span&gt; &lt;span class="nf"&gt;getContent&lt;/span&gt;&lt;span class="o"&gt;()&lt;/span&gt; &lt;span class="o"&gt;{&lt;/span&gt;
+        &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="n"&gt;content&lt;/span&gt;&lt;span class="o"&gt;;&lt;/span&gt;
+    &lt;span class="o"&gt;}&lt;/span&gt;
+
+    &lt;span class="kd"&gt;public&lt;/span&gt; &lt;span class="n"&gt;Long&lt;/span&gt; &lt;span class="nf"&gt;getId&lt;/span&gt;&lt;span class="o"&gt;(){&lt;/span&gt;
+        &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="n"&gt;id&lt;/span&gt;&lt;span class="o"&gt;;&lt;/span&gt;
+    &lt;span class="o"&gt;}&lt;/span&gt;
+
+&lt;span class="o"&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;I've put this in more for completeness as there is little involved in this.&lt;/p&gt;&lt;h3&gt;index.html&lt;/h3&gt;&lt;p&gt;I am not going to create some elaborate over architected front end here - just a few lines of JavaScript (ignoring the rather large jQuery library included of course) and not styling.&lt;/p&gt;
+&lt;pre class="highlight"&gt;&lt;code class="html"&gt;&lt;span class="cp"&gt;&amp;lt;!DOCTYPE html&amp;gt;&lt;/span&gt;
+&lt;span class="nt"&gt;&amp;lt;html&amp;gt;&lt;/span&gt;
+  &lt;span class="nt"&gt;&amp;lt;head&amp;gt;&lt;/span&gt;
+    &lt;span class="nt"&gt;&amp;lt;title&amp;gt;&lt;/span&gt;Demo&lt;span class="nt"&gt;&amp;lt;/title&amp;gt;&lt;/span&gt;
+  &lt;span class="nt"&gt;&amp;lt;/head&amp;gt;&lt;/span&gt;
+  &lt;span class="nt"&gt;&amp;lt;body&amp;gt;&lt;/span&gt;
+    &lt;span class="nt"&gt;&amp;lt;div&amp;gt;&lt;/span&gt;
+      &lt;span class="nt"&gt;&amp;lt;input&lt;/span&gt; &lt;span class="na"&gt;type=&lt;/span&gt;&lt;span class="s"&gt;"text"&lt;/span&gt; &lt;span class="na"&gt;id=&lt;/span&gt;&lt;span class="s"&gt;"task"&lt;/span&gt; &lt;span class="nt"&gt;/&amp;gt;&lt;/span&gt; &lt;span class="nt"&gt;&amp;lt;button&lt;/span&gt; &lt;span class="na"&gt;id=&lt;/span&gt;&lt;span class="s"&gt;"addTask"&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&lt;/span&gt;Add Task&lt;span class="nt"&gt;&amp;lt;/button&amp;gt;&lt;/span&gt;
+    &lt;span class="nt"&gt;&amp;lt;/div&amp;gt;&lt;/span&gt;
+    &lt;span class="nt"&gt;&amp;lt;ul&lt;/span&gt; &lt;span class="na"&gt;id=&lt;/span&gt;&lt;span class="s"&gt;"todos"&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&amp;lt;/ul&amp;gt;&lt;/span&gt;
+    &lt;span class="nt"&gt;&amp;lt;script &lt;/span&gt;&lt;span class="na"&gt;type=&lt;/span&gt;&lt;span class="s"&gt;'text/javascript'&lt;/span&gt; &lt;span class="na"&gt;src=&lt;/span&gt;&lt;span class="s"&gt;'/public/jquery.min.js'&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&amp;lt;/script&amp;gt;&lt;/span&gt;
+    &lt;span class="nt"&gt;&amp;lt;script&amp;gt;&lt;/span&gt;
+      &lt;span class="nx"&gt;$&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="kd"&gt;function&lt;/span&gt;&lt;span class="p"&gt;(){&lt;/span&gt;
+        &lt;span class="c1"&gt;// load and replace the list&lt;/span&gt;
+        &lt;span class="nx"&gt;$&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;getJSON&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;"/app/todos"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="kd"&gt;function&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;todos&lt;/span&gt;&lt;span class="p"&gt;){&lt;/span&gt;
+          &lt;span class="k"&gt;for&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="kd"&gt;var&lt;/span&gt; &lt;span class="nx"&gt;i&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="nx"&gt;i&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;&lt;/span&gt; &lt;span class="nx"&gt;todos&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;length&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="nx"&gt;i&lt;/span&gt;&lt;span class="o"&gt;++&lt;/span&gt;&lt;span class="p"&gt;){&lt;/span&gt;
+            &lt;span class="nx"&gt;$&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;"#todos"&lt;/span&gt;&lt;span class="p"&gt;).&lt;/span&gt;&lt;span class="nx"&gt;append&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;
+              &lt;span class="s2"&gt;"&amp;lt;li&amp;gt;&amp;lt;input type='checkbox' data-id='"&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="nx"&gt;todos&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="nx"&gt;i&lt;/span&gt;&lt;span class="p"&gt;].&lt;/span&gt;&lt;span class="nx"&gt;id&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt;&lt;span class="s2"&gt;"'/&amp;gt;"&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt;
+                &lt;span class="nx"&gt;todos&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="nx"&gt;i&lt;/span&gt;&lt;span class="p"&gt;].&lt;/span&gt;&lt;span class="nx"&gt;content&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt;
+              &lt;span class="s2"&gt;"&amp;lt;/li&amp;gt;"&lt;/span&gt;
+            &lt;span class="p"&gt;)&lt;/span&gt;
+          &lt;span class="p"&gt;}&lt;/span&gt;
+        &lt;span class="p"&gt;});&lt;/span&gt;
+
+        &lt;span class="c1"&gt;// manage adding a new task&lt;/span&gt;
+        &lt;span class="nx"&gt;$&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;"#addTask"&lt;/span&gt;&lt;span class="p"&gt;).&lt;/span&gt;&lt;span class="nx"&gt;click&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="kd"&gt;function&lt;/span&gt;&lt;span class="p"&gt;(){&lt;/span&gt;
+          &lt;span class="nx"&gt;$&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;ajax&lt;/span&gt;&lt;span class="p"&gt;({&lt;/span&gt;
+            &lt;span class="nx"&gt;url&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;         &lt;span class="s2"&gt;"/app/todos"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+            &lt;span class="nx"&gt;type&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;        &lt;span class="s2"&gt;"POST"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+            &lt;span class="nx"&gt;data&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;        &lt;span class="nx"&gt;JSON&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;stringify&lt;/span&gt;&lt;span class="p"&gt;({&lt;/span&gt; &lt;span class="nx"&gt;content&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="nx"&gt;$&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;"#task"&lt;/span&gt;&lt;span class="p"&gt;).&lt;/span&gt;&lt;span class="nx"&gt;val&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="p"&gt;}),&lt;/span&gt;
+            &lt;span class="nx"&gt;contentType&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;"application/json; charset=utf-8"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+            &lt;span class="nx"&gt;dataType&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;    &lt;span class="s2"&gt;"json"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+            &lt;span class="nx"&gt;success&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;     &lt;span class="kd"&gt;function&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;data&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nx"&gt;textStatus&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nx"&gt;jqXHR&lt;/span&gt;&lt;span class="p"&gt;){&lt;/span&gt;
+              &lt;span class="nx"&gt;$&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;"#todos"&lt;/span&gt;&lt;span class="p"&gt;).&lt;/span&gt;&lt;span class="nx"&gt;append&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;
+                &lt;span class="s2"&gt;"&amp;lt;li&amp;gt;&amp;lt;input type='checkbox' data-id='"&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="nx"&gt;data&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;id&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt;&lt;span class="s2"&gt;"'/&amp;gt;"&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt;
+                  &lt;span class="nx"&gt;data&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;content&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt;
+                &lt;span class="s2"&gt;"&amp;lt;/li&amp;gt;"&lt;/span&gt;
+              &lt;span class="p"&gt;)&lt;/span&gt;
+            &lt;span class="p"&gt;}&lt;/span&gt;
+          &lt;span class="p"&gt;})&lt;/span&gt;
+        &lt;span class="p"&gt;})&lt;/span&gt;
+
+        &lt;span class="nx"&gt;$&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;"#todos"&lt;/span&gt;&lt;span class="p"&gt;).&lt;/span&gt;&lt;span class="nx"&gt;delegate&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;"input[type=checkbox]"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s2"&gt;"click"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="kd"&gt;function&lt;/span&gt;&lt;span class="p"&gt;(){&lt;/span&gt;
+          &lt;span class="kd"&gt;var&lt;/span&gt; &lt;span class="nx"&gt;chk&lt;/span&gt;  &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nx"&gt;$&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="k"&gt;this&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt;
+          &lt;span class="nx"&gt;item&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nx"&gt;chk&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;parent&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;"li"&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt;
+          &lt;span class="nx"&gt;id&lt;/span&gt;   &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nx"&gt;chk&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;data&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;"id"&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+
+          &lt;span class="nx"&gt;$&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;ajax&lt;/span&gt;&lt;span class="p"&gt;({&lt;/span&gt;
+            &lt;span class="nx"&gt;url&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;         &lt;span class="s2"&gt;"/app/todos/"&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="nx"&gt;id&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+            &lt;span class="nx"&gt;type&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;        &lt;span class="s2"&gt;"DELETE"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+            &lt;span class="nx"&gt;contentType&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;"application/json; charset=utf-8"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+            &lt;span class="nx"&gt;dataType&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;    &lt;span class="s2"&gt;"json"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+            &lt;span class="nx"&gt;success&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;     &lt;span class="kd"&gt;function&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;data&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nx"&gt;textStatus&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nx"&gt;jqXHR&lt;/span&gt;&lt;span class="p"&gt;){&lt;/span&gt;
+              &lt;span class="k"&gt;if&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;data&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;id&lt;/span&gt; &lt;span class="o"&gt;===&lt;/span&gt; &lt;span class="nx"&gt;id&lt;/span&gt;&lt;span class="p"&gt;){&lt;/span&gt;
+                &lt;span class="nx"&gt;item&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;css&lt;/span&gt;&lt;span class="p"&gt;({&lt;/span&gt;&lt;span class="s2"&gt;"text-decoration"&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;"line-through"&lt;/span&gt;&lt;span class="p"&gt;});&lt;/span&gt;
+                &lt;span class="nx"&gt;chk&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;remove&lt;/span&gt;&lt;span class="p"&gt;();&lt;/span&gt;
+              &lt;span class="p"&gt;}&lt;/span&gt;
+            &lt;span class="p"&gt;}&lt;/span&gt;
+          &lt;span class="p"&gt;})&lt;/span&gt;
+        &lt;span class="p"&gt;})&lt;/span&gt;
+      &lt;span class="p"&gt;})&lt;/span&gt;
+    &lt;span class="nt"&gt;&amp;lt;/script&amp;gt;&lt;/span&gt;
+  &lt;span class="nt"&gt;&amp;lt;/body&amp;gt;&lt;/span&gt;
+&lt;span class="nt"&gt;&amp;lt;/html&amp;gt;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;And thats it. Oh wait I also added a boot command that peforms the maven packing and starts the jar.&lt;/p&gt;
+&lt;pre class="highlight"&gt;&lt;code&gt;mvn package;java -jar target/todo-0.1.jar server todo.yml
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Just run &lt;code&gt;./boot&lt;/code&gt; (assuming you've chmod'd the file to be executable) and you'll have, assuming I (or you) haven't made any mistakes, a Todo service running on port 8080 (with admin/diagnostics stuff on port 8081).&lt;/p&gt;&lt;p&gt;As always the &lt;a href="https://github.com/kouphax/dropwizard-todo"&gt;example code is available on Github&lt;/a&gt;. Sorry for the rushed nature of this post, I'll hopefully keep tweaking the example on Github till it's a bit nicer - perhaps even with tests and comments (YEAH RIGHT!!!!)&lt;/p&gt;&lt;p&gt;In short - Dropwizard - simple ReST services, very little config, very nice.&lt;/p&gt;</content></entry></feed>

@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><meta content="IE=edge,chrome=1" http-equiv="X-UA-Compatible"><meta content="width=device-width, user-scalable=no" name="viewport"><meta content="A Nancy Module that Behaves like a Rails Controller... Mother of God" name="description"><link href="/favicon.ico" rel="shortcut icon" type="image/x-icon"><link href="https://fonts.googleapis.com/css?family=Merriweather:400,700|Open+Sans:400,700" rel="stylesheet" type="text/css"><link href="/bundles/84cd5d4454d9/styles.css" rel="stylesheet" /><title>A Nancy Module that Behaves like a Rails Controller... Mother of God</title></head><body><div class="row"><blockquote class="warning">This post is over 6 months old.  Some details,
+       especially technical, may have changed.</blockquote><div itemscope="" itemtype="http://schema.org/Article"><h1 itemprop="name">A Nancy Module that Behaves like a Rails Controller... Mother of God</h1><div class="post" itemprop="articleBody"><p>If <a href="http://nancyfx.org">Nancy</a> is inspired by Sinatra I thought I'd have a little fun a create an abstract class that created modules that kind of mimic the behaviour of Rails controllers. Code first, ask questions later...</p>
+<pre class="highlight"><code class="csharp "><span class="k">public</span> <span class="k">abstract</span> <span class="k">class</span> <span class="nc">RailslikeControllerFor</span><span class="p">&lt;</span><span class="n">TEntity</span><span class="p">&gt;</span> <span class="p">:</span> <span class="n">NancyModule</span> <span class="k">where</span> <span class="n">TEntity</span> <span class="p">:</span> <span class="k">class</span>
+<span class="err">{</span>
+    <span class="k">public</span> <span class="nf">RailslikeControllerFor</span><span class="p">()</span> <span class="p">:</span> <span class="k">base</span><span class="p">(</span><span class="s">"/"</span> <span class="p">+</span> <span class="k">typeof</span><span class="p">(</span><span class="n">TEntity</span><span class="p">).</span><span class="n">Name</span> <span class="p">+</span> <span class="s">"s"</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="n">Get</span><span class="p">[</span><span class="s">@"/"</span><span class="p">]</span> <span class="p">=</span> <span class="n">Index</span><span class="p">;</span>
+        <span class="n">Get</span><span class="p">[</span><span class="s">@"/new"</span><span class="p">]</span> <span class="p">=</span> <span class="n">New</span><span class="p">;</span>
+        <span class="n">Post</span><span class="p">[</span><span class="s">@"/"</span><span class="p">]</span> <span class="p">=</span> <span class="n">Create</span><span class="p">;</span>
+        <span class="n">Get</span><span class="p">[</span><span class="s">@"/(?&lt;id&gt;[\d])"</span><span class="p">]</span> <span class="p">=</span> <span class="n">Show</span><span class="p">;</span>
+        <span class="n">Get</span><span class="p">[</span><span class="s">@"/(?&lt;id&gt;[\d])/edit"</span><span class="p">]</span> <span class="p">=</span> <span class="n">Edit</span><span class="p">;</span>
+        <span class="n">Put</span><span class="p">[</span><span class="s">@"/(?&lt;id&gt;[\d])"</span><span class="p">]</span> <span class="p">=</span> <span class="n">Update</span><span class="p">;</span>
+        <span class="n">Delete</span><span class="p">[</span><span class="s">@"/(?&lt;id&gt;[\d])"</span><span class="p">]</span> <span class="p">=</span> <span class="n">Destroy</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="k">protected</span> <span class="k">virtual</span> <span class="n">Nancy</span><span class="p">.</span><span class="n">Response</span> <span class="n">Index</span><span class="p">(</span><span class="kt">dynamic</span> <span class="n">context</span><span class="p">)</span> <span class="p">{</span> <span class="k">return</span> <span class="m">404</span><span class="p">;</span> <span class="p">}</span>
+    <span class="k">protected</span> <span class="k">virtual</span> <span class="n">Nancy</span><span class="p">.</span><span class="n">Response</span> <span class="n">New</span><span class="p">(</span><span class="kt">dynamic</span> <span class="n">context</span><span class="p">)</span> <span class="p">{</span> <span class="k">return</span> <span class="m">404</span><span class="p">;</span> <span class="p">}</span>
+    <span class="k">protected</span> <span class="k">virtual</span> <span class="n">Nancy</span><span class="p">.</span><span class="n">Response</span> <span class="n">Create</span><span class="p">(</span><span class="kt">dynamic</span> <span class="n">context</span><span class="p">)</span> <span class="p">{</span> <span class="k">return</span> <span class="m">404</span><span class="p">;</span> <span class="p">}</span>
+    <span class="k">protected</span> <span class="k">virtual</span> <span class="n">Nancy</span><span class="p">.</span><span class="n">Response</span> <span class="n">Show</span><span class="p">(</span><span class="kt">dynamic</span> <span class="n">context</span><span class="p">)</span> <span class="p">{</span> <span class="k">return</span> <span class="m">404</span><span class="p">;</span> <span class="p">}</span>
+    <span class="k">protected</span> <span class="k">virtual</span> <span class="n">Nancy</span><span class="p">.</span><span class="n">Response</span> <span class="n">Edit</span><span class="p">(</span><span class="kt">dynamic</span> <span class="n">context</span><span class="p">)</span> <span class="p">{</span> <span class="k">return</span> <span class="m">404</span><span class="p">;</span> <span class="p">}</span>
+    <span class="k">protected</span> <span class="k">virtual</span> <span class="n">Nancy</span><span class="p">.</span><span class="n">Response</span> <span class="n">Update</span><span class="p">(</span><span class="kt">dynamic</span> <span class="n">context</span><span class="p">)</span> <span class="p">{</span> <span class="k">return</span> <span class="m">404</span><span class="p">;</span> <span class="p">}</span>
+    <span class="k">protected</span> <span class="k">virtual</span> <span class="n">Nancy</span><span class="p">.</span><span class="n">Response</span> <span class="n">Destroy</span><span class="p">(</span><span class="kt">dynamic</span> <span class="n">context</span><span class="p">)</span> <span class="p">{</span> <span class="k">return</span> <span class="m">404</span><span class="p">;</span> <span class="p">}</span>
+
+    <span class="k">protected</span> <span class="n">Nancy</span><span class="p">.</span><span class="n">Response</span> <span class="n">AsView</span><span class="p">(</span><span class="kt">object</span> <span class="n">model</span> <span class="p">=</span> <span class="k">null</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="kt">string</span> <span class="n">method</span> <span class="p">=</span> <span class="k">new</span> <span class="n">StackTrace</span><span class="p">().</span><span class="n">GetFrame</span><span class="p">(</span><span class="m">1</span><span class="p">).</span><span class="n">GetMethod</span><span class="p">().</span><span class="n">Name</span><span class="p">;</span>
+        <span class="kt">string</span> <span class="n">entity</span> <span class="p">=</span> <span class="k">typeof</span><span class="p">(</span><span class="n">TEntity</span><span class="p">).</span><span class="n">Name</span><span class="p">;</span>
+
+        <span class="k">return</span> <span class="n">View</span><span class="p">[</span><span class="kt">string</span><span class="p">.</span><span class="n">Format</span><span class="p">(</span><span class="s">"{0}/{1}"</span><span class="p">,</span> <span class="n">entity</span><span class="p">,</span> <span class="n">method</span><span class="p">),</span> <span class="n">model</span><span class="p">];</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre><p>To use it you just subclass the class and override the necessary methods. Like so.</p>
+<pre class="highlight"><code class="csharp "><span class="k">public</span> <span class="k">class</span> <span class="nc">QuestionModule</span> <span class="p">:</span> <span class="n">RailslikeControllerFor</span><span class="p">&lt;</span><span class="n">Question</span><span class="p">&gt;</span>
+<span class="p">{</span>
+    <span class="n">IQuestionsRepository</span> <span class="n">questions</span><span class="p">;</span>
+
+    <span class="k">public</span> <span class="nf">QuestionModule</span><span class="p">(</span><span class="n">IQuestionsRepository</span> <span class="n">questions</span><span class="p">)</span>
+        <span class="p">:</span> <span class="k">base</span><span class="p">()</span> <span class="p">{</span> <span class="k">this</span><span class="p">.</span><span class="n">questions</span> <span class="p">=</span> <span class="n">questions</span><span class="p">;</span> <span class="p">}</span>
+
+    <span class="k">protected</span> <span class="k">override</span> <span class="n">Response</span> <span class="nf">Index</span><span class="p">(</span><span class="kt">dynamic</span> <span class="n">context</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="k">return</span> <span class="nf">AsView</span><span class="p">(</span><span class="n">questions</span><span class="p">.</span><span class="n">GetAll</span><span class="p">());</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre><p>What the base class does is create the necessary CRUDdy urls with a base route starting with the name of the entity you pass in, pluralised in the easiest way possible. In this case <code>/questions</code>. The rules match what you wold get for a controller in Rails.</p>
+<table style="width:100%" border="1">
+    <tbody>
+        <tr style="background-color: #666;color:#fff;">
+            <th style="padding:4px;font-weight:bold;">Verb </th>
+            <th style="padding:4px;font-weight:bold;">Path</th>
+            <th style="padding:4px;font-weight:bold;">Action </th>
+            <th style="padding:4px;font-weight:bold;"></th>
+        </tr>
+        <tr>
+            <td style="padding:4px;"><span class="caps">GET</span>     </td>
+            <td style="padding:4px;">/questions           </td>
+            <td style="padding:4px;">index    </td>
+            <td style="padding:4px;">display a list of all questions</td>
+        </tr>
+        <tr style="background-color: #fff;">
+            <td style="padding:4px;"><span class="caps">GET</span>     </td>
+            <td style="padding:4px;">/questions/new       </td>
+            <td style="padding:4px;">new      </td>
+            <td style="padding:4px;">return an <span class="caps">HTML</span> form for creating a new question</td>
+        </tr>
+        <tr>
+            <td style="padding:4px;"><span class="caps">POST</span>    </td>
+            <td style="padding:4px;">/questions           </td>
+            <td style="padding:4px;">create   </td>
+            <td style="padding:4px;">create a new question</td>
+        </tr>
+        <tr style="background-color: #fff;">
+            <td style="padding:4px;"><span class="caps">GET</span>     </td>
+            <td style="padding:4px;">/questions/:id       </td>
+            <td style="padding:4px;">show     </td>
+            <td style="padding:4px;">display a specific question</td>
+        </tr>
+        <tr>
+            <td style="padding:4px;"><span class="caps">GET</span>     </td>
+            <td style="padding:4px;">/questions/:id/edit  </td>
+            <td style="padding:4px;">edit     </td>
+            <td style="padding:4px;">return an <span class="caps">HTML</span> form for editing a question</td>
+        </tr>
+        <tr style="background-color: #fff;">
+            <td style="padding:4px;"><span class="caps">PUT</span>     </td>
+            <td style="padding:4px;">/questions/:id       </td>
+            <td style="padding:4px;">update   </td>
+            <td style="padding:4px;">update a specific question</td>
+        </tr>
+        <tr>
+            <td style="padding:4px;"><span class="caps">DELETE</span>  </td>
+            <td style="padding:4px;">/questions/:id       </td>
+            <td style="padding:4px;">destroy  </td>
+            <td style="padding:4px;">delete a specific question</td>
+        </tr>
+    </tbody>
+</table><p><br /></p><p>There is a teeny-tiny bit of sugar in the <code>AsView</code> method that will look up the corresponding view. So the module above would resolve its <code>Index</code> method to <code>questions/index</code> and the view engine would find the correct file (eg. for Razor - <code>questions/index.cshtml</code>).</p><p>I've already said it's a bit of fun but I have actually used this at least once - there is probably more that could be added but it'll do for a first spike at least. Any use to anyone?</p></div><a class="twitter" href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fyobriefca.se%2Fblog%2F2011%2F12%2F30%2Fa-nancy-module-that-behaves-like-a-rails-controller-dot-dot-dot-mother-of-god%2F&amp;text=A%20Nancy%20Module%20that%20Behaves%20like%20a%20Rails%20Controller...%20Mother%20of%20God&amp;via=kouphax" itemprop="discussionUrl" target="_blank">Tweet This</a><div class="dater"><time datetime="30-12-2011" itemprop="datePublished">December 30, 2011</time></div><div class="categories">Published in <a href="/categories/dot-net/">.NET</a> on December 30, 2011</div></div></div><div class="homer"><a href="/"><i class="icon-briefcase" style="font-size:32px;"></i></a></div><script type="text/javascript">(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-19143623-5', 'yobriefca.se');
+  ga('send', 'pageview');</script></body></html>

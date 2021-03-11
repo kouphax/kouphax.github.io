@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><meta content="IE=edge,chrome=1" http-equiv="X-UA-Compatible"><meta content="width=device-width, user-scalable=no" name="viewport"><meta content="window.prompt() in Elm" name="description"><link href="/favicon.ico" rel="shortcut icon" type="image/x-icon"><link href="https://fonts.googleapis.com/css?family=Merriweather:400,700|Open+Sans:400,700" rel="stylesheet" type="text/css"><link href="/bundles/84cd5d4454d9/styles.css" rel="stylesheet" /><title>window.prompt() in Elm</title></head><body><div class="row"><blockquote class="warning">This post is over 6 months old.  Some details,
+       especially technical, may have changed.</blockquote><div itemscope="" itemtype="http://schema.org/Article"><h1 itemprop="name">window.prompt() in Elm</h1><div class="post" itemprop="articleBody"><blockquote><p>I say "standard stuff" a few times in this article. When I say that I assume, like me, you've dipped your toes into Elm. If that is not the case and you want to change that situation then I recommend go give <a href="https://pragmaticstudio.com/elm">Pragmatic Studios</a> your money. I was in no way paid or influenced to say that BTW.</p>
+</blockquote><p>Having spent last night watching the Pragmatic Studios <a href="https://pragmaticstudio.com/elm">Elm: Building Reactive Web Apps</a> I am now a fully certified expert in <a href="http://elm-lang.org">Elm</a> and so it's time to start writing articles about it. Of course this is nonsense but some of my adventures have inspired me to write an article or two that may be useful to others (and my future self).</p><p>I <a href="https://yobriefca.se/blog/2015/07/20/zombie-dice-score-card-with-reagent/">recently documented</a> a little hobby project I worked on for keeping score on games of Zombie Dice. The app was written in ClojureScript and after I had wrapped my head around Elm I decided to see what the same app would look like in Elm. This article <strong>isn't</strong> about that, but rather a small part of it that I found quite challenging.</p><p>Unlike ClojureScript (and Clojure) whose philosophy is to embrace the underlying host environment Elm abstracts it away. It's not gone completely it's just not as prevalent or easy to access. In my <a href="https://yobriefca.se/zombie-dice/">Zombie Dice Score Card</a> app adding new players uses the standard JavaScript host function <code>window.prompt</code> to capture the name and I wanted to replicate this functionality in my Elm implementation.</p><h2>Basic Implementation</h2><p>My first pass at this resulted in a working implementation (well not my <strong>actual</strong> first pass it was many, <strong>many</strong> passes before I even figured out what the hell I was doing). While it wasn't going to be practical for my actual needs it did form the basis of something useful that I could build upon.</p><p>The key is to using <code>port</code>s. A <a href="http://elm-lang.org/guide/interop#ports">port</a> acts as a bridge between Elm and JavaScript. They either go <code>in</code> to Elm or <code>out</code> of Elm. You declare a <code>port</code> in Elm like this,</p>
+<pre class="highlight"><code class="haskell"><span class="nf">port</span> <span class="n">suppliedNames</span> <span class="kt">:</span> <span class="kt">Signal</span> <span class="kt">String</span>
+</code></pre><p>This is <code>port</code> is an innie. You can tell it is an innie because you supply no actual definition. Instead we can <code>send</code> things to it from the JavaScript side.</p>
+<pre class="highlight"><code class="javascript"><span class="nx">app</span><span class="p">.</span><span class="nx">ports</span><span class="p">.</span><span class="nx">suppliedNames</span><span class="p">.</span><span class="nx">send</span><span class="p">(</span><span class="s2">"James"</span><span class="p">);</span>
+</code></pre><p>Assuming, in our HTML file, our Elm app is created and assigned to a variable <code>app</code> we will have this <code>ports</code> object that lists all the ports we expose from our app. This will have our <code>suppliedNames</code> port which will have a method of <code>send</code> that we can use to signal values through that port.</p><p>One other thing is that these innies must be given an initial value when the app is constructed or you'll get an exception. We can do it like this,</p>
+<pre class="highlight"><code class="javascript"><span class="kd">var</span> <span class="nx">app</span> <span class="o">=</span> <span class="nx">Elm</span><span class="p">.</span><span class="nx">fullscreen</span><span class="p">(</span><span class="nx">Elm</span><span class="p">.</span><span class="nx">Confirm</span><span class="p">,</span> <span class="p">{</span> <span class="nx">suppliedNames</span><span class="o">:</span> <span class="s2">""</span> <span class="p">});</span>
+</code></pre><p>So when we boot our app we pass in an initial value.</p><p>Lets look at another port,</p>
+<pre class="highlight"><code class="haskell"><span class="nf">port</span> <span class="n">totalCapacity</span> <span class="kt">:</span> <span class="kt">Signal</span> <span class="kt">String</span>
+<span class="nf">port</span> <span class="n">totalCapacity</span> <span class="ow">=</span> <span class="n">map</span> <span class="n">toString</span> <span class="n">somethingElse</span>
+</code></pre><p>This one is an outtie. This is used to signal things <strong>out</strong> of our Elm app into JavaScript. In this case it sends out the sum of some data structure as and when it changes. We can listen to these signals in JavaScript like this,</p>
+<pre class="highlight"><code class="javascript"><span class="nx">app</span><span class="p">.</span><span class="nx">ports</span><span class="p">.</span><span class="nx">totalCapacity</span><span class="p">.</span><span class="nx">subscribe</span><span class="p">(</span><span class="kd">function</span><span class="p">(</span><span class="nx">x</span><span class="p">)</span> <span class="p">{</span> 
+  <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">x</span><span class="p">)</span> 
+<span class="p">});</span>
+</code></pre><p>Outtie ports have a <code>subscribe</code> method generated for them that takes a function accepting the payload. In our case we simply log it.</p><p>Now onto our specific use case. My needs are slightly different to the samples because while they broadcast data out of the Elm side I just want some sort of trigger to say "go ahead and open a prompt". This is 100% impure in that it is <strong>only</strong> used for side effects and I've found that with Elm being a rather pure language this sort of requirement feels kind of awkward. Thats not a criticism, just an observation. You should expect bad things to feel awkward, it helps you minimise them.</p><p>The JavaScript/HTML side of our application is fairly unsurprising (assuming you've not skipped the last few paragraphs).</p>
+<pre class="highlight"><code class="html"><span class="cp">&lt;!DOCTYPE HTML&gt;</span>
+<span class="nt">&lt;html&gt;</span>
+  <span class="nt">&lt;head&gt;</span>
+    <span class="nt">&lt;meta</span> <span class="na">charset=</span><span class="s">"UTF-8"</span><span class="nt">&gt;</span>
+  	  <span class="nt">&lt;script </span><span class="na">type=</span><span class="s">"text/javascript"</span> <span class="na">src=</span><span class="s">"confirm.js"</span><span class="nt">&gt;&lt;/script&gt;</span>
+  <span class="nt">&lt;/head&gt;</span>
+  <span class="nt">&lt;body&gt;</span>
+  <span class="nt">&lt;/body&gt;</span>
+  <span class="nt">&lt;script </span><span class="na">type=</span><span class="s">"text/javascript"</span><span class="nt">&gt;</span>
+    <span class="kd">var</span> <span class="nx">app</span> <span class="o">=</span> <span class="nx">Elm</span><span class="p">.</span><span class="nx">fullscreen</span><span class="p">(</span><span class="nx">Elm</span><span class="p">.</span><span class="nx">Confirm</span><span class="p">,</span> <span class="p">{</span> <span class="nx">suppliedNames</span><span class="o">:</span> <span class="s2">""</span> <span class="p">});</span>
+    <span class="nx">app</span><span class="p">.</span><span class="nx">ports</span><span class="p">.</span><span class="nx">prompt</span><span class="p">.</span><span class="nx">subscribe</span><span class="p">(</span><span class="kd">function</span><span class="p">(){</span>
+        <span class="kd">var</span> <span class="nx">value</span> <span class="o">=</span> <span class="nb">window</span><span class="p">.</span><span class="nx">prompt</span><span class="p">(</span><span class="s2">"Players name?"</span><span class="p">);</span>
+        <span class="nx">app</span><span class="p">.</span><span class="nx">ports</span><span class="p">.</span><span class="nx">suppliedNames</span><span class="p">.</span><span class="nx">send</span><span class="p">(</span><span class="nx">value</span><span class="p">);</span>
+    <span class="p">});</span>
+  <span class="nt">&lt;/script&gt;</span>
+<span class="nt">&lt;/html&gt;</span>
+</code></pre><p>Here we, </p>
+<ul>
+  <li>boot our app passing in a blank value for <code>suppliedNames</code></li>
+  <li><code>subscribe</code> to a <code>prompt</code> port which will display the <code>window.prompt</code></li>
+  <li><code>send</code> the captured value from <code>window.prompt</code> back into our app</li>
+</ul><p>The Elm side of things is where the real stuff happens,</p>
+<pre class="highlight"><code class="haskell"><span class="kr">module</span> <span class="nn">Confirm</span> <span class="kr">where</span>
+
+<span class="kr">import</span> <span class="nn">Html</span>        <span class="n">exposing</span> <span class="p">(</span><span class="o">..</span><span class="p">)</span>
+<span class="kr">import</span> <span class="nn">Html.Events</span> <span class="n">exposing</span> <span class="p">(</span><span class="o">..</span><span class="p">)</span>
+<span class="kr">import</span> <span class="nn">Signal</span>      <span class="n">exposing</span> <span class="p">(</span><span class="o">..</span><span class="p">)</span>
+
+<span class="c1">-- SIGNALS </span>
+<span class="kr">type</span> <span class="kt">Action</span> <span class="ow">=</span> <span class="kt">NoOp</span> <span class="o">|</span> <span class="kt">Prompt</span>
+
+<span class="nf">actions</span> <span class="kt">:</span> <span class="kt">Signal</span><span class="o">.</span><span class="kt">Mailbox</span> <span class="kt">Action</span>
+<span class="nf">actions</span> <span class="ow">=</span>
+    <span class="kt">Signal</span><span class="o">.</span><span class="n">mailbox</span> <span class="kt">NoOp</span>
+
+<span class="c1">-- PORTS --</span>
+<span class="nf">port</span> <span class="n">suppliedNames</span> <span class="kt">:</span> <span class="kt">Signal</span> <span class="kt">String</span>
+
+<span class="nf">port</span> <span class="n">confirm</span> <span class="kt">:</span> <span class="kt">Signal</span> <span class="nb">()</span>
+<span class="nf">port</span> <span class="n">confirm</span> <span class="ow">=</span>
+  <span class="n">actions</span><span class="o">.</span><span class="n">signal</span>
+    <span class="o">|&gt;</span> <span class="n">filter</span> <span class="p">(</span><span class="nf">\</span><span class="n">s</span> <span class="ow">-&gt;</span> <span class="n">s</span> <span class="o">==</span> <span class="kt">Prompt</span><span class="p">)</span> <span class="kt">NoOp</span>
+    <span class="o">|&gt;</span> <span class="n">map</span> <span class="p">(</span><span class="n">always</span> <span class="nb">()</span><span class="p">)</span>
+
+<span class="c1">-- VIEWS --</span>
+<span class="nf">view</span> <span class="n">name</span> <span class="ow">=</span>
+  <span class="n">div</span> <span class="kt">[]</span>
+    <span class="p">[</span> <span class="n">text</span> <span class="n">name</span><span class="p">,</span>
+      <span class="n">button</span> <span class="p">[</span> <span class="n">onClick</span> <span class="n">actions</span><span class="o">.</span><span class="n">address</span> <span class="kt">Prompt</span> <span class="p">]</span>
+        <span class="p">[</span> <span class="n">text</span> <span class="s">"Set Name"</span><span class="p">]]</span>
+
+<span class="c1">-- APP -</span>
+<span class="nf">main</span> <span class="kt">:</span> <span class="kt">Signal</span> <span class="kt">Html</span>
+<span class="nf">main</span> <span class="ow">=</span> <span class="kt">Signal</span><span class="o">.</span><span class="n">map</span> <span class="n">view</span> <span class="n">suppliedNames</span>
+</code></pre><p>Given there is a fair few things happening here lets have a look at the interesting bits.</p><p>First of all we set up the various operations our application will perform and create a <code>Mailbox</code> that can be used to send actions to. If you've ever tinkered with Elm this should be pretty common,</p>
+<pre class="highlight"><code class="haskell"><span class="kr">type</span> <span class="kt">Action</span> <span class="ow">=</span> <span class="kt">NoOp</span> <span class="o">|</span> <span class="kt">Prompt</span>
+
+<span class="nf">actions</span> <span class="kt">:</span> <span class="kt">Signal</span><span class="o">.</span><span class="kt">Mailbox</span> <span class="kt">Action</span>
+<span class="nf">actions</span> <span class="ow">=</span>
+    <span class="kt">Signal</span><span class="o">.</span><span class="n">mailbox</span> <span class="kt">NoOp</span>
+</code></pre><p>The <code>Prompt</code> action is the one we want to use to trigger our <code>window.prompt</code> call via a port. Next we declare our actual ports,</p>
+<pre class="highlight"><code class="haskell"><span class="nf">port</span> <span class="n">suppliedNames</span> <span class="kt">:</span> <span class="kt">Signal</span> <span class="kt">String</span>
+
+<span class="nf">port</span> <span class="n">prompt</span> <span class="kt">:</span> <span class="kt">Signal</span> <span class="nb">()</span>
+<span class="nf">port</span> <span class="n">prompt</span> <span class="ow">=</span>
+  <span class="n">actions</span><span class="o">.</span><span class="n">signal</span>
+    <span class="o">|&gt;</span> <span class="n">filter</span> <span class="p">(</span><span class="nf">\</span><span class="n">s</span> <span class="ow">-&gt;</span> <span class="n">s</span> <span class="o">==</span> <span class="kt">Prompt</span><span class="p">)</span> <span class="kt">NoOp</span>
+    <span class="o">|&gt;</span> <span class="n">map</span> <span class="p">(</span><span class="n">always</span> <span class="nb">()</span><span class="p">)</span>
+</code></pre><p><code>suppliedNames</code> is our innie. This will receive names we've created later on. <code>prompt</code> is our outtie. What we do is </p>
+<ul>
+  <li>take the signal from our <code>Mailbox</code></li>
+  <li><code>filter</code> everything except the <code>Prompt</code> actions</li>
+  <li><code>map</code> these values an <code>always</code> return a <code>unit</code> value</li>
+</ul><p>Why <code>unit</code>? Well we don't care about the actual value we just want to reach out to the JavaScript when we get a <code>Prompt</code> action through our mailbox. Any value is meaningless so lets just go for the <strong>most meaningless</strong> one we can find.</p><p>Then in our <code>view</code> we have a <code>button</code> that sends a <code>Prompt</code> action to our Mailbox,</p>
+<pre class="highlight"><code class="haskell"><span class="nf">button</span> <span class="p">[</span> <span class="n">onClick</span> <span class="n">actions</span><span class="o">.</span><span class="n">address</span> <span class="kt">Prompt</span> <span class="p">]</span>
+</code></pre><p>Again this should be fairly unsurprising to the Elm-ites (or whatever the collective term is) reading this.</p><p>Finally we have our <code>main</code> that wires it all together,</p>
+<pre class="highlight"><code class="haskell"><span class="nf">main</span> <span class="ow">=</span> <span class="kt">Signal</span><span class="o">.</span><span class="n">map</span> <span class="n">view</span> <span class="n">suppliedNames</span>
+</code></pre><p>Again - standard stuff.</p><h2>Notes</h2><p>As the last title indicated this is just a basic implementation. It requires a bit more work to integrate into an application that requires a more complicated model but its a good starting point. I know this because I've already begun extending it to create the Elm version of my <a href="https://yobriefca.se/zombie-dice/">Zombie Dice Score Card</a> which I'll dissect in another article soon.</p><p>Now I'm not saying this is idiomatic Elm, I'm not even saying this is a <strong>recommended</strong> way to do things but it works and "feels" good enough to me. If you want to comment/fix/critique/whatever my work then you can get me on <a href="https://twitter.com/kouphax">Twitter</a> and let fly the dogs of conversation.</p></div><a class="twitter" href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fyobriefca.se%2Fblog%2F2015%2F07%2F28%2Fwindow-dot-prompt-in-elm%2F&amp;text=window.prompt%28%29%20in%20Elm&amp;via=kouphax" itemprop="discussionUrl" target="_blank">Tweet This</a><div class="dater"><time datetime="28-07-2015" itemprop="datePublished">July 28, 2015</time></div><div class="categories">Published in <a href="/categories/elm/">Elm</a> on July 28, 2015</div></div></div><div class="homer"><a href="/"><i class="icon-briefcase" style="font-size:32px;"></i></a></div><script type="text/javascript">(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-19143623-5', 'yobriefca.se');
+  ga('send', 'pageview');</script></body></html>

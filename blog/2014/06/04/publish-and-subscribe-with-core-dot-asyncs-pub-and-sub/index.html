@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><meta content="IE=edge,chrome=1" http-equiv="X-UA-Compatible"><meta content="width=device-width, user-scalable=no" name="viewport"><meta content="Publish and Subscribe with core.async&apos;s pub and sub" name="description"><link href="/favicon.ico" rel="shortcut icon" type="image/x-icon"><link href="https://fonts.googleapis.com/css?family=Merriweather:400,700|Open+Sans:400,700" rel="stylesheet" type="text/css"><link href="/bundles/84cd5d4454d9/styles.css" rel="stylesheet" /><title>Publish and Subscribe with core.async's pub and sub</title></head><body><div class="row"><blockquote class="warning">This post is over 6 months old.  Some details,
+       especially technical, may have changed.</blockquote><div itemscope="" itemtype="http://schema.org/Article"><h1 itemprop="name">Publish and Subscribe with core.async's pub and sub</h1><div class="post" itemprop="articleBody"><p>Following on from my <a href="/blog/2014/06/01/combining-and-controlling-channels-with-core-dot-asyncs-merge-and-mix/">previous article</a> that covered <code>core.async</code>'s <code>merge</code> and <code>mix</code> this article will delve into another suite of complementary <strong>high level</strong> methods - namely the channel driven publish/subscribe model that <code>core.async</code> can support.</p><p>While the pub/sub mechanism provided by core.async is higher level than working directly with <code>chan</code>s and <code>mult</code>s to achieve the same thing (in fact that is how the pub/sub operations are implemented internally) it should still be considered a set of lower level primitives compared to say a specific event bus notification with topic namespacing, wildcard broadcasting and other such specialised features.</p><p>I've attempted to visualise how the various parts of a pub/sub setup would interact. We'll use this as a starting point and expand on how this all falls together through the course of the article.</p><p><img src="/images/blog/pubsub.png" alt="Pub Sub" _="_" /></p><h2>Setup</h2><p>Once again we'll use ClojureScript to demonstrate the use of pub/sub. I'll refer you the <strong>Setting Up</strong> section of my <a href="/blog/2014/06/01/combining-and-controlling-channels-with-core-dot-asyncs-merge-and-mix/">previous article</a> if you want to get a basic ClojureScript setup running with <code>core.async</code></p><h2>Publishing</h2><p>Channels are <code>core.async</code>s foundation and this is no different when you move up a level of abstraction to a pub/sub model. Looking at the publishing side first there are 2 main types of actors or components involved,</p>
+<ol>
+  <li>The publisher channel - Putting stuff on this channel will cause the publishing mechanism to kick in</li>
+  <li>The publication - calling <code>pub</code> on the publisher (we'll see this in a minute) produces a <code>publication</code> that subscribers can <code>sub</code>/subscribe to.</li>
+</ol><p>This may appear a bit more jarring than a typical approach where you just have a monolithic pub/sub object (e.g. a bus) that you publish and subscribe to directly. However I found the idea a bit easier to understand when I thought of the publication as a realised <strong>topic</strong> or set of <strong>topics</strong>.</p><p>If you think of a simple message bus implementation (in whatever language floats your boat - I've went with Swift, nah just kidding its JavaScript) you would traditionally do something like this,</p>
+<pre class="highlight"><code class="javascript"><span class="c1">// grab/create a bus - typically global.</span>
+<span class="kd">var</span> <span class="nx">bus</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Bus</span><span class="p">();</span>
+
+<span class="nx">bus</span><span class="p">.</span><span class="nx">subscribe</span><span class="p">(</span><span class="s2">"account:created"</span><span class="p">,</span> <span class="kd">function</span><span class="p">(</span><span class="nx">data</span><span class="p">){</span>
+  <span class="c1">// do something with the knowledge that</span>
+  <span class="c1">// an account has been created</span>
+<span class="p">});</span>
+
+<span class="c1">// at some point we publish to the same topic</span>
+<span class="nx">bus</span><span class="p">.</span><span class="nx">publish</span><span class="p">(</span><span class="s2">"acoount:created"</span><span class="p">,</span> <span class="p">{</span>
+  <span class="nx">success</span><span class="o">:</span><span class="kc">true</span><span class="p">,</span>
+  <span class="nx">username</span><span class="o">:</span> <span class="s2">"petedaleet17"</span>
+<span class="p">})</span>
+</code></pre><p>The topic in this example is <code>account:created</code> however in reality its just a string, there is no real confidence that you are achieving what you expect. A spelling error will result in rather unpredictable results and as we have introduced a high degree of decoupling it may well be difficult to track down. The observant will notice there is in fact a spelling error in the code.</p><p>In <code>core.async</code> the notion of a <code>publication</code> is a realised entity you perform actions on and pass around. It's the transport mechanism, that is the "concept". This inversion is interesting. 99.9% of the time I'm ultimately interested in publishing or subscribing to a topic, I really don't care about the mechanics of that operation and this <strong>topic-first</strong> view better supports that thought model.</p><p>Now just to confuse things a bit more, a publication also defines a way to derive the topic of a published value so its entirely possible for a publication to handle subscriptions for any number of topics. Another analogy that may help, or just make things worse, is that a <code>publication</code> could be considered a <code>router</code> that defines a set of rules for where to publish data.</p><p>To expand on this lets look at some code.</p><p>First we need to import a few things into out ClojureScript file (probably <code>core.cljs</code>)</p>
+<pre class="highlight"><code class="clojure"><span class="p">(</span><span class="kd">ns </span><span class="nv">chat.core</span>
+  <span class="p">(</span><span class="ss">:require</span> <span class="p">[</span><span class="nv">cljs.core.async</span> <span class="ss">:refer</span> <span class="p">[</span><span class="nv">chan</span> <span class="nv">&lt;!</span> <span class="nv">&gt;!</span> <span class="nv">timeout</span> <span class="nv">pub</span> <span class="nv">sub</span> <span class="nv">unsub</span> <span class="nv">unsub-all</span><span class="p">]])</span>
+  <span class="p">(</span><span class="ss">:require-macros</span> <span class="p">[</span><span class="nv">cljs.core.async.macros</span> <span class="ss">:refer</span> <span class="p">[</span><span class="nv">go</span><span class="p">]]))</span>
+</code></pre><p>Now lets introduce our publisher and our publication,</p>
+<pre class="highlight"><code class="clojure"><span class="c1">; publisher is just a normal channel</span>
+<span class="p">(</span><span class="k">def </span><span class="nv">publisher</span> <span class="p">(</span><span class="nf">chan</span><span class="p">))</span>
+
+<span class="c1">; publication is a thing we subscribe to</span>
+<span class="p">(</span><span class="k">def </span><span class="nv">publication</span>
+  <span class="p">(</span><span class="nf">pub</span> <span class="nv">publisher</span> <span class="o">#</span><span class="p">(</span><span class="ss">:topic</span> <span class="nv">%</span><span class="p">)))</span>
+</code></pre><p>You can see the <code>publisher</code> is simply a channel, no fancy annotations or extra functions being applied. It's just a vanilla channel that you can put stuff and take stuff off if you so desired.</p><p>The <code>publication</code> ont he other hand is composed by calling <code>pub</code> on <code>publisher</code> passing a function. When you put stuff onto <code>publisher</code> this function is used to derive the topic of the data put onto the channel. It will get passed the put data and is expected to return <strong>something</strong>, <strong>anything</strong> that represents the topic.</p><p>In this case I am making an assumption that our data will be a map with a <code>:topic</code> entry. Of course if <code>(:topic data)</code> returns <code>nil</code> that will be our topic. Any topics that have no subscribers will be disregarded so <code>nil</code> will typically be an acceptable <strong>dead letter office</strong> so to speak.</p><h2>Subscribing</h2><p>So now we have something we can push data onto - the <code>publisher</code> channel, and something that will accept subscriptions - the <code>publication</code>. Next we need to subscribe and start putting stuff on that our subscribers can consume. We could start putting stuff on the channel now but no one will be around to receive it just yet.</p><p>The yin to <code>pub</code>s yang is <code>sub</code>. <code>sub</code> always takes a <strong>publication</strong>, a <strong>topic</strong> and a <strong>channel</strong> (you can also specify how and when the subscribing channel will be closed). As I've already mentioned you'll notice that the subscriber channels don't subscribe directly to the publisher channel. This would allow you to create many publications from a single source channel.</p><p>Taking our previous example we could subscribe to a number of topics like this,</p>
+<pre class="highlight"><code class="clojure"><span class="c1">; define a bunch of subscribers</span>
+<span class="p">(</span><span class="k">def </span><span class="nv">subscriber-one</span> <span class="p">(</span><span class="nf">chan</span><span class="p">))</span>
+<span class="p">(</span><span class="k">def </span><span class="nv">subscriber-two</span> <span class="p">(</span><span class="nf">chan</span><span class="p">))</span>
+<span class="p">(</span><span class="k">def </span><span class="nv">subscriber-three</span> <span class="p">(</span><span class="nf">chan</span><span class="p">))</span>
+
+<span class="c1">; subscribe</span>
+<span class="p">(</span><span class="nf">sub</span> <span class="nv">publication</span> <span class="ss">:account-created</span> <span class="nv">subscriber-one</span><span class="p">)</span>
+<span class="p">(</span><span class="nf">sub</span> <span class="nv">publication</span> <span class="ss">:account-created</span> <span class="nv">subscriber-two</span><span class="p">)</span>
+<span class="p">(</span><span class="nf">sub</span> <span class="nv">publication</span> <span class="ss">:user-logged-in</span>  <span class="nv">subscriber-two</span><span class="p">)</span>
+<span class="p">(</span><span class="nf">sub</span> <span class="nv">publication</span> <span class="ss">:change-page</span>     <span class="nv">subscriber-three</span><span class="p">)</span>
+</code></pre><p>We now have 3 channels</p>
+<ul>
+  <li><code>subscriber-one</code> is subscribed to the <code>:account-created</code> topic</li>
+  <li><code>subscriber-two</code> is subscribed to both the <code>:account-created</code> topic and the <code>:user-logged-in</code> topic</li>
+  <li><code>subscriber-three</code> is subscribed to the <code>:change-page</code> topic</li>
+</ul><p>Now when messages are put on to the <code>publisher</code> the <code>publication</code> will inspect the data and determine where to route the message. To make this more visual we can listen to and print the values from these channels by trying to take from them in a <code>go-loop</code></p>
+<pre class="highlight"><code class="clojure"><span class="p">(</span><span class="kd">defn </span><span class="nv">take-and-print</span> <span class="p">[</span><span class="nv">channel</span> <span class="nv">prefix</span><span class="p">]</span>
+  <span class="p">(</span><span class="nf">go-loop</span> <span class="p">[]</span>
+    <span class="p">(</span><span class="nb">println </span><span class="nv">prefix</span> <span class="s">": "</span> <span class="p">(</span><span class="nf">&lt;!</span> <span class="nv">channel</span><span class="p">))</span>
+    <span class="p">(</span><span class="nf">recur</span><span class="p">)))</span>
+
+<span class="p">(</span><span class="nf">take-and-print</span> <span class="nv">subscriber-one</span> <span class="s">"subscriber-one"</span><span class="p">)</span>
+<span class="p">(</span><span class="nf">take-and-print</span> <span class="nv">subscriber-two</span> <span class="s">"subscriber-two"</span><span class="p">)</span>
+<span class="p">(</span><span class="nf">take-and-print</span> <span class="nv">subscriber-three</span> <span class="s">"subscriber-three"</span><span class="p">)</span>
+</code></pre><p>If we start putting messages on the publisher we should see some console output.</p>
+<pre class="highlight"><code class="clojure"><span class="p">(</span><span class="nf">go</span> <span class="p">(</span><span class="nf">&gt;!</span> <span class="nv">publisher</span> <span class="p">{</span> <span class="ss">:topic</span> <span class="ss">:change-page</span> <span class="ss">:dest</span> <span class="s">"/#home"</span> <span class="p">}))</span>
+<span class="c1">; subscriber-three: { :topic :change-page :dest "/#home" }</span>
+
+<span class="p">(</span><span class="nf">go</span> <span class="p">(</span><span class="nf">&gt;!</span> <span class="nv">publisher</span> <span class="p">{</span> <span class="ss">:topic</span> <span class="ss">:account-created</span> <span class="ss">:username</span> <span class="s">"billy"</span> <span class="p">}))</span>
+<span class="c1">; subscriber-one: { :topic :account-created :username "billy" }</span>
+<span class="c1">; subscriber-two: { :topic :account-created :username "billy" }</span>
+
+<span class="p">(</span><span class="nf">go</span> <span class="p">(</span><span class="nf">&gt;!</span> <span class="nv">publisher</span> <span class="p">{</span> <span class="ss">:topic</span> <span class="ss">:user-logged-in</span> <span class="ss">:username</span> <span class="s">"billy"</span> <span class="p">}))</span>
+<span class="c1">; subscriber-two: { :topic :user-logged-in :username "billy" }</span>
+
+<span class="p">(</span><span class="nf">go</span> <span class="p">(</span><span class="nf">&gt;!</span> <span class="nv">publisher</span> <span class="p">{</span> <span class="ss">:topic</span> <span class="ss">:user-logged-out</span> <span class="ss">:username</span> <span class="s">"billy"</span> <span class="p">}))</span>
+<span class="c1">; No subscribers so nothing to see</span>
+</code></pre><p>Of course subscribing to something is entirely additive. You need some way to take subscriptions away. At this point <code>unsub</code> and <code>unsub-all</code> are what you need.</p>
+<pre class="highlight"><code class="clojure"><span class="c1">; unsubscribe subscriber-two from account-created</span>
+<span class="p">(</span><span class="nf">unsub</span> <span class="nv">publication</span> <span class="ss">:account-created</span> <span class="nv">subscriber-two</span><span class="p">)</span>
+
+<span class="c1">;test</span>
+<span class="p">(</span><span class="nf">go</span> <span class="p">(</span><span class="nf">&gt;!</span> <span class="nv">publisher</span> <span class="p">{</span> <span class="ss">:topic</span> <span class="ss">:account-created</span> <span class="ss">:username</span> <span class="s">"billy"</span> <span class="p">}))</span>
+<span class="c1">; subscriber-one: { :topic :account-created :username "billy" }</span>
+
+<span class="c1">; unsubscribe every subscriber from the :account-created topic</span>
+<span class="p">(</span><span class="nf">unsub-all</span> <span class="nv">publication</span> <span class="ss">:account-created</span><span class="p">)</span>
+
+<span class="c1">;test</span>
+<span class="p">(</span><span class="nf">go</span> <span class="p">(</span><span class="nf">&gt;!</span> <span class="nv">publisher</span> <span class="p">{</span> <span class="ss">:topic</span> <span class="ss">:account-created</span> <span class="ss">:username</span> <span class="s">"billy"</span> <span class="p">}))</span>
+<span class="c1">; nada</span>
+
+<span class="c1">; finally unsubscribe every channel from every topic</span>
+<span class="p">(</span><span class="nf">unsub-all</span> <span class="nv">publication</span><span class="p">)</span>
+
+<span class="c1">;test</span>
+<span class="p">(</span><span class="nf">go</span> <span class="p">(</span><span class="nf">&gt;!</span> <span class="nv">publisher</span> <span class="p">{</span> <span class="ss">:topic</span> <span class="ss">:change-page</span> <span class="ss">:dest</span> <span class="s">"/#home"</span> <span class="p">}))</span>
+<span class="p">(</span><span class="nf">go</span> <span class="p">(</span><span class="nf">&gt;!</span> <span class="nv">publisher</span> <span class="p">{</span> <span class="ss">:topic</span> <span class="ss">:account-created</span> <span class="ss">:username</span> <span class="s">"billy"</span> <span class="p">}))</span>
+<span class="p">(</span><span class="nf">go</span> <span class="p">(</span><span class="nf">&gt;!</span> <span class="nv">publisher</span> <span class="p">{</span> <span class="ss">:topic</span> <span class="ss">:user-logged-in</span> <span class="ss">:username</span> <span class="s">"billy"</span> <span class="p">}))</span>
+<span class="p">(</span><span class="nf">go</span> <span class="p">(</span><span class="nf">&gt;!</span> <span class="nv">publisher</span> <span class="p">{</span> <span class="ss">:topic</span> <span class="ss">:user-logged-out</span> <span class="ss">:username</span> <span class="s">"billy"</span> <span class="p">}))</span>
+<span class="c1">; wonderful silence</span>
+</code></pre><h2>Summing Up</h2><p>So that covers the <code>pub</code>/<code>sub</code> model you get with <code>core.async</code> which gives a slightly higher abstraction from having to deal with the internal logic of managing a <code>mult</code> to perform this operation while still remaining suitably low level to allow you to build upon it for your own needs.</p><p>Remember that because everything still boils down to channels, which you have access to, there is huge potential to combine various abstractions to construct simple pipelines for all your needs.</p><p>One day I'll finish my channel based <a href="https://en.wikipedia.org/wiki/Rube_Goldberg_machine">Rube Goldberg machine</a> put a message at one end and watch as it gets piped through mults, publications, merged channels, alts and anything else I can think of finally ending up in a <code>console.log</code>...</p>
+<blockquote><p>"Hi James".</p>
+</blockquote></div><a class="twitter" href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fyobriefca.se%2Fblog%2F2014%2F06%2F04%2Fpublish-and-subscribe-with-core-dot-asyncs-pub-and-sub%2F&amp;text=Publish%20and%20Subscribe%20with%20core.async%27s%20pub%20and%20sub&amp;via=kouphax" itemprop="discussionUrl" target="_blank">Tweet This</a><div class="dater"><time datetime="04-06-2014" itemprop="datePublished">June 04, 2014</time></div><div class="categories">Published in <a href="/categories/clojure/">Clojure</a> <a href="/categories/clojurescript/">ClojureScript</a> on June 04, 2014</div></div></div><div class="homer"><a href="/"><i class="icon-briefcase" style="font-size:32px;"></i></a></div><script type="text/javascript">(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-19143623-5', 'yobriefca.se');
+  ga('send', 'pageview');</script></body></html>

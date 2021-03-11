@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><meta content="IE=edge,chrome=1" http-equiv="X-UA-Compatible"><meta content="width=device-width, user-scalable=no" name="viewport"><meta content="Refactoring Towards Transducers" name="description"><link href="/favicon.ico" rel="shortcut icon" type="image/x-icon"><link href="https://fonts.googleapis.com/css?family=Merriweather:400,700|Open+Sans:400,700" rel="stylesheet" type="text/css"><link href="/bundles/84cd5d4454d9/styles.css" rel="stylesheet" /><title>Refactoring Towards Transducers</title></head><body><div class="row"><blockquote class="warning">This post is over 6 months old.  Some details,
+       especially technical, may have changed.</blockquote><div itemscope="" itemtype="http://schema.org/Article"><h1 itemprop="name">Refactoring Towards Transducers</h1><div class="post" itemprop="articleBody"><blockquote><p>This is a quick post but hey at least I'm not <a href="https://yobriefca.se/blog/2015/07/28/window-dot-prompt-in-elm/">talking</a> <a href="https://yobriefca.se/blog/2015/07/29/zombie-dice-score-card-in-elm/">about</a> <a href="https://yobriefca.se/blog/2015/08/02/deconstructing-your-first-elm-app/">Elm</a>. COMBOBREAKER!</p>
+</blockquote><p>Clojure 1.7 introduced a new, fairly large concept - <a href="http://clojure.org/transducers">transducers</a>. Transducers are "composable algorithmic transformations" which means they are little isolated transformer functions. They aren't bound to any particular input or output and as such can be stacked or composed ad-hoc to make neat little pipelines for data processing. </p><p>This required a fairly large internal change in the way many collection functions in Clojure behaved. Now most of these functions now accept an arity of one less than they normally do. For example,</p>
+<pre class="highlight"><code class="clojure"><span class="p">(</span><span class="k">def </span><span class="nv">incrementalizer</span>
+  <span class="p">(</span><span class="nb">map </span><span class="nv">inc</span><span class="p">))</span>
+</code></pre><p>In this case <code>incrementalizer</code> is defined as a <code>map</code> function that will perform <code>inc</code> over whatever it gets passed. We didn't pass <code>map</code> a data structure to map over and so it returns a transducer. We can use <code>comp</code> to compose a bunch of these transducers together and run them across a collection using forms such as <code>into</code>, <code>transduce</code>, <code>eduction</code> and <code>sequence</code>.</p><p>As I was working on a new project recently I had just moved to Clojure 1.7 and so decided to take a stab at refactoring a few utility functions I had into a series of transducers. This post covers how I approached this refactor. </p>
+<blockquote><p>It's worth noting that this is purely an exercise in refactoring towards transducers. I am not suggesting that this increases performance, is easier to maintain or makes code any more readable. I'm not even suggesting this <strong>should</strong> be done at all as that depends on the context of your work.</p>
+</blockquote><p>The original approach looked like this,</p>
+<pre class="highlight"><code class="clojure"><span class="p">(</span><span class="kd">ns </span><span class="nv">user</span>
+  <span class="p">(</span><span class="ss">:require</span> <span class="p">[</span><span class="nv">clojure.java.io</span> <span class="ss">:as</span> <span class="nv">io</span><span class="p">]</span>
+            <span class="p">[</span><span class="nv">clojure.string</span> <span class="ss">:as</span> <span class="nv">str</span><span class="p">]))</span>
+            
+<span class="p">(</span><span class="kd">defn- </span><span class="nv">list-files</span> <span class="p">[</span><span class="nv">folder</span><span class="p">]</span>
+  <span class="p">(</span><span class="nb">file-seq </span><span class="p">(</span><span class="nf">io/file</span> <span class="nv">folder</span><span class="p">)))</span>
+
+<span class="p">(</span><span class="kd">defn- </span><span class="nv">is-xml?</span> <span class="p">[</span><span class="nv">file</span><span class="p">]</span>
+  <span class="p">(</span><span class="nb">-&gt; </span><span class="nv">file</span>
+      <span class="p">(</span><span class="nf">.getName</span><span class="p">)</span>
+      <span class="p">(</span><span class="nf">str/split</span> <span class="o">#</span><span class="s">"\."</span><span class="p">)</span>
+      <span class="p">(</span><span class="nf">last</span><span class="p">)</span>
+      <span class="p">(</span><span class="nb">= </span><span class="s">"xml"</span><span class="p">)))</span>
+                         
+<span class="p">(</span><span class="kd">defn- </span><span class="nv">list-xml-files</span> <span class="p">[</span><span class="nv">files</span><span class="p">]</span>
+  <span class="p">(</span><span class="nb">filter </span><span class="p">(</span><span class="k">fn </span><span class="p">[</span><span class="nv">file</span><span class="p">]</span>
+            <span class="p">(</span><span class="nb">and </span><span class="p">(</span><span class="nf">.isFile</span> <span class="nv">file</span><span class="p">)</span>
+                 <span class="p">(</span><span class="nf">is-xml?</span> <span class="nv">file</span><span class="p">)))</span>
+          <span class="nv">files</span><span class="p">))</span>
+
+<span class="p">(</span><span class="kd">defn- </span><span class="nv">list-xml-paths</span> <span class="p">[</span><span class="nv">folder</span><span class="p">]</span>
+  <span class="p">(</span><span class="nb">map </span><span class="p">(</span><span class="k">fn </span><span class="p">[</span><span class="nv">file</span><span class="p">]</span> <span class="p">(</span><span class="nf">.getAbsolutePath</span> <span class="nv">file</span><span class="p">))</span>
+       <span class="p">(</span><span class="nf">list-xml-files</span> <span class="p">(</span><span class="nf">list-files</span> <span class="nv">folder</span><span class="p">))))</span>
+       
+<span class="p">(</span><span class="k">def </span><span class="nv">xml-paths</span> 
+  <span class="p">(</span><span class="nf">list-xml-paths</span> <span class="s">"./workspace/xml"</span><span class="p">))</span>
+</code></pre><p>A bit of scrappy code that I wrote interactively while doing some ad-hoc file processing. What we end up with is a list of absolute file paths to some XML files contained within a specified folder. In order to transform a folder path to a list of XML files it does a few things,</p>
+<ol>
+  <li>List the contents of the folder using the built-in <code>file-seq</code> function in Clojure</li>
+  <li>Remove everything in the list that isn't a file (such as pipes and directories)</li>
+  <li>Remove everything in the list without the <code>.xml</code> extension</li>
+  <li>Call <code>.getAbsolutePath</code> on the remainder of the list to get the full path as a string</li>
+</ol><h2>Towards Transducers</h2><p>Any place that we apply some sort of filtering, mapping, reduction, take etc. over a collection is a candidate for being converted to a transducer. In the previous examples we can identify a few points that can be rewritten as transducers,</p>
+<ul>
+  <li>The <code>filter</code> which actually has 2 checks
+  <ul>
+    <li>is it a file?</li>
+    <li>is it an xml file?</li>
+  </ul></li>
+  <li>The <code>map</code> that converts a list of XML files into their absolute paths</li>
+</ul><p>If we rewrite these areas as transducers we come out with the following code,</p>
+<pre class="highlight"><code class="clojure"><span class="p">(</span><span class="k">def </span><span class="nv">xml-extension-only</span>
+  <span class="p">(</span><span class="nb">filter </span><span class="p">(</span><span class="k">fn </span><span class="p">[</span><span class="nv">file</span><span class="p">]</span> <span class="p">(</span><span class="nb">-&gt; </span><span class="nv">file</span>
+                         <span class="p">(</span><span class="nf">.getName</span><span class="p">)</span>
+                         <span class="p">(</span><span class="nf">str/split</span> <span class="o">#</span><span class="s">"\."</span><span class="p">)</span>
+                         <span class="p">(</span><span class="nf">last</span><span class="p">)</span>
+                         <span class="p">(</span><span class="nb">= </span><span class="s">"xml"</span><span class="p">)))))</span>
+
+<span class="p">(</span><span class="k">def </span><span class="nv">files-only</span>
+  <span class="p">(</span><span class="nb">filter </span><span class="p">(</span><span class="k">fn </span><span class="p">[</span><span class="nv">file</span><span class="p">]</span> <span class="p">(</span><span class="nf">.isFile</span> <span class="nv">file</span><span class="p">))))</span>
+
+<span class="p">(</span><span class="k">def </span><span class="nv">as-path</span>
+  <span class="p">(</span><span class="nb">map </span><span class="p">(</span><span class="k">fn </span><span class="p">[</span><span class="nv">item</span><span class="p">]</span> <span class="p">(</span><span class="nf">.getAbsolutePath</span> <span class="nv">item</span><span class="p">))))</span>
+</code></pre><p>you should be able to see these transducer definitions are just restructured, single arity versions of our original <code>filter</code> and <code>map</code> calls.</p><p>Now we need to turn these into a pipeline. We do this using the <code>comp</code> function,</p>
+<pre class="highlight"><code class="clojure"><span class="p">(</span><span class="k">def </span><span class="nv">xform</span> 
+  <span class="p">(</span><span class="nb">comp </span><span class="nv">files-only</span> <span class="nv">xml-extension-only</span> <span class="nv">as-path</span><span class="p">))</span>
+</code></pre><p>The use of <code>xform</code> as a name is common in transducer examples (short for transform) so I have retained the use here for consistency. </p><p>With our transducers composed into a transform pipeline we can apply it to our input,</p>
+<pre class="highlight"><code class="clojure"> <span class="p">(</span><span class="kd">defn- </span><span class="nv">list-xml-paths</span> <span class="p">[</span><span class="nv">folder</span><span class="p">]</span>
+   <span class="p">(</span><span class="nf">sequence</span> <span class="nv">xform</span> <span class="p">(</span><span class="nf">list-files</span> <span class="nv">folder</span><span class="p">))</span>
+</code></pre><p>I redefined the <code>list-xml-paths</code> function to call <code>sequence</code> over the list of files and apply our transducer pipeline.</p><p>The complete code for this example looks like this,</p>
+<pre class="highlight"><code class="clojure"><span class="p">(</span><span class="kd">ns </span><span class="nv">user</span>
+  <span class="p">(</span><span class="ss">:require</span> <span class="p">[</span><span class="nv">clojure.java.io</span> <span class="ss">:as</span> <span class="nv">io</span><span class="p">]</span>
+            <span class="p">[</span><span class="nv">clojure.string</span> <span class="ss">:as</span> <span class="nv">str</span><span class="p">]))</span>
+            
+<span class="p">(</span><span class="kd">defn- </span><span class="nv">list-files</span> <span class="p">[</span><span class="nv">folder</span><span class="p">]</span>
+  <span class="p">(</span><span class="nb">file-seq </span><span class="p">(</span><span class="nf">io/file</span> <span class="nv">folder</span><span class="p">)))</span>
+
+<span class="p">(</span><span class="k">def </span><span class="nv">xml-extension-only</span>
+  <span class="p">(</span><span class="nb">filter </span><span class="p">(</span><span class="k">fn </span><span class="p">[</span><span class="nv">file</span><span class="p">]</span> <span class="p">(</span><span class="nb">-&gt; </span><span class="nv">file</span>
+                         <span class="p">(</span><span class="nf">.getName</span><span class="p">)</span>
+                         <span class="p">(</span><span class="nf">str/split</span> <span class="o">#</span><span class="s">"\."</span><span class="p">)</span>
+                         <span class="p">(</span><span class="nf">last</span><span class="p">)</span>
+                         <span class="p">(</span><span class="nb">= </span><span class="s">"xml"</span><span class="p">)))))</span>
+
+<span class="p">(</span><span class="k">def </span><span class="nv">files-only</span>
+  <span class="p">(</span><span class="nb">filter </span><span class="p">(</span><span class="k">fn </span><span class="p">[</span><span class="nv">file</span><span class="p">]</span> <span class="p">(</span><span class="nf">.isFile</span> <span class="nv">file</span><span class="p">))))</span>
+
+<span class="p">(</span><span class="k">def </span><span class="nv">as-path</span>
+  <span class="p">(</span><span class="nb">map </span><span class="p">(</span><span class="k">fn </span><span class="p">[</span><span class="nv">item</span><span class="p">]</span> <span class="p">(</span><span class="nf">.getAbsolutePath</span> <span class="nv">item</span><span class="p">))))</span>
+
+<span class="p">(</span><span class="k">def </span><span class="nv">xform</span> 
+  <span class="p">(</span><span class="nb">comp </span><span class="nv">files-only</span> <span class="nv">xml-extension-only</span> <span class="nv">as-path</span><span class="p">))</span>
+
+<span class="p">(</span><span class="kd">defn- </span><span class="nv">list-xml-paths</span> <span class="p">[</span><span class="nv">folder</span><span class="p">]</span>
+  <span class="p">(</span><span class="nf">sequence</span> <span class="nv">xform</span> <span class="p">(</span><span class="nf">list-files</span> <span class="nv">folder</span><span class="p">)))</span>
+  
+<span class="p">(</span><span class="k">def </span><span class="nv">xml-paths</span> 
+  <span class="p">(</span><span class="nf">list-xml-paths</span> <span class="s">"./workspace/xml"</span><span class="p">))</span>
+</code></pre></div><a class="twitter" href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fyobriefca.se%2Fblog%2F2015%2F08%2F04%2Frefactoring-towards-transducers%2F&amp;text=Refactoring%20Towards%20Transducers&amp;via=kouphax" itemprop="discussionUrl" target="_blank">Tweet This</a><div class="dater"><time datetime="04-08-2015" itemprop="datePublished">August 04, 2015</time></div><div class="categories">Published in <a href="/categories/clojure/">Clojure</a> on August 04, 2015</div></div></div><div class="homer"><a href="/"><i class="icon-briefcase" style="font-size:32px;"></i></a></div><script type="text/javascript">(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-19143623-5', 'yobriefca.se');
+  ga('send', 'pageview');</script></body></html>

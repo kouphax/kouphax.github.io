@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><meta content="IE=edge,chrome=1" http-equiv="X-UA-Compatible"><meta content="width=device-width, user-scalable=no" name="viewport"><meta content="Bashing Ambiguity" name="description"><link href="/favicon.ico" rel="shortcut icon" type="image/x-icon"><link href="https://fonts.googleapis.com/css?family=Merriweather:400,700|Open+Sans:400,700" rel="stylesheet" type="text/css"><link href="/bundles/84cd5d4454d9/styles.css" rel="stylesheet" /><title>Bashing Ambiguity</title></head><body><div class="row"><blockquote class="warning">This post is over 6 months old.  Some details,
+       especially technical, may have changed.</blockquote><div itemscope="" itemtype="http://schema.org/Article"><h1 itemprop="name">Bashing Ambiguity</h1><div class="post" itemprop="articleBody"><p>I read a great tweet the other year,</p>
+<blockquote><p>Was hoping to get some verbose output from pkill, ran <code>pkill -9 -v process_name</code>. Ho boy.  — Maxime Chevalier (@Love2Code) <a href="https://twitter.com/Love2Code/status/778387312002510848">September 21, 2016</a></p>
+</blockquote><p>I can't say I've ever used pkill so had to do a tiny bit of digging through the man pages of <code>pkill</code></p>
+<pre class="highlight"><code class="bash">PKILL<span class="o">(</span>1<span class="o">)</span>                  BSD General Commands Manual                 PKILL<span class="o">(</span>1<span class="o">)</span>
+
+NAME
+     pgrep, pkill -- find or signal processes by name
+
+SYNOPSIS
+     pkill <span class="o">[</span>-signal<span class="o">]</span> <span class="o">[</span>-ILafilnovx<span class="o">]</span> <span class="o">[</span>-F pidfile<span class="o">]</span> <span class="o">[</span>-G gid<span class="o">]</span> <span class="o">[</span>-P ppid<span class="o">]</span> <span class="o">[</span>-U uid<span class="o">]</span> <span class="o">[</span>-g pgrp<span class="o">]</span> <span class="o">[</span>-t tty<span class="o">]</span> <span class="o">[</span>-u euid<span class="o">]</span> pattern ...
+
+DESCRIPTION
+
+     The pkill <span class="nb">command </span>searches the process table on the running system and signals all processes that match the criteria given on the <span class="nb">command </span>line.
+
+     The following options are available:
+
+  	 ...
+
+     -v          Reverse the sense of the matching; display processes that <span class="k">do </span>not match the given criteria.
+</code></pre><p>So heh, <code>pkill</code> is based on <code>pgrep</code> which is based on <code>grep</code> and <code>-v</code> is the shorthand notation of <code>--invert-match</code> so the previous command becomes kill everything (with extreme prejudice) that isn't named <code>process_name</code>. <em>Ho boy</em> indeed. Of course it's an easy mistake to make, I'm certain I would have fallen prey of this eventually had I not seen this tweet. I'm known for simply throwing more than a few <code>-vvvvvvvvvvvvv</code>'s onto commands that don't behave as I'd expect.</p><p><em>But AHA! I have the solution - just be more explicit and use the <code>--</code> notation</em></p><p>Well.... not quite.</p><p>For some crazy bizarro reason <code>pkill</code> and <code>pgrep</code> don't have the double dash equivalent of <code>v/invert-match</code>. I'm sure there is a sane and logical rationale for this but then again, given it's computers all the way down, maybe not. </p><p>It's shit isn't it? Even the most standard tools we use as developers take the <a href="https://en.wikipedia.org/wiki/Principle_of_least_astonishment">principle of least astonishment</a> and just throw it into the endlessly burning tyre fire of misery and terrible user experience.</p><p>So what can we do? Easy! <strong>TRUST</strong>. <strong>NOTHING</strong>. Never assume anything. Slow down. Think. Think even when it seems obvious. Think even when you've written the same command for the 100th time. If you can't think or don't want to think make sure everything you do isn't irrevocably destructive, make sure you can get back to the same point you where at before you went and destroyed the world in a raging hellfire of accidental typage.</p></div><a class="twitter" href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fyobriefca.se%2Fblog%2F2017%2F10%2F19%2Fbashing-ambiguity%2F&amp;text=Bashing%20Ambiguity&amp;via=kouphax" itemprop="discussionUrl" target="_blank">Tweet This</a><div class="dater"><time datetime="19-10-2017" itemprop="datePublished">October 19, 2017</time></div><div class="categories">Published in <a href="/categories/craftsmanship/">craftsmanship</a> on October 19, 2017</div></div></div><div class="homer"><a href="/"><i class="icon-briefcase" style="font-size:32px;"></i></a></div><script type="text/javascript">(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-19143623-5', 'yobriefca.se');
+  ga('send', 'pageview');</script></body></html>

@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><meta content="IE=edge,chrome=1" http-equiv="X-UA-Compatible"><meta content="width=device-width, user-scalable=no" name="viewport"><meta content="Less Java with Lombok" name="description"><link href="/favicon.ico" rel="shortcut icon" type="image/x-icon"><link href="https://fonts.googleapis.com/css?family=Merriweather:400,700|Open+Sans:400,700" rel="stylesheet" type="text/css"><link href="/bundles/84cd5d4454d9/styles.css" rel="stylesheet" /><title>Less Java with Lombok</title></head><body><div class="row"><blockquote class="warning">This post is over 6 months old.  Some details,
+       especially technical, may have changed.</blockquote><div itemscope="" itemtype="http://schema.org/Article"><h1 itemprop="name">Less Java with Lombok</h1><div class="post" itemprop="articleBody"><p>So Java, you've heard of it right? It's the language thats used to <a href="https://twitter.com/avalanche123/status/7062890318143488">convert XML into stack traces</a>. You know the one... it's <a href="http://www.tiobe.com/index.php/content/paperinfo/tpci/index.html">really popular</a> and has a massive ecosystem of powerful open source tools and techs but everyone says it's the worst. Sadly making fun of Java lacks any real challenge because, if I can be blunt, Java makes it easy to do so (see I just did it without thinking).</p><p>There are a lot of things that make Java an easy target but in my frequent exposure to Java there are 3 things that really wind me up.</p>
+<ol>
+  <li>Type erasure &amp; Non-reified generics lead to a whole host of frustrating problems when you're trying to build nice clean composable solutions,</li>
+  <li>Following on from #1 the type system in general is a real pain. It's neither powerful enough to use it in any real meaningful way nor is it loose enough to allow dynamic typing. It's basically an annoying landlord who happens to live with you, in your bed, and likes farting and being the little spoon.</li>
+  <li>Finally the sheer verbosity of the whole thing. When 90% of your code is boilerplate classes and methods required to work around limitations in the language you really need to work to make the simplest of code expressive and maintainable.</li>
+</ol><p>But I've already said it is popular and interestingly its popularity has been growing. Probably in part due to the power of the JVM and the huge powerful sea of tooling and tech that exist for it. That said I have a theory that it also acts as a sort of natural constraint that in some ways help prevent language astronauts code golf functionality into an unreadable one line functional expression that looks like a computer novice tried to quit Vim. This is all a personal theory formed after reviewing a fairly substantial amount of Scala code, YMMV.</p><p>Any way... Without switching to another language there is very little we can do about #1 &amp; #2 so at the very least addressing #3 could make your time in Java more tolerable. Java 8 added a few features that can improve the expressiveness of your code including <a href="https://leanpub.com/whatsnewinjava8/read#leanpub-auto-functional-interfaces">Functional Interfaces</a> and <a href="https://leanpub.com/whatsnewinjava8/read#leanpub-auto-default-methods">Default Methods</a> but by and large we are still producing a large volume of boilerplate. These are the challenges with having a great backward compatibility story.</p><h2>I put on my robe and wizard hat</h2><p>Fear ye not you beautifully desperate people there are things you can do. A word of caution first - there is a certain amount of "magic" coming up. Yes magic is a bit dodgy because it requires wizards to control but there are levels of magic and a lot of it is just quick slight of hand. Once you're shown the reveal you can't unsee it. Admittedly I was a skeptic of what I'm about to write about but after spending a bit of time with it I approve of considered and careful wielding of this magic.</p><h2>Lombok</h2><p>So lets remove the boilerplate from Java without having to rewrite our solutions in a new language. To do this we are going to use <a href="https://projectlombok.org/">Lombok</a>. Now the website is very light on explanation but <a href="https://projectlombok.org/">Lombok</a> is an annotation based code generation library that focuses on removing the noise and boilerplate from your code without the need for actual authentigenuine magic. So while it may feel like magic being released from the shackles of Javas boilerplate oppression it is just a bunch of common patterns rolled into annotations. Oh and yes, if you've read any of my older posts, annotations are a pet hate of mine so you'll understand I'm not saying any of this lightly.</p><p>So whats the elevator pitch for Lombok (after I've spent over 500 words meandering over nonsense)? OK lets go.</p><p>Assume we have a <code>Character</code> (in the RPG sense not the textual sense) class that has just 2 properties - a <code>name</code> and a <code>level</code>. Now the <code>name</code> is set once and never changes and the <code>level</code> fluctuates as this character kills dragons, marries trolls and harvests magic mushrooms (usually it goes up but you can never really tell with magic mushrooms).</p><p>Got it? Good.</p><p>This <code>Character</code> class is, and you'll forgive me for using such a stupid term - a DTO. It's a bag of state that gets passed around your application. This happens A LOT in Java applications because of a crappy type system. If you know Java well enough you'll understand that a big-bag-o-state/DTO needs decent <code>toString</code>, <code>equals</code> and <code>hashCode</code> implementations because that thing is going to get logged and compared like a demon (surprisingly demons get compared and logged more than you'd think - I guess hell really is full of Java developers). The implementation of such a class would look like this.... brace yourself.... POJO is coming...</p>
+<pre class="highlight"><code class="java"><span class="kd">public</span> <span class="kd">class</span> <span class="nc">Character</span> <span class="o">{</span>
+  <span class="kd">private</span> <span class="kd">final</span> <span class="n">String</span> <span class="n">name</span><span class="o">;</span>
+  <span class="kd">private</span> <span class="kt">int</span> <span class="n">level</span><span class="o">;</span>
+
+  <span class="kd">public</span> <span class="nf">Character</span><span class="o">(</span><span class="n">String</span> <span class="n">name</span><span class="o">)</span> <span class="o">{</span>
+    <span class="k">this</span><span class="o">.</span><span class="na">name</span> <span class="o">=</span> <span class="n">name</span><span class="o">;</span>
+  <span class="o">}</span>
+
+  <span class="kd">public</span> <span class="n">String</span> <span class="nf">getName</span><span class="o">()</span> <span class="o">{</span>
+    <span class="k">return</span> <span class="k">this</span><span class="o">.</span><span class="na">name</span><span class="o">;</span>
+  <span class="o">}</span>
+
+  <span class="kd">public</span> <span class="kt">int</span> <span class="nf">getLevel</span><span class="o">()</span> <span class="o">{</span>
+    <span class="k">return</span> <span class="k">this</span><span class="o">.</span><span class="na">level</span><span class="o">;</span>
+  <span class="o">}</span>
+
+  <span class="kd">public</span> <span class="kt">void</span> <span class="nf">setLevel</span><span class="o">(</span><span class="kt">int</span> <span class="n">level</span><span class="o">)</span> <span class="o">{</span>
+    <span class="k">this</span><span class="o">.</span><span class="na">level</span> <span class="o">=</span> <span class="n">level</span><span class="o">;</span>
+  <span class="o">}</span>
+
+  <span class="kd">public</span> <span class="kt">boolean</span> <span class="nf">equals</span><span class="o">(</span><span class="n">Object</span> <span class="n">o</span><span class="o">)</span> <span class="o">{</span>
+    <span class="k">if</span> <span class="o">(</span><span class="n">o</span> <span class="o">==</span> <span class="k">this</span><span class="o">)</span> <span class="k">return</span> <span class="kc">true</span><span class="o">;</span>
+    <span class="k">if</span> <span class="o">(!(</span><span class="n">o</span> <span class="k">instanceof</span> <span class="n">Character</span><span class="o">))</span> <span class="k">return</span> <span class="kc">false</span><span class="o">;</span>
+    <span class="kd">final</span> <span class="n">Character</span> <span class="n">other</span> <span class="o">=</span> <span class="o">(</span><span class="n">Character</span><span class="o">)</span> <span class="n">o</span><span class="o">;</span>
+    <span class="k">if</span> <span class="o">(!</span><span class="n">other</span><span class="o">.</span><span class="na">canEqual</span><span class="o">((</span><span class="n">Object</span><span class="o">)</span> <span class="k">this</span><span class="o">))</span> <span class="k">return</span> <span class="kc">false</span><span class="o">;</span>
+    <span class="kd">final</span> <span class="n">Object</span> <span class="k">this</span><span class="n">$name</span> <span class="o">=</span> <span class="k">this</span><span class="o">.</span><span class="na">name</span><span class="o">;</span>
+    <span class="kd">final</span> <span class="n">Object</span> <span class="n">other$name</span> <span class="o">=</span> <span class="n">other</span><span class="o">.</span><span class="na">name</span><span class="o">;</span>
+    <span class="k">if</span> <span class="o">(</span><span class="k">this</span><span class="n">$name</span> <span class="o">==</span> <span class="kc">null</span> <span class="o">?</span> <span class="n">other$name</span> <span class="o">!=</span> <span class="kc">null</span> <span class="o">:</span> <span class="o">!</span><span class="k">this</span><span class="n">$name</span><span class="o">.</span><span class="na">equals</span><span class="o">(</span><span class="n">other$name</span><span class="o">))</span> <span class="k">return</span> <span class="kc">false</span><span class="o">;</span>
+    <span class="k">if</span> <span class="o">(</span><span class="k">this</span><span class="o">.</span><span class="na">level</span> <span class="o">!=</span> <span class="n">other</span><span class="o">.</span><span class="na">level</span><span class="o">)</span> <span class="k">return</span> <span class="kc">false</span><span class="o">;</span>
+    <span class="k">return</span> <span class="kc">true</span><span class="o">;</span>
+  <span class="o">}</span>
+
+  <span class="kd">public</span> <span class="kt">int</span> <span class="nf">hashCode</span><span class="o">()</span> <span class="o">{</span>
+    <span class="kd">final</span> <span class="kt">int</span> <span class="n">PRIME</span> <span class="o">=</span> <span class="mi">59</span><span class="o">;</span>
+    <span class="kt">int</span> <span class="n">result</span> <span class="o">=</span> <span class="mi">1</span><span class="o">;</span>
+    <span class="kd">final</span> <span class="n">Object</span> <span class="n">$name</span> <span class="o">=</span> <span class="k">this</span><span class="o">.</span><span class="na">name</span><span class="o">;</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">result</span> <span class="o">*</span> <span class="n">PRIME</span> <span class="o">+</span> <span class="o">(</span><span class="n">$name</span> <span class="o">==</span> <span class="kc">null</span> <span class="o">?</span> <span class="mi">0</span> <span class="o">:</span> <span class="n">$name</span><span class="o">.</span><span class="na">hashCode</span><span class="o">());</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">result</span> <span class="o">*</span> <span class="n">PRIME</span> <span class="o">+</span> <span class="k">this</span><span class="o">.</span><span class="na">level</span><span class="o">;</span>
+    <span class="k">return</span> <span class="n">result</span><span class="o">;</span>
+  <span class="o">}</span>
+
+  <span class="kd">protected</span> <span class="kt">boolean</span> <span class="nf">canEqual</span><span class="o">(</span><span class="n">Object</span> <span class="n">other</span><span class="o">)</span> <span class="o">{</span>
+    <span class="k">return</span> <span class="n">other</span> <span class="k">instanceof</span> <span class="n">Character</span><span class="o">;</span>
+  <span class="o">}</span>
+
+  <span class="kd">public</span> <span class="n">String</span> <span class="nf">toString</span><span class="o">()</span> <span class="o">{</span>
+      <span class="k">return</span> <span class="s">"se.yobriefca.tinkering.Character(name="</span> <span class="o">+</span> <span class="k">this</span><span class="o">.</span><span class="na">name</span> <span class="o">+</span> <span class="s">", level="</span> <span class="o">+</span> <span class="k">this</span><span class="o">.</span><span class="na">level</span> <span class="o">+</span> <span class="s">")"</span><span class="o">;</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</code></pre><p>Now as a developer I care about maybe 2 or 3 of those <strong>50</strong> lines of code. With Lombok you can do this...</p>
+<pre class="highlight"><code class="java"><span class="kn">import</span> <span class="nn">lombok.Data</span><span class="o">;</span>
+
+<span class="nd">@Data</span>
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">Character</span> <span class="o">{</span>
+  <span class="kd">private</span> <span class="kd">final</span> <span class="n">String</span> <span class="n">name</span><span class="o">;</span>
+  <span class="kd">private</span> <span class="kt">int</span> <span class="n">level</span><span class="o">;</span>
+<span class="o">}</span>
+</code></pre><p>Oh look, squint a bit and we have a Scala <code>case class</code> or Kotlin <code>data class</code> but we are still writing the Javas. Neat right<a name="_1"></a><a href="#1"><sup>1</sup></a>? One annotation, completely constrained to that class and we've eliminated a lot of boilerplate and sprinkled in some "best practise" (the <code>hashCode</code> and <code>toString</code> stuff is often sadly neglected by many developers).</p><p>But wait! Maybe we want to support creating a <code>Character</code> with some sort of initial level as well as a name. OK, here goes.</p>
+<pre class="highlight"><code class="java"><span class="nd">@Data</span>
+<span class="nd">@AllArgsConstructor</span>
+<span class="nd">@RequiredArgsConstructor</span>
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">Character</span> <span class="o">{</span>
+  <span class="kd">private</span> <span class="kd">final</span> <span class="n">String</span> <span class="n">name</span><span class="o">;</span>
+  <span class="kd">private</span> <span class="kt">int</span> <span class="n">level</span><span class="o">;</span>
+<span class="o">}</span>
+</code></pre><p>What I've done is, via annotations, add both an <code>AllArgsConstructor</code> and a <code>RequiredArgsConstructor</code>. The names are fairly self explanatory but we can now instantiate our instances like so,</p>
+<pre class="highlight"><code class="java"><span class="n">Character</span> <span class="n">c1</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Character</span><span class="o">(</span><span class="s">"James"</span><span class="o">,</span> <span class="mi">50</span><span class="o">);</span>
+</code></pre><p>Or,</p>
+<pre class="highlight"><code class="java"><span class="n">Character</span> <span class="n">c2</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Character</span><span class="o">(</span><span class="s">"James"</span><span class="o">);</span>
+</code></pre><p>A HA! But what if we have a more complicated object with a plethora of required and optional fields? Well Lombok also gives you an annotation that generates a fluent builder interface for your object.</p><p>So this,</p>
+<pre class="highlight"><code class="java"><span class="nd">@Builder</span>
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">Character</span> <span class="o">{</span>
+  <span class="kd">private</span> <span class="kd">final</span> <span class="n">String</span> <span class="n">name</span><span class="o">;</span>
+  <span class="kd">private</span> <span class="kt">int</span> <span class="n">level</span><span class="o">;</span>
+<span class="o">}</span>
+</code></pre><p>Gives you this,</p>
+<pre class="highlight"><code class="java"><span class="n">Character</span> <span class="n">c3</span> <span class="o">=</span> <span class="n">Character</span><span class="o">.</span><span class="na">builder</span><span class="o">()</span>
+  <span class="o">.</span><span class="na">level</span><span class="o">(</span><span class="mi">50</span><span class="o">)</span>
+  <span class="o">.</span><span class="na">name</span><span class="o">(</span><span class="s">"James"</span><span class="o">)</span>
+  <span class="o">.</span><span class="na">build</span><span class="o">();</span>
+</code></pre><p>Of course you can mix and match these annotations to a certain extent to achieve exactly what you need to build your lovely little property bag. As an unsurprising bonus this is all done in a consistent and predictable way that works very well with most 3rd party libraries such as serialisation libraries or data access libraries.</p><p>But wait - there's more - it's not all about them POJOs/DTOs/State Bags lets look at some of the interesting things you can also do with Lombok.</p><h2>Type Inference</h2><p>Declaring variables in Java can be an exercise in repeating yourself multiple times. For example,</p>
+<pre class="highlight"><code class="java"><span class="kd">final</span> <span class="n">ValueOutputterProvider</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span> <span class="n">valueOutputterProvider</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ValueOutputterProvider</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;();</span>
+</code></pre><p>It's kind of obvious what this is because it says so three times which is not only wasteful and slow to type but its yet more unnecessary noise that reduces readability. Lombok allows us to shorten this declaration making it look more like a Scala declaration</p>
+<pre class="highlight"><code class="java"><span class="n">val</span> <span class="n">valueOutputterProvider</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ValueOutputterProvider</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;();</span>
+</code></pre><p>Not exactly earth shattering but it certainly reduces the noise we have to tune out to see the important code.</p><h2>@Log (inc. @Slf4j @Log4j etc.)</h2><p>You know that line you write every time you create a new class? You know the one that allows you to log things?</p>
+<pre class="highlight"><code class="java"><span class="kd">public</span> <span class="kd">class</span> <span class="nc">WorkerThing</span> <span class="o">{</span>
+  <span class="kd">private</span> <span class="kd">static</span> <span class="kd">final</span> <span class="n">Logger</span> <span class="n">log</span> <span class="o">=</span> <span class="n">LoggerFactory</span><span class="o">.</span><span class="na">getLogger</span><span class="o">(</span><span class="n">WorkerThing</span><span class="o">);</span>
+
+  <span class="kd">public</span> <span class="kt">void</span> <span class="nf">doWork</span><span class="o">(){</span>
+    <span class="n">log</span><span class="o">.</span><span class="na">info</span><span class="o">(</span><span class="s">"Doing work"</span><span class="o">);</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</code></pre><p>That one on the second line. We can make it go away with Lombok,</p>
+<pre class="highlight"><code class="java"><span class="nd">@Slf4j</span>
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">WorkerThing</span> <span class="o">{</span>
+  <span class="kd">public</span> <span class="kt">void</span> <span class="nf">doWork</span><span class="o">(){</span>
+    <span class="n">log</span><span class="o">.</span><span class="na">info</span><span class="o">(</span><span class="s">"Doing work"</span><span class="o">);</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</code></pre><p>We've traded a single long line of declaration for a single annotation. Clean. There is an annotation for each of the common logging libraries.</p><h2>Cleanup</h2><p>You know those pesky <code>try</code>/<code>finally</code> blocks that we wrap around resources to ensure we don't leak connections or keep streams open unnecessarily?</p>
+<pre class="highlight"><code class="java"><span class="n">DBConnection</span> <span class="n">connection</span> <span class="o">=</span> <span class="k">new</span> <span class="n">DBConnection</span><span class="o">();</span>
+<span class="k">try</span> <span class="o">{</span>
+  <span class="n">connection</span><span class="o">.</span><span class="na">execute</span><span class="o">(</span><span class="s">"DROP TABLE users"</span><span class="o">);</span>
+<span class="o">}</span> <span class="k">finally</span> <span class="o">{</span>
+  <span class="n">connection</span><span class="o">.</span><span class="na">close</span><span class="o">();</span>
+<span class="o">}</span>
+</code></pre><p>If we are using Java 1.7 onwards we could use the <a href="https://docs.oracle.com/javase/tutorial/essential/exceptions/tryResourceClose.html"><code>try-with-resources</code></a> statement to make it cleaner,</p>
+<pre class="highlight"><code class="java"><span class="k">try</span><span class="o">(</span><span class="n">DBConnection</span> <span class="n">connection</span> <span class="o">=</span> <span class="k">new</span> <span class="n">DBConnection</span><span class="o">())</span> <span class="o">{</span>
+  <span class="n">connection</span><span class="o">.</span><span class="na">execute</span><span class="o">(</span><span class="s">"DROP TABLE users"</span><span class="o">);</span>
+<span class="o">}</span>
+</code></pre><p>But Lombok gives us another option - the <code>@Cleanup</code> annotation,</p>
+<pre class="highlight"><code class="java"><span class="nd">@Cleanup</span> <span class="n">DBConnection</span> <span class="n">connection</span> <span class="o">=</span> <span class="k">new</span> <span class="n">DBConnection</span><span class="o">();</span>
+<span class="n">connection</span><span class="o">.</span><span class="na">execute</span><span class="o">(</span><span class="s">"DROP TABLE users"</span><span class="o">);</span>
+</code></pre><p>The <code>@Cleanup</code> annotation generates the necessary boilerplate to ensure we are dutifully closing any resource we create even when something goes wrong.</p><h2>Experimental</h2><p>Lombok has a bunch of features that are still tagged as <strong>experimental</strong>. These features either have known issues or have yet to prove themselves thoroughly in the field of Java-ing. I'll demonstrate one of them now - <code>@ExtensionMethod</code>.</p><p>I really like C# extension methods, Kotlins extension methods, Scalas extension methods (<code>implicit def</code>'s) and so on. <code>@ExtensionMethod</code> gives you this feature for Java.</p><p>First we create a static suite of helper methods,</p>
+<pre class="highlight"><code class="java"><span class="kd">public</span> <span class="kd">class</span> <span class="nc">StringExtensions</span> <span class="o">{</span>
+  <span class="kd">public</span> <span class="kd">static</span> <span class="n">String</span> <span class="nf">makeMusical</span><span class="o">(</span><span class="n">String</span> <span class="n">in</span><span class="o">)</span> <span class="o">{</span>
+    <span class="k">return</span> <span class="s">"¸¸?·¯·?¸¸?·¯·?¸¸"</span><span class="o">+</span> <span class="n">in</span> <span class="o">+</span> <span class="s">"¸¸?·¯·?¸¸?·¯·?¸¸"</span><span class="o">;</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</code></pre><p>Then we annotate that class we want to utilise the new extension methods in,</p>
+<pre class="highlight"><code class="java"><span class="nd">@ExtensionMethod</span><span class="o">({</span><span class="n">StringExtensions</span><span class="o">.</span><span class="na">class</span><span class="o">})</span>
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">App</span> <span class="o">{</span>
+  <span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="o">(</span><span class="n">String</span><span class="o">[]</span> <span class="n">args</span><span class="o">)</span> <span class="o">{</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</code></pre><p>Finally we call the static methods within this class as if they were instance methods of the type that the method accepts.</p>
+<pre class="highlight"><code class="java">  <span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="o">(</span><span class="n">String</span><span class="o">[]</span> <span class="n">args</span><span class="o">)</span> <span class="o">{</span>
+    <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">"EXTEEEEEENSION METHODSSSSSS"</span><span class="o">.</span><span class="na">makeMusical</span><span class="o">());</span>
+  <span class="o">}</span>
+</code></pre><p>Under the hood the call simply gets translated to</p>
+<pre class="highlight"><code class="java"><span class="n">StringExtensions</span><span class="o">.</span><span class="na">makeMusical</span><span class="o">(</span><span class="s">"EXTEEEEEENSION METHODSSSSSS"</span><span class="o">)</span>
+</code></pre><p>Which gives us the rather pretty output of,</p>
+<pre class="highlight"><code>¸¸?·¯·?¸¸?·¯·?¸¸EXTEEEEEENSION METHODSSSSSS¸¸?·¯·?¸¸?·¯·?¸¸
+</code></pre><p>In fact <code>@ExtensionMethod</code> can take any class with <code>static</code> methods and make them callable as instance methods such as <code>java.util.Arrays</code>.</p><p>OK extension methods are just a nice bit of syntactic sugar but they can be really nice when creating a consistent approach to code style.</p><h2>Tooling Support</h2><p>In short "yes there is". Eclipse and IntelliJ both have Lombok plugins with powerful refactoring support (turn Lombok'd classes into their equivalent pure Java class and vice versa). Some of the features, especially the experimental ones, have some little issues that can make editors complain, even though the project will compile and run fine, but it's no worse than some of the bizarre syntax issues you can get with Scala for example.</p><h2>Summing up</h2><p>I've thrown a lot of code around and didn't cover all Lombok has to offer. I focused on the features that I think are handy to use and I would certainly recommend you apply you're use of Lombok carefully. As with all powerful things don't over do it just because you can. A little goes a long way.</p><p>Finally I recommend you check out the <a href="https://projectlombok.org/">official Project Lombok site</a>, read the caveats on the various features that catch your eye and just give it a go yourself.</p>
+<hr /><p><sup><a name="1"></a><a href="#_1">1</a>: There are some other things generated here such as the bizarre <code>java.beans.ConstructorProperties</code> annotation. I pray I never need to know what that does.</sup></p></div><a class="twitter" href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fyobriefca.se%2Fblog%2F2015%2F05%2F08%2Fless-java-with-lombok%2F&amp;text=Less%20Java%20with%20Lombok&amp;via=kouphax" itemprop="discussionUrl" target="_blank">Tweet This</a><div class="dater"><time datetime="08-05-2015" itemprop="datePublished">May 08, 2015</time></div><div class="categories">Published in <a href="/categories/java/">Java</a> on May 08, 2015</div></div></div><div class="homer"><a href="/"><i class="icon-briefcase" style="font-size:32px;"></i></a></div><script type="text/javascript">(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-19143623-5', 'yobriefca.se');
+  ga('send', 'pageview');</script></body></html>

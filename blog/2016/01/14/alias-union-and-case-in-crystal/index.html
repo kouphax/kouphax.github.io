@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><meta content="IE=edge,chrome=1" http-equiv="X-UA-Compatible"><meta content="width=device-width, user-scalable=no" name="viewport"><meta content="alias, union and case in Crystal" name="description"><link href="/favicon.ico" rel="shortcut icon" type="image/x-icon"><link href="https://fonts.googleapis.com/css?family=Merriweather:400,700|Open+Sans:400,700" rel="stylesheet" type="text/css"><link href="/bundles/84cd5d4454d9/styles.css" rel="stylesheet" /><title>alias, union and case in Crystal</title></head><body><div class="row"><blockquote class="warning">This post is over 6 months old.  Some details,
+       especially technical, may have changed.</blockquote><div itemscope="" itemtype="http://schema.org/Article"><h1 itemprop="name">alias, union and case in Crystal</h1><div class="post" itemprop="articleBody"><p>So I've been diving into Crystal lately. It's nice. This isn't a post about why I think it's nice, it's a post about a few of the features of Crystal so let’s get straight down to it.</p><h2><code>alias</code></h2><p><code>alias</code> is a very common feature that we can see across many languages but it can be used to build upon other features in Crystal. As the name suggests you use <code>alias</code> to give a type a different name.</p>
+<pre class="highlight"><code class="ruby"><span class="k">alias</span> <span class="no">TableOfContents</span> <span class="o">=</span> <span class="no">Hash</span><span class="p">(</span><span class="nb">String</span><span class="p">,</span> <span class="no">Int32</span><span class="p">)</span>
+</code></pre><p>In the example above we give the type <code>Hash(String, Int32)</code> a custom alias of <code>TableOfContents</code> which allows us to refer to this type as <code>TableOfContents</code></p>
+<pre class="highlight"><code class="ruby"><span class="k">def</span> <span class="nf">lookup</span><span class="p">(</span><span class="n">chapter</span> <span class="p">:</span> <span class="nb">String</span><span class="p">,</span> <span class="n">tableOfContents</span> <span class="p">:</span> <span class="no">TableOfContents</span><span class="p">)</span> <span class="p">:</span> <span class="no">Int32</span>
+  <span class="n">tableOfContents</span><span class="o">.</span><span class="n">fetch</span><span class="p">(</span><span class="n">chapter</span><span class="p">)</span>
+<span class="k">end</span>
+</code></pre><p>So instead of using <code>Hash(String, String)</code> in the method signature above we can use <code>TableOfContents</code>. So why is this useful? Well for one thing it allows us to reduce complex type names into smaller names. The example above isn't exactly verbose but longer types can be more readable.</p><p>Now of course size isn't everything so another advantage of <code>alias</code> is that we can add meaning to types within our problem domain. You're less likely to wonder what this hash of string to string is or should contain when we give a name like <code>TableOfContents</code>. In fact, we could enrich the signature above more by giving specific types an alias.</p>
+<pre class="highlight"><code class="ruby"><span class="k">alias</span> <span class="no">ChapterTitle</span> <span class="o">=</span> <span class="nb">String</span>
+<span class="k">alias</span> <span class="no">PageNumber</span> <span class="o">=</span> <span class="no">Int32</span>
+<span class="k">alias</span> <span class="no">TableOfContents</span> <span class="o">=</span> <span class="no">Hash</span><span class="p">(</span><span class="no">ChapterTitle</span><span class="p">,</span> <span class="no">PageNumber</span><span class="p">)</span>
+</code></pre><p>From this we can infer that for a given chapter title the table of contents is capable of finding the page number that the chapter starts on.</p><h2><code>union</code></h2><p>Unlike many languages the return type of methods can actually be more than one type. Crystal uses type inference so declaring types is not mandatory. Take a look at this,</p>
+<pre class="highlight"><code class="ruby"><span class="k">def</span> <span class="nf">doAThing</span><span class="p">(</span><span class="n">isAThing</span> <span class="p">:</span> <span class="no">Bool</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">isAThing</span>
+    <span class="s2">"I did a thing"</span>
+  <span class="k">else</span>
+    <span class="mi">42</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre><p>What type is this? It could be an <code>Int32</code> it could be a <code>String</code>. In other statically typed languages the type most likely resolves to some common base class like <code>Object</code> or <code>Any</code> which makes sense but is actually a tiny bit pants<a name="_1"></a><a href="#1"><sup>1</sup></a>. </p><p>In Crystal this type will be inferred as <code>String|Int32</code>. This is a union and is essentially a type of its own that could be either a <code>String</code> or a <code>Int32</code>. We can explicitly give this method a return type which means the compiler can verify our assumption</p>
+<pre class="highlight"><code class="ruby"><span class="k">def</span> <span class="nf">doAThing</span><span class="p">(</span><span class="n">isAThing</span> <span class="p">:</span> <span class="no">Bool</span><span class="p">)</span> <span class="p">:</span> <span class="nb">String</span><span class="o">|</span><span class="no">Bool</span>
+</code></pre><p>You may have noticed I just wrote the wrong return type and attempting to compile the code results in a helpful compilation error message</p>
+<pre class="highlight"><code class="bash">Error in ./src/something.cr:14: instantiating <span class="s1">'doAThing(Bool)'</span>
+
+doAThing<span class="o">(</span><span class="nb">false</span><span class="o">)</span>
+^
+
+in ./src/something.cr:6: <span class="nb">type </span>must be <span class="o">(</span>String | Bool<span class="o">)</span>, not <span class="o">(</span>String | Int32<span class="o">)</span>
+
+def doAThing<span class="o">(</span>t : Bool<span class="o">)</span> : String|Bool
+    ^
+</code></pre><p>Union types give us the rigidity and predictability of types while, at the same time, allowing a certain amount of flexibility as if we were working in a purely dynamic language. </p><h2><code>case</code></h2><p>So we've got these nice <code>union</code> types how do we deal with them in code? Well similar to other languages Crystal has methods like <code>is_a?(type_name)</code> and <code>responds_to?(method_name)</code> that allows us to inspect the current type of the variable but it also supports a kind of pattern matching for types using <code>case</code>.</p>
+<pre class="highlight"><code class="ruby"><span class="k">def</span> <span class="nf">readFile</span><span class="p">(</span><span class="n">filename</span> <span class="p">:</span> <span class="nb">String</span><span class="p">)</span> <span class="p">:</span> <span class="nb">String</span><span class="o">|</span><span class="no">Error</span>
+  <span class="c1"># read file return a string of its contents</span>
+<span class="k">rescue</span> <span class="n">an_error</span>
+  <span class="n">an_error</span>
+<span class="k">end</span>
+
+<span class="n">maybeContents</span> <span class="o">=</span> <span class="n">readFile</span><span class="p">(</span><span class="s2">"somefile.txt"</span><span class="p">)</span>
+
+<span class="k">case</span> <span class="n">maybeContents</span>
+<span class="k">when</span> <span class="nb">String</span>
+  <span class="nb">puts</span> <span class="n">maybeContents</span>
+<span class="k">when</span> <span class="no">Error</span>
+  <span class="nb">puts</span> <span class="s2">"We had a wee error doing that"</span>
+<span class="k">end</span>
+</code></pre><p>In each <code>when</code> of the <code>case</code> the type of <code>maybeContents</code> will be the specific type that was matched against. So <code>maybeContents</code> will start as a <code>String|Error</code> but be available as a <code>String</code> in the first <code>when</code> and an <code>Error</code> in the second <code>when</code>.</p>
+<hr /><p><sup><a name="1"></a><a href="#_1">1</a>: "pants" means bad.</sup></p></div><a class="twitter" href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fyobriefca.se%2Fblog%2F2016%2F01%2F14%2Falias-union-and-case-in-crystal%2F&amp;text=alias%2C%20union%20and%20case%20in%20Crystal&amp;via=kouphax" itemprop="discussionUrl" target="_blank">Tweet This</a><div class="dater"><time datetime="14-01-2016" itemprop="datePublished">January 14, 2016</time></div><div class="categories">Published in <a href="/categories/crystal/">Crystal</a> on January 14, 2016</div></div></div><div class="homer"><a href="/"><i class="icon-briefcase" style="font-size:32px;"></i></a></div><script type="text/javascript">(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-19143623-5', 'yobriefca.se');
+  ga('send', 'pageview');</script></body></html>

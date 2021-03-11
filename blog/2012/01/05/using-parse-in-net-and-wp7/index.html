@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><meta content="IE=edge,chrome=1" http-equiv="X-UA-Compatible"><meta content="width=device-width, user-scalable=no" name="viewport"><meta content="Using Parse in .NET and WP7" name="description"><link href="/favicon.ico" rel="shortcut icon" type="image/x-icon"><link href="https://fonts.googleapis.com/css?family=Merriweather:400,700|Open+Sans:400,700" rel="stylesheet" type="text/css"><link href="/bundles/84cd5d4454d9/styles.css" rel="stylesheet" /><title>Using Parse in .NET and WP7</title></head><body><div class="row"><blockquote class="warning">This post is over 6 months old.  Some details,
+       especially technical, may have changed.</blockquote><div itemscope="" itemtype="http://schema.org/Article"><h1 itemprop="name">Using Parse in .NET and WP7</h1><div class="post" itemprop="articleBody"><blockquote><p>UPDATE: Being completely wrong in assuming WP7 supports <code>dynamic</code> which apparently it doesn't the current build wont run in WP7. So another item on the list is a version that doesn't rely on <code>dynamic</code> I guess. Sorry for misleading anyone on that front - I did say it was rough and mostly untested right?</p>
+</blockquote><p><a href="https://www.parse.com/">Parse</a> is a site aimed at providing a simple service for pushing and pulling data on mobile devices. You can create applications and store your mobile data there, create users, provide logon/off mechanisms and even achieve push notifications. There are 2 ways to access <a href="https://www.parse.com/">Parse</a></p>
+<ol>
+  <li>Via its natively compiled binaries (on iOS and Android)</li>
+  <li>Via a its Rest API (for all non iOS/Android devices and desktops)</li>
+</ol><p>Now I wanted to try and create bindings for the iOS library so I could use it for a Monotouch application I've been playing with but truth be told the whole process confused the hell out of me. Thing was the REST API gave me everything I needed so I started recently to write a dynamic wrapper around the API. Currently built on .NET in Visual Studio (Mono on my list) with a few sanity tests it works well enough to put it out there incase anyone was wanting to do something similar and could extract value from it.</p><p>It's pretty early at the minute - in fact all you can do with this first spike is basic object CRUD. No querying yet, no special user management features etc. But they will come. So what could you use it for? Well a number of things,</p>
+<ul>
+  <li>WP7 Cloud Storage</li>
+  <li>Monotouch (and Monodroid) storage until someone smarter than me creates proper bindings to the actual iOS frameworks</li>
+  <li>It's an object store so why not use it to store data on any web app?</li>
+  <li>Just for tinkering.</li>
+</ul><p>It makes use of <code>dynamic</code> from .NET 4 so you can kind of pass it arbitrary stuff and get arbitrary stuff back (Parse is schemaless so this makes sense for me). It also means you wont have to create concrete classes for every single thing you want to store.</p><p>If you want to run the tests you'll need to sign up for Parse, create an app and update the <code>consts</code> in <code>describe_Parsely</code> to point to your new app (and authenticate).</p><h2>Sample Uses</h2>
+<pre class="highlight"><code class="csharp "><span class="c1">// create your parsley API</span>
+<span class="n">Parsley</span> <span class="n">parsley</span> <span class="p">=</span> <span class="k">new</span> <span class="n">Parsley</span><span class="p">(</span><span class="n">applicationId</span><span class="p">,</span> <span class="n">masterKey</span><span class="p">);</span>
+
+<span class="c1">// create new class</span>
+<span class="kt">dynamic</span> <span class="n">response</span> <span class="p">=</span> <span class="n">parsley</span><span class="p">.</span><span class="n">Create</span><span class="p">(</span><span class="s">"MyClass"</span><span class="p">,</span> <span class="k">new</span> <span class="p">{</span> <span class="n">CoolProperty</span> <span class="p">=</span> <span class="m">1</span>  <span class="p">});</span>
+
+<span class="c1">// do other cool stuff</span>
+<span class="n">parsley</span><span class="p">.</span><span class="n">Update</span><span class="p">(</span><span class="s">"MyClass"</span><span class="p">,</span> <span class="n">response</span><span class="p">.</span><span class="n">objectId</span><span class="p">,</span> <span class="k">new</span> <span class="p">{</span> <span class="n">CoolProperty</span> <span class="p">=</span> <span class="m">4</span><span class="p">});</span>
+
+<span class="n">dyanmic</span> <span class="n">myObject</span> <span class="p">=</span> <span class="n">parsley</span><span class="p">.</span><span class="n">Retrieve</span><span class="p">(</span><span class="s">"MyClass"</span><span class="p">,</span> <span class="n">response</span><span class="p">.</span><span class="n">objectId</span><span class="p">);</span>
+
+<span class="n">parsley</span><span class="p">.</span><span class="n">Delete</span><span class="p">(</span><span class="n">myObject</span><span class="p">.</span><span class="n">objectId</span><span class="p">);</span>
+</code></pre><h2>Outstanding Tasks</h2><p>Lots. But here is the main ones I see right now.</p>
+<ul>
+  <li>Compile on Mono and show MonoTouch some Parse love.</li>
+  <li>Samples (for WP7, Monotouch, possibly Monodroid)</li>
+  <li>Add Queries</li>
+  <li>Add User Management</li>
+</ul><p>It's probably fairly rough right now and could do with some TLC if anyone wants to pitch in? I've given it a name (Parsley) but that in no way implies this is going to be a long running project or anything. I just like naming things. Get it while it's hot, the code is in my <a href="https://bitbucket.org/kouphax/parsley">usual place</a>.</p><h2>Pre-Post Update</h2><p>Rather than update this blog post I decided to tack this on here. With BitBucket experiencing some issues at present I spent about 10 minutes hacking in the user management features. No tests written yet (oh no I have broken all the rules and must be beaten with oversized crayons) so lets just say that it's very edge, very experimental at the minute. Also bonus - returning a collection of objects is implemented as <code>Query</code> but again totally untested (fast and loose - it's how I roll son). There be dragons there therebe!</p><p>Happy hacking.</p><p>Can I have my WP7 MVP now please? <strong>Kidding</strong></p></div><a class="twitter" href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fyobriefca.se%2Fblog%2F2012%2F01%2F05%2Fusing-parse-in-net-and-wp7%2F&amp;text=Using%20Parse%20in%20.NET%20and%20WP7&amp;via=kouphax" itemprop="discussionUrl" target="_blank">Tweet This</a><div class="dater"><time datetime="05-01-2012" itemprop="datePublished">January 05, 2012</time></div><div class="categories">Published in <a href="/categories/dot-net/">.NET</a> <a href="/categories/mobile/">Mobile</a> on January 05, 2012</div></div></div><div class="homer"><a href="/"><i class="icon-briefcase" style="font-size:32px;"></i></a></div><script type="text/javascript">(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-19143623-5', 'yobriefca.se');
+  ga('send', 'pageview');</script></body></html>

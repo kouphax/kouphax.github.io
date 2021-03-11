@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><meta content="IE=edge,chrome=1" http-equiv="X-UA-Compatible"><meta content="width=device-width, user-scalable=no" name="viewport"><meta content="Provisioning Postgres via Vagrant and Ansible" name="description"><link href="/favicon.ico" rel="shortcut icon" type="image/x-icon"><link href="https://fonts.googleapis.com/css?family=Merriweather:400,700|Open+Sans:400,700" rel="stylesheet" type="text/css"><link href="/bundles/84cd5d4454d9/styles.css" rel="stylesheet" /><title>Provisioning Postgres via Vagrant and Ansible</title></head><body><div class="row"><blockquote class="warning">This post is over 6 months old.  Some details,
+       especially technical, may have changed.</blockquote><div itemscope="" itemtype="http://schema.org/Article"><h1 itemprop="name">Provisioning Postgres via Vagrant and Ansible</h1><div class="post" itemprop="articleBody"><p>This article covers a simple workflow for setting up a <a href="http://vagrantup.com">Vagrant</a> instance running <a href="http://postgresql.org">Postgres</a> provisioned by <a href="http://ansible.com">Ansible</a>. The first time I did this I found that most articles didn't cover everything and I had to look around to solve a few minor issues.</p>
+<blockquote><p>It's worth noting that I can avoid all this and use Nic Ferriers very useful <a href="http://www.pgdevbox.com/">Postgres Dev Box</a>. This work may be unnecessary but it's still fun - <strong>Funecessary</strong></p>
+</blockquote><p>I'm going to make an assumption that you know what both Vagrant and Ansible are and you understand the basic premise of how they work. I'll also assume that you have ansible installed on the host machine (Ansible is purely SSH and doesn't need agents installed on target machines).</p><h2>Vagrantfile</h2><p>We start with the <code>Vagrantfile</code>. This is the file that tells Vagrant what VM base box to use (Ubuntu Precise 32), what ports should be forwarded to the host (5432 - the default Postgres port) and what provider should be used to provision the VM once it has been brought up (Ansible).</p><p>If you already have a local instance of Postgres running you'll want to shut it down or you'll get port collisions and Vagrant will complain.</p>
+<pre class="highlight"><code class="ruby"><span class="no">Vagrant</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span><span class="s2">"2"</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">config</span><span class="o">|</span>
+    <span class="n">config</span><span class="o">.</span><span class="n">vm</span><span class="o">.</span><span class="n">box</span> <span class="o">=</span> <span class="s2">"precise32"</span>
+    <span class="n">config</span><span class="o">.</span><span class="n">vm</span><span class="o">.</span><span class="n">box_url</span> <span class="o">=</span> <span class="s2">"http://files.vagrantup.com/precise32.box"</span>
+
+    <span class="n">config</span><span class="o">.</span><span class="n">vm</span><span class="o">.</span><span class="n">network</span> <span class="s2">"forwarded_port"</span><span class="p">,</span> <span class="ss">guest</span><span class="p">:</span> <span class="mi">5432</span><span class="p">,</span> <span class="ss">host</span><span class="p">:</span> <span class="mi">5432</span>
+
+    <span class="n">config</span><span class="o">.</span><span class="n">vm</span><span class="o">.</span><span class="n">provision</span> <span class="s2">"ansible"</span> <span class="k">do</span> <span class="o">|</span><span class="n">ansible</span><span class="o">|</span>
+        <span class="n">ansible</span><span class="o">.</span><span class="n">playbook</span> <span class="o">=</span> <span class="s2">"playbook.yml"</span>
+    <span class="k">end</span>
+<span class="k">end</span>
+</code></pre><h2>playbook.yml</h2><p>Ansible provisioning in Vagrant accepts, at the minimum, a playbook to run and the provider takes care of ensuring that ansible is called correctly. Our Vagrantfile above is configured to point to <code>playbook.yml</code> that sits alongside the <code>Vagrantfile</code> so we need to create that.</p>
+<pre class="highlight"><code>- hosts: all
+  sudo: yes
+  gather_facts: no
+  tasks:
+    - name: add keyserver to apt
+      command: apt-key adv --keyserver hkp://p80.pool.sks-keyservers.net:80 --recv-keys B97B0AFCAA1A47F044F244A07FCC7D46ACCC4CF8
+    - name: add custom postgres repo to apt
+      lineinfile: dest=/etc/apt/sources.list.d/pgdg.list
+                  line="deb http://apt.postgresql.org/pub/repos/apt/ precise-pgdg main" state=present
+                  create=yes
+
+- hosts: all
+  sudo: yes
+  gather_facts: no
+  tasks:
+    - name: ensure apt cache is up to date
+      apt: update_cache=yes
+    - name: ensure packages are installed
+      apt: name={{item}}
+      with_items:
+          - python-software-properties
+          - software-properties-common
+          - libpq-dev
+          - python-psycopg2
+          - postgresql-9.4
+
+- hosts: all
+  sudo: yes
+  sudo_user: postgres
+  gather_facts: no
+
+  handlers:
+    - name: restart postgresql
+      service: name=postgresql state=restarted
+
+  tasks:
+    - name: postgresql should listen on all ports
+      lineinfile: dest=/etc/postgresql/9.4/main/postgresql.conf
+                  regexp="^listen_addresses"
+                  line="listen_addresses = '*'" state=present
+
+    - name: postgresql should allow access to host
+      copy:
+        dest: /etc/postgresql/9.4/main/pg_hba.conf
+        content: |
+          local   all   postgres   peer
+          local   all   all        peer
+          host    all   all        0.0.0.0/0   md5
+      notify: restart postgresql
+
+- hosts: all
+  sudo: yes
+  sudo_user: postgres
+  gather_facts: no
+
+  vars:
+    dbname: vagrant
+    dbuser: vagrant
+    dbpassword: vagrant
+
+  tasks:
+    - name: ensure database is created
+      postgresql_db: name={{dbname}}
+
+    - name: ensure user has access to database
+      postgresql_user: db={{dbname}} name={{dbuser}} password={{dbpassword}} priv=ALL
+</code></pre><p>It probably best to tease apart what each part of this playbook does. I've broken the playbook out into four distinct sections that perform specific related tasks to make this easier to explain,</p>
+<ul>
+  <li>Add the Postgres apt repository to allow us to get the latest release of Postgres (<code>apt</code> by default will install <code>9.1</code> but I want <code>9.4</code></li>
+  <li>Update the <code>apt</code> cache and install the necessary packages (ultimately <code>postgresql-9.4</code> but we need a few base packages as well.</li>
+</ul><p>By this point Postgres will be installed and a <code>postgres</code> user created but if you try and connect to the instance from outside the VM it still wont work. We have some additional work to do. This is exactly what the next block does.</p>
+<ul>
+  <li>Update the <code>postgresql.conf</code> file to allow Postgres to listen on all ports and update <code>pg_hba.conf</code> to allow the host machine to connect to Postgres. <em>NB</em> these rules are very lax, for a bit of local development work this is fine but it would be best to tighten these up for more serious work. The service should be restarted after both of these tasks.</li>
+</ul><p>So now we have the ability to connect to the database from the host machine we also want to set up a dedicated database and user.</p>
+<ul>
+  <li>Create a <code>vagrant</code> database and create and associate a <code>vagrant</code> user to this database.</li>
+</ul><p>If we save both files and run <code>vagrant up</code> we will end up with a provisioned Vagrant box running Postgres that can be access from the host machine on port 5432.</p></div><a class="twitter" href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fyobriefca.se%2Fblog%2F2015%2F05%2F20%2Fprovisioning-postgres-via-vagrant-and-ansible%2F&amp;text=Provisioning%20Postgres%20via%20Vagrant%20and%20Ansible&amp;via=kouphax" itemprop="discussionUrl" target="_blank">Tweet This</a><div class="dater"><time datetime="20-05-2015" itemprop="datePublished">May 20, 2015</time></div><div class="categories">Published in <a href="/categories/vagrant/">Vagrant</a> <a href="/categories/ansible/">Ansible</a> <a href="/categories/postgres/">Postgres</a> on May 20, 2015</div></div></div><div class="homer"><a href="/"><i class="icon-briefcase" style="font-size:32px;"></i></a></div><script type="text/javascript">(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-19143623-5', 'yobriefca.se');
+  ga('send', 'pageview');</script></body></html>

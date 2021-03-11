@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><meta content="IE=edge,chrome=1" http-equiv="X-UA-Compatible"><meta content="width=device-width, user-scalable=no" name="viewport"><meta content="Tinkering with Spark: A Micro Web Framework for Java" name="description"><link href="/favicon.ico" rel="shortcut icon" type="image/x-icon"><link href="https://fonts.googleapis.com/css?family=Merriweather:400,700|Open+Sans:400,700" rel="stylesheet" type="text/css"><link href="/bundles/84cd5d4454d9/styles.css" rel="stylesheet" /><title>Tinkering with Spark: A Micro Web Framework for Java</title></head><body><div class="row"><blockquote class="warning">This post is over 6 months old.  Some details,
+       especially technical, may have changed.</blockquote><div itemscope="" itemtype="http://schema.org/Article"><h1 itemprop="name">Tinkering with Spark: A Micro Web Framework for Java</h1><div class="post" itemprop="articleBody"><div style="text-align:center;margin-bottom:20px;">
+<img src="/images/blog/spark_logo_blue.png" style="border:none; box-shadow:none; -webkit-box-shadow:none;" />
+</div><p>You can't call yourself a language these days without having your own <a href="http://sinatrarb.com">Sinatra</a> clone. Not even, it seems, if you are Java. I know - it sounds odd that Java, the language that turns XML into stacktraces, has a micro web framework of it's own - <a href="http://sparkjava.com">Spark</a>. I'm well aware as of JRE 1.6 has a built in <code>HttpServer</code> class but there is such as thing as <strong>too close</strong> to the metal :) Also Sparks logo is fairly epic.</p><p><a href="http://sparkjava.com">Spark</a>'s site has a great little piece about the "why" and that is what stuck with me. Especially this bit,</p>
+<blockquote><p>Its intention is to be used by Java developers that want or are required to develop in pure Java. </p>
+</blockquote><p>I know a few people who are "required" to develop in pure Java and anything that might make their lives easier would be welcomed. Being completely out of loop with Java since before Maven made an appearance I had a lot of catching up to do just to get the project running. In fact I went with SBT as it made things a lot easier for me and my mavenless brain. I did have to tinker with the dependencies in the <code>ivy2</code> directory due to a <a href="https://github.com/perwendel/spark/pull/15">known issue</a> but if I can do it anyone interested in this can to - if not give me a shout.</p><h2>App.java</h2><p>A Spark app simply uses <code>main</code> as an entry point. Within the method you can call certain methods to set up routes and filters and whatnots that your app will respond to. For example</p>
+<pre class="highlight"><code class="java "><span class="kn">import</span> <span class="nn">static</span> <span class="n">spark</span><span class="o">.</span><span class="na">Spark</span><span class="o">.*;</span>
+<span class="kn">import</span> <span class="nn">spark.*</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">java.io.*</span><span class="o">;</span>
+
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">App</span> <span class="o">{</span>
+
+  <span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="o">(</span><span class="n">String</span><span class="o">[]</span> <span class="n">args</span><span class="o">)</span>  <span class="o">{</span>
+</code></pre><p>Standard Java stuff here, bringing in some of the necessary <code>spark</code> resources,</p>
+<pre class="highlight"><code class="java ">    <span class="n">before</span><span class="o">(</span><span class="k">new</span> <span class="n">Filter</span><span class="o">(</span><span class="s">"/"</span><span class="o">)</span> <span class="o">{</span>
+      <span class="nd">@Override</span>
+      <span class="kd">public</span> <span class="kt">void</span> <span class="nf">handle</span><span class="o">(</span><span class="n">Request</span> <span class="n">request</span><span class="o">,</span> <span class="n">Response</span> <span class="n">response</span><span class="o">)</span> <span class="o">{</span>
+        <span class="kt">boolean</span> <span class="n">authenticated</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="na">queryParams</span><span class="o">(</span><span class="s">"password"</span><span class="o">).</span><span class="na">equals</span><span class="o">(</span><span class="s">"secret"</span><span class="o">);</span>
+        <span class="k">if</span><span class="o">(!</span><span class="n">authenticated</span><span class="o">){</span>
+          <span class="n">halt</span><span class="o">(</span><span class="mi">403</span><span class="o">,</span> <span class="s">"Incorrect password, hacker alert, hacker alert!!!!"</span><span class="o">);</span>
+        <span class="o">}</span>
+      <span class="o">}</span>
+    <span class="o">});</span>
+</code></pre><p>Spark allows us to define filters that run before and after requests. It is also possbile to restrict them to certain routes or simply catch all routes - for example my filter only matches the "/" route. A couple of other things are worth mentioning here,</p>
+<ol>
+  <li>The <code>Request</code> object gives you access to many things you would expect i.e. the query parameters. It gives you so much more than this but I'll leave the <a href="http://www.sparkjava.com/readme.html#title2">docs</a> to describe this.</li>
+  <li>Just like in Sinatra it is possible to simply <code>halt</code> the request chain at any time. Here I am halting execution unless the request conforms to my very strict and highly secure authentication scheme.</li>
+</ol>
+<pre class="highlight"><code class="java ">    <span class="n">get</span><span class="o">(</span><span class="k">new</span> <span class="n">Route</span><span class="o">(</span><span class="s">"/"</span><span class="o">)</span> <span class="o">{</span>
+      <span class="nd">@Override</span>
+      <span class="kd">public</span> <span class="n">Object</span> <span class="nf">handle</span><span class="o">(</span><span class="n">Request</span> <span class="n">request</span><span class="o">,</span> <span class="n">Response</span> <span class="n">response</span><span class="o">)</span> <span class="o">{</span>
+
+        <span class="c1">// extract the name from the request</span>
+        <span class="n">String</span> <span class="n">name</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="na">queryParams</span><span class="o">(</span><span class="s">"name"</span><span class="o">);</span>
+
+        <span class="c1">// set the response type</span>
+        <span class="n">response</span><span class="o">.</span><span class="na">type</span><span class="o">(</span><span class="s">"text/html"</span><span class="o">);</span>
+
+        <span class="c1">// return some html</span>
+        <span class="k">return</span> <span class="s">""</span> <span class="o">+</span>
+          <span class="s">"&lt;DOCTYPE html&gt;"</span> <span class="o">+</span>
+          <span class="s">"&lt;html&gt;"</span> <span class="o">+</span>
+          <span class="s">"  &lt;head&gt;"</span> <span class="o">+</span>
+          <span class="s">"  &lt;/head&gt;"</span> <span class="o">+</span>
+          <span class="s">"  &lt;body&gt;"</span> <span class="o">+</span>
+          <span class="s">"    &lt;h1&gt;Hello "</span> <span class="o">+</span> <span class="n">name</span> <span class="o">+</span> <span class="s">", Spark here.  Howrya?&lt;/h1&gt;"</span> <span class="o">+</span>
+          <span class="s">"  &lt;/body&gt;"</span> <span class="o">+</span>
+          <span class="s">"&lt;/html&gt;"</span><span class="o">;</span>
+      <span class="o">}</span>
+    <span class="o">});</span>
+
+  <span class="o">}</span>
+<span class="o">}</span>
+</code></pre><p>Finally I am defining a route ("/") that responds to the GET verb and introspects the query parameters returning a very complex view. Routes can also be parameterized (<code>/user/:name</code> for example). Even given the slightly verbose nature of Java syntax this example seems clean enough (albeit a rather simple example).</p><h2>SBT Build File</h2><p>For the curious among you (you got this far so you must be slightly curious... and rather odd) the SBT file required to get this bad boy running is nice and simple,</p>
+<pre class="highlight"><code class="scala "><span class="n">resolvers</span> <span class="o">+=</span> <span class="s">"Spark Repository"</span> <span class="n">at</span> <span class="s">"http://www.sparkjava.com/nexus/content/repositories/spark/"</span>
+
+<span class="n">libraryDependencies</span> <span class="o">++=</span> <span class="nc">Seq</span><span class="o">(</span>
+  <span class="s">"spark"</span> <span class="o">%</span> <span class="s">"spark"</span>  <span class="o">%</span> <span class="s">"0.9.9.3-SNAPSHOT"</span> <span class="n">exclude</span><span class="o">(</span><span class="s">"org.apache.commons"</span><span class="o">,</span> <span class="s">"commons-io"</span><span class="o">)</span>
+<span class="o">)</span>
+</code></pre><p>A quick <code>sbt run</code> command and we are running a standalone Spark app (powered by an embedded Jetty server). Aces.</p><h2>Mopping Up</h2><p>OK so thats the basics of the framework but then again there really isn't much other stuff besides picking a port and redirecting. This means there is some things still missing that would really make this framework really stand out,</p>
+<ul>
+  <li>View rendering. Even if it is just plain HTML it would be a big leap forward (turns out an <a href="https://github.com/perwendel/spark/issues/1">issue</a> is already open too).</li>
+  <li>Static Content. Would be nice to define a rule for serving static content without having to define a route or filter manually</li>
+  <li>Session support. Again an <a href="https://github.com/perwendel/spark/pull/12">issue and pull request</a> is already available for this.</li>
+</ul><p>Good work <a href="https://github.com/perwendel/">perwendel</a> keep it up :)</p><p>As always my code samples are available on <a href="https://github.com/kouphax/spark-tinkering">Github</a>.</p></div><a class="twitter" href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fyobriefca.se%2Fblog%2F2012%2F03%2F20%2Ftinkering-with-spark-a-micro-web-framework-for-java%2F&amp;text=Tinkering%20with%20Spark%3A%20A%20Micro%20Web%20Framework%20for%20Java&amp;via=kouphax" itemprop="discussionUrl" target="_blank">Tweet This</a><div class="dater"><time datetime="20-03-2012" itemprop="datePublished">March 20, 2012</time></div><div class="categories">Published in <a href="/categories/java/">Java</a> on March 20, 2012</div></div></div><div class="homer"><a href="/"><i class="icon-briefcase" style="font-size:32px;"></i></a></div><script type="text/javascript">(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-19143623-5', 'yobriefca.se');
+  ga('send', 'pageview');</script></body></html>

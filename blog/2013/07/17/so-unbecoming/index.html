@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><meta content="IE=edge,chrome=1" http-equiv="X-UA-Compatible"><meta content="width=device-width, user-scalable=no" name="viewport"><meta content="So Unbecoming" name="description"><link href="/favicon.ico" rel="shortcut icon" type="image/x-icon"><link href="https://fonts.googleapis.com/css?family=Merriweather:400,700|Open+Sans:400,700" rel="stylesheet" type="text/css"><link href="/bundles/84cd5d4454d9/styles.css" rel="stylesheet" /><title>So Unbecoming</title></head><body><div class="row"><blockquote class="warning">This post is over 6 months old.  Some details,
+       especially technical, may have changed.</blockquote><div itemscope="" itemtype="http://schema.org/Article"><h1 itemprop="name">So Unbecoming</h1><div class="post" itemprop="articleBody"><blockquote><p>The post has been updated to accomodate some of the excellent adivce from <a href="https://twitter.com/rolandkuhn">Roland Kuhn</a> via his <a href="https://gist.github.com/rkuhn/6061663">Gist</a></p>
+</blockquote><p>I've been playing around with <a href="http://akka.io/">Akka</a> lately for a component I've been working on. The component, a simple remote file sychroniser will essentially batch download files from URLs returned by a remote API call. The specifics aren't important right now but thats the gist. The component is scheduled to run every 3 hours (using the Akka scheduler) but sometimes the entire download process can actually take longer than 3 hours and I don't want to end up thrashing the remote API for little benefit - so I wanted a fail safe to ensure a new download process would only start if the previous one had finished.</p><p>So I've got Akka and some kind of co-ordination requirement. There were 3 possible options,</p>
+<ol>
+  <li>Make use of a global <code>var</code></li>
+  <li>Use Akkas FSM (Finite State Machine), or,</li>
+  <li>Use an Actors <code>become</code> &amp; <code>unbecome</code> methods</li>
+</ol><p>We'll start with some akka system boilerplate (with scheduler) and look at the options</p>
+<pre class="highlight"><code class="scala"><span class="c1">// create the overarching actor system that will manage our application</span>
+<span class="k">val</span> <span class="n">system</span> <span class="k">=</span> <span class="n">akka</span><span class="o">.</span><span class="n">actor</span><span class="o">.</span><span class="nc">ActorSystem</span><span class="o">(</span><span class="s">"devtracker"</span><span class="o">)</span>
+
+<span class="c1">// import our execution context</span>
+<span class="k">import</span> <span class="nn">system.dispatcher</span>
+
+<span class="c1">// set up a scheduler to sync the registry</span>
+<span class="n">system</span><span class="o">.</span><span class="n">scheduler</span><span class="o">.</span><span class="n">schedule</span><span class="o">(</span><span class="mi">0</span> <span class="n">millis</span><span class="o">,</span> <span class="mi">3</span> <span class="n">hours</span><span class="o">)</span> <span class="o">{</span>
+  <span class="c1">// try and start a download</span>
+<span class="o">}</span>
+</code></pre><p>Along with this we'll have an actor that performs the download and notifies <em>something</em> when it is finished.</p><h2>The Global <code>var</code></h2><p>Simplest appraoch would be to just use a flag,</p>
+<pre class="highlight"><code class="scala"><span class="c1">// create the overarching actor system that will manage our application</span>
+<span class="k">val</span> <span class="n">system</span> <span class="k">=</span> <span class="n">akka</span><span class="o">.</span><span class="n">actor</span><span class="o">.</span><span class="nc">ActorSystem</span><span class="o">(</span><span class="s">"devtracker"</span><span class="o">)</span>
+
+<span class="c1">// import our execution context</span>
+<span class="k">import</span> <span class="nn">system.dispatcher</span>
+
+<span class="nd">@volatile</span> <span class="k">var</span> <span class="n">isDownloading</span> <span class="k">=</span> <span class="kc">false</span>
+
+<span class="c1">// set up a scheduler to sync the registry</span>
+<span class="n">system</span><span class="o">.</span><span class="n">scheduler</span><span class="o">.</span><span class="n">schedule</span><span class="o">(</span><span class="mi">0</span> <span class="n">millis</span><span class="o">,</span> <span class="mi">3</span> <span class="n">hours</span><span class="o">)</span> <span class="o">{</span>
+  <span class="k">if</span><span class="o">(!</span><span class="n">isDownloading</span><span class="o">)</span> <span class="o">{</span>
+    <span class="n">system</span><span class="o">.</span><span class="n">actorOf</span><span class="o">(</span><span class="nc">Props</span><span class="o">[</span><span class="kt">Downloader</span><span class="o">])</span> <span class="o">!</span> <span class="nc">Download</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</code></pre><p>Then somewhere in our <code>Downloader</code> actor we'd set global isDownloading flag to <code>true</code> then, once the (synchronous) download process is complete, back to <code>false</code> again.</p>
+<pre class="highlight"><code class="scala"><span class="k">class</span> <span class="nc">Downloader</span> <span class="k">extends</span> <span class="nc">Actor</span> <span class="o">{</span>
+  <span class="k">def</span> <span class="n">receive</span> <span class="k">=</span> <span class="o">{</span>
+    <span class="k">case</span> <span class="nc">Download</span> <span class="k">=&gt;</span> <span class="o">{</span>
+      <span class="nc">Application</span><span class="o">.</span><span class="n">isDownloading</span> <span class="k">=</span> <span class="kc">true</span>
+      <span class="c1">// perform download</span>
+      <span class="nc">Application</span><span class="o">.</span><span class="n">isDownloading</span> <span class="k">=</span> <span class="kc">false</span>
+    <span class="o">}</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</code></pre><p>Ugh mutable state, am I rite?!?. It's no fun having to manage shared mutable state (even if it is currently just only boolean flag). This is especially when you're using a system that aims to abstract away the concerns of concurrency. </p><p>Lets not forget that I've also broken the whole encapsulation of the actor model by explicity accessing <code>Application</code> and that just seems dirty. Of course you could keep refining this unitl you ended up with an actor that isolated the <code>var</code> and other actors passed messages via the Actor System (or its Event Bus) but, well, thats already kind of been done for us in Akka.</p><h2>The Akka FSM (Finite State Machine)</h2><p>The rules we described above are pretty much describing a very basic state machine. The downloading component is either in an <strong>idle</strong> or <strong>downloading</strong> state and we can only initiate a download if the component is idling.</p><p><img src="/images/blog/fsm.png" alt="REALLY Finite State Machine" _="_" /></p><p>Akka <a href="http://doc.akka.io/docs/akka/snapshot/scala/fsm.html">provides</a> a basic FSM implementation which is essentially an actor with a neat DSL for defining states and transitions. We can model our download case like so,</p>
+<pre class="highlight"><code class="scala"><span class="k">class</span> <span class="nc">DownloadCoordinator</span> <span class="k">extends</span> <span class="nc">Actor</span> <span class="k">with</span> <span class="nc">FSM</span><span class="o">[</span><span class="kt">State</span>, <span class="kt">Unit</span><span class="o">]</span> <span class="o">{</span>
+
+  <span class="n">startWith</span><span class="o">(</span><span class="nc">Idle</span><span class="o">,</span> <span class="nc">Unit</span><span class="o">)</span>
+
+  <span class="n">when</span><span class="o">(</span><span class="nc">Idle</span><span class="o">)</span> <span class="o">{</span>
+    <span class="k">case</span> <span class="nc">Event</span><span class="o">(</span><span class="nc">Go</span><span class="o">,</span> <span class="k">_</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="n">goto</span><span class="o">(</span><span class="nc">Downloading</span><span class="o">)</span>
+  <span class="o">}</span>
+ 
+  <span class="n">when</span><span class="o">(</span><span class="nc">Downloading</span><span class="o">)</span> <span class="o">{</span>
+    <span class="k">case</span> <span class="nc">Event</span><span class="o">(</span><span class="nc">Finish</span><span class="o">,</span> <span class="k">_</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="n">goto</span><span class="o">(</span><span class="nc">Idle</span><span class="o">)</span>
+  <span class="o">}</span>
+ 
+  <span class="n">onTransition</span> <span class="o">{</span>
+    <span class="k">case</span> <span class="nc">Idle</span> <span class="o">-&gt;</span> <span class="nc">Downloading</span> <span class="k">=&gt;</span> <span class="o">{</span>
+      <span class="n">context</span><span class="o">.</span><span class="n">actorOf</span><span class="o">(</span><span class="nc">Props</span><span class="o">[</span><span class="kt">Downloader</span><span class="o">])</span> <span class="o">!</span> <span class="nc">Go</span>
+    <span class="o">}</span>
+  <span class="o">}</span>
+ 
+  <span class="n">initialize</span><span class="o">()</span>
+<span class="o">}</span>
+</code></pre><p>The code above tells us that we have 2 states <code>Idle</code> and <code>Downloading</code>. When we receive a <code>Go</code> event (a simple case object) in the Idle state we move into the <code>Downloading</code> state. When we receive a <code>Finish</code> event in the <code>Downloading</code> state we go back to <code>Idle</code>.</p><p>Finally, on the transition of <code>Idle</code> to <code>Downloading</code> we tell our downloader actor to do its thing.</p><p>When the download completes our actor can simply tell it <code>sender</code> it is finished</p>
+<pre class="highlight"><code class="scala"><span class="k">class</span> <span class="nc">Downloader</span> <span class="k">extends</span> <span class="nc">Actor</span> <span class="o">{</span> 
+  <span class="k">def</span> <span class="n">receive</span> <span class="k">=</span> <span class="o">{</span>
+    <span class="k">case</span> <span class="nc">Go</span> <span class="k">=&gt;</span> <span class="o">{</span>
+      <span class="c1">// perform download</span>
+      <span class="n">sender</span> <span class="o">!</span> <span class="nc">Finish</span>
+    <span class="o">}</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</code></pre><p>We don't need to directly tell the sender but here this is acceptable. The level of decoupling and indirection is entirely up to you.</p><p>Finally our scheduler simply asks the co-ordinator to <code>Go</code></p>
+<pre class="highlight"><code class="scala"><span class="k">val</span> <span class="n">coordinator</span> <span class="k">=</span> <span class="n">system</span><span class="o">.</span><span class="n">actorOf</span><span class="o">(</span><span class="nc">Props</span><span class="o">[</span><span class="kt">DownloadCoordinator</span><span class="o">])</span>
+<span class="n">system</span><span class="o">.</span><span class="n">scheduler</span><span class="o">.</span><span class="n">schedule</span><span class="o">(</span><span class="mi">0</span> <span class="n">millis</span><span class="o">,</span> <span class="mi">2</span> <span class="n">hours</span><span class="o">)</span> <span class="o">{</span>
+  <span class="n">coordinator</span> <span class="o">!</span> <span class="nc">Go</span>
+<span class="o">}</span>
+</code></pre><p>Now if the scheduler ticks while a download is active it just gets ignored (though you can optionally handle it in the <code>whenUnhandled</code> block of the FSM actor)</p><p>I'll come back this implementation near the end of the post.</p><h2>Become/Unbecome</h2><p>Do you find the FSM implmentation a bit wordy for something that only really has two states? There is a lot of extra stuff going compared to the boolean flag appraoch. Well actually actors are capable of being their own FSM without the need of the FSM trait.</p><p>Akkas Actors support a pattern of swapping out the actors message handler for another receiver via the <code>become</code>/<code>unbecome</code> methods. We can implement our download co-ordinator with alot les code like so.</p>
+<pre class="highlight"><code class="scala"><span class="k">class</span> <span class="nc">Downloader</span> <span class="k">extends</span> <span class="nc">Actor</span> <span class="o">{</span>
+ 
+  <span class="k">import</span> <span class="nn">context._</span>
+
+  <span class="k">def</span> <span class="n">receive</span> <span class="k">=</span> <span class="o">{</span>
+    <span class="k">case</span> <span class="k">_</span> <span class="k">=&gt;</span>
+      <span class="n">become</span> <span class="o">{</span>
+        <span class="k">case</span> <span class="k">_</span> <span class="k">=&gt;</span> <span class="c1">// do nothing</span>
+      <span class="o">}</span>
+  <span class="o">}</span>
+ 
+  <span class="k">def</span> <span class="n">download</span> <span class="k">=</span> <span class="n">future</span> <span class="o">{</span>
+    <span class="c1">// perform download</span>
+    <span class="n">unbecome</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</code></pre><p>And thats it. This entire thing replaces both the co-ordinator actor and downloader actor. Our scheduler remains roughtly the same except we call this actor instead of our co-ordinator. </p><p>So whats happening? Well when we receive <strong>any</strong> message (for the first time for example) we call <code>download</code> which begins the download process. Then our actors <code>become</code>s something else - the thing it becomes is a cold, uncaring machine - doing nothing to any message it gets. When the download completes the <code>unbecome</code> puts the actor back into its initial (idle) state.</p><h2>Conclusion</h2><p>So what did I personally end up using? I went with the FSM approach. Why? Well I think, even with the basic nature of our needs, the FSM approach is actually more understandable. Comparing my two solutions (which may or may not be good practise, I'm new to Akka) I find the <code>become</code>/<code>unbecome</code> approach to be rather cryptic - sure there are less lines to take in but thats a crappy metric to measure quality by. That said reaching for a fully fledged FSM strategy for every situation is probably going to grow out of control - so it may not always be the best case. Know thine weapons.</p></div><a class="twitter" href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fyobriefca.se%2Fblog%2F2013%2F07%2F17%2Fso-unbecoming%2F&amp;text=So%20Unbecoming&amp;via=kouphax" itemprop="discussionUrl" target="_blank">Tweet This</a><div class="dater"><time datetime="17-07-2013" itemprop="datePublished">July 17, 2013</time></div><div class="categories">Published in <a href="/categories/scala/">Scala</a> on July 17, 2013</div></div></div><div class="homer"><a href="/"><i class="icon-briefcase" style="font-size:32px;"></i></a></div><script type="text/javascript">(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-19143623-5', 'yobriefca.se');
+  ga('send', 'pageview');</script></body></html>

@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><meta content="IE=edge,chrome=1" http-equiv="X-UA-Compatible"><meta content="width=device-width, user-scalable=no" name="viewport"><meta content="An example of refactoring Scala code" name="description"><link href="/favicon.ico" rel="shortcut icon" type="image/x-icon"><link href="https://fonts.googleapis.com/css?family=Merriweather:400,700|Open+Sans:400,700" rel="stylesheet" type="text/css"><link href="/bundles/84cd5d4454d9/styles.css" rel="stylesheet" /><title>An example of refactoring Scala code</title></head><body><div class="row"><blockquote class="warning">This post is over 6 months old.  Some details,
+       especially technical, may have changed.</blockquote><div itemscope="" itemtype="http://schema.org/Article"><h1 itemprop="name">An example of refactoring Scala code</h1><div class="post" itemprop="articleBody"><p>I recently had to add code to an old and critical area of a 2 year old, rather large, Scala project. The code which centred around a core function that accepted an object instance, performed various actions that ultimately updated/transformed some properties on the instance. The passed in instance, a case class, used immutable values for all its properties so in order to apply these additional transforms the function created additional internal values after each transformation. Finally, it would return the final updated instance. </p><p>My work involved introducing yet another step in this series of transformations so I decided to play with various ways of achieving the same thing to see if there was a better way of approaching the problem.</p><h2>Set the scene</h2>
+<blockquote><p>The following code is contrived for the purposes of this article. It may seem overly simple but I didn't want to bog down the examples with more than necessary.</p>
+</blockquote><p>So let's set the scene using a stripped down example.</p><p>First of all, we have a primary <code>Order</code> model. An order instance is created and persisted once the customer has completed the order and This has a number of optional properties that will be set as the order is processed through various states (new order, order completed, order paid etc.)</p>
+<pre class="highlight"><code class="scala"><span class="k">case</span> <span class="k">class</span> <span class="nc">Order</span><span class="o">(</span>
+    <span class="n">id</span><span class="k">:</span> <span class="kt">String</span><span class="o">,</span> 
+    <span class="n">paymentMethod</span><span class="k">:</span> <span class="kt">PaymentMethod</span><span class="o">,</span>
+    <span class="n">requisitionRequest</span><span class="k">:</span> <span class="kt">Option</span><span class="o">[</span><span class="kt">RequisitionRequest</span><span class="o">],</span> 
+    <span class="n">invoice</span><span class="k">:</span> <span class="kt">Option</span><span class="o">[</span><span class="kt">Invoice</span><span class="o">],</span>
+    <span class="n">paymentId</span><span class="k">:</span> <span class="kt">Option</span><span class="o">[</span><span class="kt">String</span><span class="o">],</span> 
+    <span class="n">fulfilled</span><span class="k">:</span> <span class="kt">Boolean</span><span class="o">,</span> 
+    <span class="n">processedTimestamp</span><span class="k">:</span> <span class="kt">Option</span><span class="o">[</span><span class="kt">Long</span><span class="o">])</span>
+</code></pre><p><code>PaymentMethod</code> is a trait that a number of case objects extend,</p>
+<pre class="highlight"><code class="scala"><span class="k">sealed</span> <span class="k">trait</span> <span class="nc">PaymentMethod</span>
+<span class="k">object</span> <span class="nc">PaymentMethods</span> <span class="o">{</span>
+  <span class="k">case</span> <span class="k">object</span> <span class="nc">Cash</span> <span class="k">extends</span> <span class="nc">PaymentMethod</span>
+  <span class="k">case</span> <span class="k">object</span> <span class="nc">CreditCard</span> <span class="k">extends</span> <span class="nc">PaymentMethod</span>
+<span class="o">}</span>
+</code></pre><p><code>RequisitionRequest</code> and <code>Invoice</code> are empty case classes that act as stubs. Their content isn't really important for these examples.</p><p>In our example we have a core function that will process an order after payment has been completed.</p>
+<pre class="highlight"><code class="scala"><span class="k">def</span> <span class="n">processOrderPostPayment</span><span class="o">(</span><span class="n">order</span><span class="k">:</span> <span class="kt">Order</span><span class="o">)</span><span class="k">:</span> <span class="kt">Order</span> <span class="o">=</span> <span class="o">{</span>
+	<span class="o">???</span>
+<span class="o">}</span>
+</code></pre><p>This function should perform a number of things</p>
+<ol>
+  <li>It should submit the order to the stock room and update the order with a <code>requisitionRequest</code></li>
+  <li>If the order is paid by cash it should generate a new invoice and add this to the order (customer has not yet actually paid but agreed to pay)</li>
+  <li>If the order is paid by anything other than cash then it should retrieve the payment ID from the payment system and update the order</li>
+  <li>Once these things have completed it should mark the order as fulfilled, and finally,</li>
+  <li>It should update the order with the processed date.</li>
+</ol><p>We can set up some stub functions,</p>
+<pre class="highlight"><code class="scala"><span class="k">def</span> <span class="n">submitToStockroom</span><span class="o">(</span><span class="n">order</span><span class="k">:</span> <span class="kt">Order</span><span class="o">)</span><span class="k">:</span> <span class="kt">Order</span> <span class="o">=</span> <span class="o">{</span>
+  <span class="n">order</span><span class="o">.</span><span class="n">copy</span><span class="o">(</span><span class="n">requisitionRequest</span> <span class="k">=</span> <span class="nc">Some</span><span class="o">(</span><span class="nc">RequisitionRequest</span><span class="o">()))</span>
+<span class="o">}</span>
+
+<span class="k">def</span> <span class="n">generateInvoice</span><span class="o">(</span><span class="n">order</span><span class="k">:</span> <span class="kt">Order</span><span class="o">)</span><span class="k">:</span> <span class="kt">Order</span> <span class="o">=</span> <span class="o">{</span>
+  <span class="n">order</span><span class="o">.</span><span class="n">copy</span><span class="o">(</span><span class="n">invoice</span> <span class="k">=</span> <span class="nc">Some</span><span class="o">(</span><span class="nc">Invoice</span><span class="o">()))</span>
+<span class="o">}</span>
+
+<span class="k">def</span> <span class="n">retrievePaymentNotification</span><span class="o">(</span><span class="n">order</span><span class="k">:</span> <span class="kt">Order</span><span class="o">)</span><span class="k">:</span> <span class="kt">Order</span> <span class="o">=</span> <span class="o">{</span>
+  <span class="n">order</span><span class="o">.</span><span class="n">copy</span><span class="o">(</span><span class="n">paymentId</span> <span class="k">=</span> <span class="nc">Some</span><span class="o">(</span><span class="s">"payment"</span><span class="o">))</span>
+<span class="o">}</span>
+
+<span class="k">def</span> <span class="n">markOrderProcessed</span><span class="o">(</span><span class="n">order</span><span class="k">:</span> <span class="kt">Order</span><span class="o">)</span><span class="k">:</span> <span class="kt">Order</span> <span class="o">=</span> <span class="o">{</span>
+  <span class="n">order</span><span class="o">.</span><span class="n">copy</span><span class="o">(</span><span class="n">processedTimestamp</span> <span class="k">=</span> <span class="nc">Some</span><span class="o">(</span><span class="mi">1451468923165L</span><span class="o">))</span>
+<span class="o">}</span>
+</code></pre><p>Let's assume that we are adding the additional functionality of updating the <code>processedTimestamp</code> as this was, for some reason, not being done before.</p><h2>The current solution</h2><p>The existing solution looked a bit like this,</p>
+<pre class="highlight"><code class="scala"><span class="k">def</span> <span class="n">processOrderPostPayment</span><span class="o">(</span><span class="n">order</span><span class="k">:</span> <span class="kt">Order</span><span class="o">)</span><span class="k">:</span> <span class="kt">Order</span> <span class="o">=</span> <span class="o">{</span>
+  <span class="k">val</span> <span class="n">submittedOrder</span> <span class="k">=</span> <span class="n">submitToStockroom</span><span class="o">(</span><span class="n">order</span><span class="o">)</span>
+
+  <span class="k">val</span> <span class="n">updatedOrder</span> <span class="k">=</span> <span class="n">submittedOrder</span> <span class="k">match</span> <span class="o">{</span>
+    <span class="k">case</span> <span class="n">o</span><span class="nd">@Order</span><span class="o">(</span><span class="k">_</span><span class="o">,</span><span class="nc">PaymentMethods</span><span class="o">.</span><span class="nc">Cash</span><span class="o">,</span><span class="k">_</span><span class="o">,</span><span class="k">_</span><span class="o">,</span><span class="k">_</span><span class="o">,</span><span class="k">_</span><span class="o">,</span><span class="k">_</span><span class="o">)</span> <span class="k">=&gt;</span>
+      <span class="n">generateInvoice</span><span class="o">(</span><span class="n">o</span><span class="o">)</span>
+    <span class="k">case</span> <span class="n">o</span> <span class="k">=&gt;</span>
+      <span class="n">retrievePaymentNotification</span><span class="o">(</span><span class="n">o</span><span class="o">)</span>
+  <span class="o">}</span>
+
+  <span class="n">updatedOrder</span><span class="o">.</span><span class="n">copy</span><span class="o">(</span><span class="n">fulfilled</span> <span class="k">=</span> <span class="kc">true</span><span class="o">)</span>
+<span class="o">}</span>
+</code></pre><p>After a first pass of adding the new functionality of adding the processed timestamp it looked like this,</p>
+<pre class="highlight"><code class="scala"><span class="k">def</span> <span class="n">processOrderPostPayment</span><span class="o">(</span><span class="n">order</span><span class="k">:</span> <span class="kt">Order</span><span class="o">)</span><span class="k">:</span> <span class="kt">Order</span> <span class="o">=</span> <span class="o">{</span>
+  <span class="k">val</span> <span class="n">submittedOrder</span> <span class="k">=</span> <span class="n">submitToStockroom</span><span class="o">(</span><span class="n">order</span><span class="o">)</span>
+
+  <span class="k">val</span> <span class="n">updatedOrder</span> <span class="k">=</span> <span class="n">submittedOrder</span> <span class="k">match</span> <span class="o">{</span>
+    <span class="k">case</span> <span class="n">o</span><span class="nd">@Order</span><span class="o">(</span><span class="k">_</span><span class="o">,</span><span class="nc">PaymentMethods</span><span class="o">.</span><span class="nc">Cash</span><span class="o">,</span><span class="k">_</span><span class="o">,</span><span class="k">_</span><span class="o">,</span><span class="k">_</span><span class="o">,</span><span class="k">_</span><span class="o">,</span><span class="k">_</span><span class="o">)</span> <span class="k">=&gt;</span> 
+      <span class="n">generateInvoice</span><span class="o">(</span><span class="n">o</span><span class="o">)</span>
+    <span class="k">case</span> <span class="n">o</span> <span class="k">=&gt;</span> 
+      <span class="n">retrievePaymentNotification</span><span class="o">(</span><span class="n">o</span><span class="o">)</span>
+  <span class="o">}</span>
+
+  <span class="k">val</span> <span class="n">fulfilledOrder</span> <span class="k">=</span> <span class="n">updatedOrder</span><span class="o">.</span><span class="n">copy</span><span class="o">(</span><span class="n">fulfilled</span> <span class="k">=</span> <span class="kc">true</span><span class="o">)</span>
+
+  <span class="n">markOrderProcessed</span><span class="o">(</span><span class="n">fulfilledOrder</span><span class="o">)</span>
+<span class="o">}</span>
+</code></pre><p>My first pass was to follow a similar pattern of assigning an updated version of the order to a <code>val</code> and subsequently pass that to the new <code>markOrderProcessed</code> function.</p>
+<blockquote><p>I think it's worth pointing out again that, yes, there are ways to make even this style a bit terser but instead focus on the overall style rather than the specifics of this example</p>
+</blockquote><p>There are a few things that bugged me about this approach. While it was consistent and rather easy to update it did cause some issues.</p>
+<ul>
+  <li>The actual code was more complex and it took some understanding where to place the actual code. Subsequent changes would further increase this complexity.</li>
+  <li>Coming up with a meaningful name for the new value was frustrating and I simply refuse to just append a number to a values name.</li>
+  <li>I introduced a bug because at one point I referenced the wrong transient value.</li>
+</ul><p>Beside the bug that, thankfully, a unit test flagged up none of this is exactly show stopping but I was curious if we could improve this function.</p>
+<blockquote><p>One more caveat. These examples are not necessarily <strong>better</strong>. This is not an article about gradual refactoring to a better solution. Each example is an alternative way of expressing the same problem and each example has its flaws. Consistency of approach across code is a godsend when trying to dive into legacy code.</p>
+</blockquote><h2>Why not just use a <code>var</code>?</h2><p>Instead of using new <code>val</code> declarations for each step of the transformation why not use a <code>var</code>? </p>
+<pre class="highlight"><code class="scala"><span class="k">def</span> <span class="n">processOrderPostPayment</span><span class="o">(</span><span class="n">order</span><span class="k">:</span> <span class="kt">Order</span><span class="o">)</span><span class="k">:</span> <span class="kt">Order</span> <span class="o">=</span> <span class="o">{</span>
+  <span class="k">var</span> <span class="n">updatedOrder</span> <span class="k">=</span> <span class="n">submitToStockroom</span><span class="o">(</span><span class="n">order</span><span class="o">)</span>
+
+  <span class="n">updatedOrder</span> <span class="k">=</span> <span class="n">updatedOrder</span> <span class="k">match</span> <span class="o">{</span>
+    <span class="k">case</span> <span class="n">o</span><span class="nd">@Order</span><span class="o">(</span><span class="k">_</span><span class="o">,</span><span class="nc">PaymentMethods</span><span class="o">.</span><span class="nc">Cash</span><span class="o">,</span><span class="k">_</span><span class="o">,</span><span class="k">_</span><span class="o">,</span><span class="k">_</span><span class="o">,</span><span class="k">_</span><span class="o">,</span><span class="k">_</span><span class="o">)</span> <span class="k">=&gt;</span>
+      <span class="n">generateInvoice</span><span class="o">(</span><span class="n">o</span><span class="o">)</span>
+    <span class="k">case</span> <span class="k">_</span> <span class="k">=&gt;</span>
+      <span class="n">retrievePaymentNotification</span><span class="o">(</span><span class="n">updatedOrder</span><span class="o">)</span>
+  <span class="o">}</span>
+
+  <span class="n">updatedOrder</span> <span class="k">=</span> <span class="n">updatedOrder</span><span class="o">.</span><span class="n">copy</span><span class="o">(</span><span class="n">fulfilled</span> <span class="k">=</span> <span class="kc">true</span><span class="o">)</span>
+
+  <span class="n">markOrderProcessed</span><span class="o">(</span><span class="n">updatedOrder</span><span class="o">)</span>
+<span class="o">}</span>
+</code></pre><p>I've interacted, both directly and indirectly, with many people that think having even a single <code>var</code> in your code base is an affront to the Scala gods but more times than not this appears to be down to lack of rationale thinking. Yes, we've created mutable state but we are still dealing with immutable object and any mutation is confined to this single function - local mutable state can be acceptable. </p><p>What this approach does is reduce the number of variable/values used to two</p>
+<ol>
+  <li>The <code>order</code> that was passed in, and,</li>
+  <li>The <code>updatedOrder</code> that we create and assign to multiple times</li>
+</ol><p>This tactic reduces the chances of using the wrong value in a function call compared to creating multiple values in the previous approach.</p><h2>Why do we even need the <code>var</code>?</h2><p>So if reducing the amount of variables/values we create appears to have a positive effect - why not simply <strong>never</strong> create one in this function?</p>
+<pre class="highlight"><code class="scala"><span class="k">def</span> <span class="n">processOrderPostPayment</span><span class="o">(</span><span class="n">order</span><span class="k">:</span> <span class="kt">Order</span><span class="o">)</span><span class="k">:</span> <span class="kt">Order</span> <span class="o">=</span> <span class="o">{</span>
+  <span class="n">markOrderProcessed</span><span class="o">((</span><span class="k">if</span><span class="o">(</span><span class="n">order</span><span class="o">.</span><span class="n">paymentMethod</span> <span class="o">==</span> <span class="nc">PaymentMethods</span><span class="o">.</span><span class="nc">Cash</span><span class="o">)</span> <span class="n">generateInvoice</span> <span class="k">_</span> <span class="k">else</span> <span class="n">retrievePaymentNotification</span> <span class="k">_</span><span class="o">)(</span><span class="n">submitToStockroom</span><span class="o">(</span><span class="n">order</span><span class="o">)).</span><span class="n">copy</span><span class="o">(</span><span class="n">fulfilled</span> <span class="k">=</span> <span class="kc">true</span><span class="o">))</span>
+<span class="o">}</span>
+</code></pre><p>Yikes! So lets break this down. Based on the <code>paymentMethod</code> we are creating a partial function based on either <code>generateInvoice</code> or <code>retrievePaymentNotification</code>. From here we are passing in the result of <code>submitToStockroom(order)</code>, updating the object using the copy constructor to mark it fulfilled and finally marking the order as processed via <code>markOrderProcessed</code>.</p><p>If I had to deconstruct this as someone else's code I'd probably need to take the rest of the day off to recover. Please never do this.</p><p>Can we improve this approach though?</p>
+<pre class="highlight"><code class="scala"><span class="k">def</span> <span class="n">processOrderPostPayment</span><span class="o">(</span><span class="n">order</span><span class="k">:</span> <span class="kt">Order</span><span class="o">)</span><span class="k">:</span> <span class="kt">Order</span> <span class="o">=</span> <span class="o">{</span>
+  <span class="n">markOrderProcessed</span><span class="o">((</span><span class="n">submitToStockroom</span><span class="o">(</span><span class="n">order</span><span class="o">)</span> <span class="k">match</span> <span class="o">{</span>
+    <span class="k">case</span> <span class="n">o</span><span class="nd">@Order</span><span class="o">(</span><span class="k">_</span><span class="o">,</span><span class="nc">PaymentMethods</span><span class="o">.</span><span class="nc">Cash</span><span class="o">,</span><span class="k">_</span><span class="o">,</span><span class="k">_</span><span class="o">,</span><span class="k">_</span><span class="o">,</span><span class="k">_</span><span class="o">,</span><span class="k">_</span><span class="o">)</span> <span class="k">=&gt;</span>
+      <span class="n">generateInvoice</span><span class="o">(</span><span class="n">o</span><span class="o">)</span>
+    <span class="k">case</span> <span class="n">o</span> <span class="k">=&gt;</span>
+      <span class="n">retrievePaymentNotification</span><span class="o">(</span><span class="n">o</span><span class="o">)</span>
+  <span class="o">}).</span><span class="n">copy</span><span class="o">(</span><span class="n">fulfilled</span> <span class="k">=</span> <span class="kc">true</span><span class="o">))</span>
+<span class="o">}</span>
+</code></pre><p>Here we have dropped the currying of functions in favour of simply nesting invocations using a <code>match</code>. Is it any better? Maybe. I think it's a <strong>tiny bit</strong> easier to decipher but it is still a big ball of tangled code. The order of execution doesn't flow from top to bottom but instead from inside out, kind of. This makes it very hard to derive execution order and so updating this code, especially when order is important, would be a massive pain.</p><h2>Improving the flow</h2><p>I've written a fair bit of Clojure over the last 2 years and one of the feature I really like about it is the <a href="https://clojuredocs.org/clojure.core/-%3E">threading macro</a>. It's a tiny bit of syntactic sugar that would let you unroll calls like this,</p>
+<pre class="highlight"><code class="scala"><span class="c1">// BTW this is not clojure it's scala-ish pseudocode</span>
+<span class="n">head</span><span class="o">(</span><span class="n">split</span><span class="o">(</span><span class="n">replace</span><span class="o">(</span><span class="n">toUppercase</span><span class="o">(</span><span class="s">"abcd"</span><span class="o">),</span> <span class="s">"A"</span><span class="o">,</span> <span class="s">"X"</span><span class="o">),</span> <span class="s">""</span><span class="o">))</span>
+</code></pre><p>Into something like this,</p>
+<pre class="highlight"><code class="scala"><span class="c1">// again this is scala-ish pseudocode</span>
+<span class="n">thread</span><span class="o">(</span><span class="s">"abcd"</span><span class="o">,</span> <span class="n">toUppercase</span><span class="o">,</span> <span class="n">replace</span><span class="o">(</span><span class="k">_</span><span class="o">,</span><span class="s">"A"</span><span class="o">,</span><span class="s">"X"</span><span class="o">),</span> <span class="n">split</span><span class="o">(</span><span class="k">_</span><span class="o">,</span><span class="s">""</span><span class="o">),</span> <span class="n">head</span><span class="o">)</span> 
+</code></pre><p>This more clearly defines the order of execution to the reader.</p>
+<ul>
+  <li>Starting with the string <code>"abcd"</code></li>
+  <li>Make the string uppercase</li>
+  <li>Replace "A" with "X"</li>
+  <li>Split by character</li>
+  <li>Get the first character</li>
+</ul><p>With the first approach you are forced to work from inside out to understand what is happening and in what order.</p><p>Scala doesn't have a standard threading operator or macro but it does have some ways to accomplish something similar.</p><h2>Using <code>Option</code> as a pipeline</h2><p>You can think of an <code>Option</code> as a list of zero or one items that you can apply operations on. So if we make a <code>Some(Order)</code> based on the order passed into the function we can apply operations on the contained order in a way that mimics the thread operator.</p>
+<pre class="highlight"><code class="scala"><span class="k">def</span> <span class="n">processOrderPostPayment</span><span class="o">(</span><span class="n">order</span><span class="k">:</span> <span class="kt">Order</span><span class="o">)</span><span class="k">:</span> <span class="kt">Order</span> <span class="o">=</span> <span class="o">{</span>
+  <span class="nc">Some</span><span class="o">(</span><span class="n">order</span><span class="o">)</span>
+    <span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="n">submitToStockroom</span><span class="o">)</span>
+    <span class="o">.</span><span class="n">collect</span> <span class="o">{</span>
+      <span class="k">case</span> <span class="n">o</span><span class="nd">@Order</span><span class="o">(</span><span class="k">_</span><span class="o">,</span><span class="nc">PaymentMethods</span><span class="o">.</span><span class="nc">Cash</span><span class="o">,</span><span class="k">_</span><span class="o">,</span><span class="k">_</span><span class="o">,</span><span class="k">_</span><span class="o">,</span><span class="k">_</span><span class="o">,</span><span class="k">_</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="n">generateInvoice</span><span class="o">(</span><span class="n">o</span><span class="o">)</span>
+      <span class="k">case</span> <span class="n">o</span> <span class="k">=&gt;</span> <span class="n">retrievePaymentNotification</span><span class="o">(</span><span class="n">o</span><span class="o">)</span>
+    <span class="o">}</span>
+    <span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="k">_</span><span class="o">.</span><span class="n">copy</span><span class="o">(</span><span class="n">fulfilled</span> <span class="k">=</span> <span class="kc">true</span><span class="o">))</span>
+    <span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="n">markOrderProcessed</span><span class="o">)</span>
+    <span class="o">.</span><span class="n">get</span>
+<span class="o">}</span>
+</code></pre><p>Here we are using the power of <code>map</code> and <code>collect</code> to transform the original order through a series of steps without having to create intermediate variables or values. Finally we call <code>get</code> to unwrap the Order again. This approach only really works if we are always at least accepting and returning an <code>Order</code>.</p><h2>Compose a pipeline</h2><p>Using <code>Some</code> is alright I guess but for this type of problem Scala does have something we can use to create a pipeline - functional composition.</p>
+<pre class="highlight"><code class="scala"><span class="k">def</span> <span class="n">processOrderPostPayment</span><span class="o">(</span><span class="n">order</span><span class="k">:</span> <span class="kt">Order</span><span class="o">)</span><span class="k">:</span> <span class="kt">Order</span> <span class="o">=</span>
+  <span class="o">(</span><span class="n">submitToStockroom</span> <span class="k">_</span><span class="o">)</span>
+    <span class="o">.</span><span class="n">andThen</span><span class="o">(</span><span class="k">if</span> <span class="o">(</span><span class="n">order</span><span class="o">.</span><span class="n">paymentMethod</span> <span class="o">==</span> <span class="nc">PaymentMethods</span><span class="o">.</span><span class="nc">Cash</span><span class="o">)</span> <span class="n">generateInvoice</span> <span class="k">else</span> <span class="n">retrievePaymentNotification</span><span class="o">)</span>
+    <span class="o">.</span><span class="n">andThen</span><span class="o">(</span><span class="k">_</span><span class="o">.</span><span class="n">copy</span><span class="o">(</span><span class="n">fulfilled</span> <span class="k">=</span> <span class="kc">true</span><span class="o">))</span>
+    <span class="o">.</span><span class="n">andThen</span><span class="o">(</span><span class="n">markOrderProcessed</span><span class="o">)(</span><span class="n">order</span><span class="o">)</span>
+</code></pre><p>In this example we are currying or partially applying the <code>submitToStockroom</code> function which produces a new type <code>scala.Function1[Order, Order]</code> which is a function that accepts a single <code>Order</code> and returns an <code>Order</code>. This gives us access to the compositional functions of the <code>Function1</code> type - specifically <code>andThen</code> in our case. Using <code>andThen</code> we compose a single function that pipes its input and output through the series of functions in order. Finally we execute the function by invoking it with our input order <code>(order)</code>.</p><h2>So which is best?</h2><p>This was never about one approach being better than another. There are a few examples that are clearly not reasonable solutions and would in fact make everything worse but there is no clear winner. </p><p>As you can see there are many ways to skin a cat. Depending on the context one approach may yield code that is easier to understand and maintain.</p></div><a class="twitter" href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fyobriefca.se%2Fblog%2F2016%2F01%2F02%2Fan-example-of-refactoring-scala-code%2F&amp;text=An%20example%20of%20refactoring%20Scala%20code&amp;via=kouphax" itemprop="discussionUrl" target="_blank">Tweet This</a><div class="dater"><time datetime="02-01-2016" itemprop="datePublished">January 02, 2016</time></div><div class="categories">Published in <a href="/categories/scala/">Scala</a> on January 02, 2016</div></div></div><div class="homer"><a href="/"><i class="icon-briefcase" style="font-size:32px;"></i></a></div><script type="text/javascript">(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-19143623-5', 'yobriefca.se');
+  ga('send', 'pageview');</script></body></html>

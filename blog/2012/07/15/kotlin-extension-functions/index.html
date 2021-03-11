@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><meta content="IE=edge,chrome=1" http-equiv="X-UA-Compatible"><meta content="width=device-width, user-scalable=no" name="viewport"><meta content="Kotlin: Extension Functions" name="description"><link href="/favicon.ico" rel="shortcut icon" type="image/x-icon"><link href="https://fonts.googleapis.com/css?family=Merriweather:400,700|Open+Sans:400,700" rel="stylesheet" type="text/css"><link href="/bundles/84cd5d4454d9/styles.css" rel="stylesheet" /><title>Kotlin: Extension Functions</title></head><body><div class="row"><blockquote class="warning">This post is over 6 months old.  Some details,
+       especially technical, may have changed.</blockquote><div itemscope="" itemtype="http://schema.org/Article"><h1 itemprop="name">Kotlin: Extension Functions</h1><div class="post" itemprop="articleBody"><p>In any language (that supports the concept) extension functions are nothing more than syntactic sugar. Instead of writing,</p>
+<pre class="highlight"><code>StringUtils.encrypt(mystring, "salt")
+</code></pre><p>Extension functions allow you to write,</p>
+<pre class="highlight"><code>mystring.encrypt("salt")
+</code></pre><p>Once you start moving into the world of chaining things get much cleaner.</p>
+<pre class="highlight"><code>encrypted = StringUtils.encrypt(mystring, "salt")
+encoded = StringUtils.encode(encrypted, "UTF-8")
+</code></pre><p>or worse,</p>
+<pre class="highlight"><code>StringUtils.encode(StringUtils.encrypt(mystring, "salt"), "UTF-8")
+</code></pre><p>I've seen this done a few times, it happens. But with sugary sweet extension functions (Extension Methods in C#, Implicit Conversions in Scala) you could just do this,</p>
+<pre class="highlight"><code>mystring.encrypt("salt").encode("UTF-8")
+</code></pre><p>Much nicer.</p><p>Kotlin, unlike crusty old Java, supports extension functions. Here is how you'd implement the methods above</p>
+<pre class="highlight"><code class="java"><span class="n">fun</span> <span class="n">String</span><span class="o">.</span><span class="na">encrypt</span><span class="o">(</span><span class="nl">salt:</span> <span class="n">String</span><span class="o">):</span> <span class="n">String</span> <span class="o">{</span>
+   <span class="k">return</span> <span class="nf">StringBuffer</span><span class="o">(</span><span class="k">this</span><span class="o">).</span><span class="na">append</span><span class="o">(</span><span class="n">salt</span><span class="o">)?.</span><span class="na">reverse</span><span class="o">().</span><span class="na">toString</span><span class="o">()</span>
+<span class="o">}</span>
+
+<span class="n">fun</span> <span class="n">String</span><span class="o">.</span><span class="na">encode</span><span class="o">(</span><span class="nl">encoding:</span> <span class="n">String</span><span class="o">)</span> <span class="o">:</span> <span class="n">ByteArray</span> <span class="o">{</span>
+    <span class="k">return</span> <span class="k">this</span><span class="o">.</span><span class="na">getBytes</span><span class="o">(</span><span class="n">encoding</span><span class="o">)</span>
+<span class="o">}</span>
+</code></pre><p>And we can use these, as you'd expect, like so,</p>
+<pre class="highlight"><code class="java"><span class="n">fun</span> <span class="nf">main</span><span class="o">(</span><span class="nl">args:</span> <span class="n">Array</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;)</span> <span class="o">{</span>
+    <span class="n">val</span> <span class="n">mystring</span> <span class="o">=</span> <span class="s">"james"</span>
+    <span class="n">val</span> <span class="n">encoded</span> <span class="o">=</span> <span class="n">mystring</span><span class="o">.</span><span class="na">encrypt</span><span class="o">(</span><span class="s">"salt"</span><span class="o">).</span><span class="na">encode</span><span class="o">(</span><span class="s">"UTF-8"</span><span class="o">)</span>
+<span class="o">}</span>
+</code></pre><p>So what identified those functions as Extension Functions? Simple - the prefixing of the method name with the type <code>String.encode</code>. No need to create implicit wrappers (Scala), no need to create loads of static classes (C#). And yes it's possible to use generics in these methods as well,</p>
+<pre class="highlight"><code class="java"><span class="n">fun</span> <span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span> <span class="n">T</span><span class="o">?.</span><span class="na">getOrElse</span><span class="o">(</span><span class="nl">t:</span> <span class="n">T</span><span class="o">)</span> <span class="o">:</span> <span class="n">T</span> <span class="o">{</span>
+    <span class="k">return</span> <span class="k">this</span> <span class="o">?:</span> <span class="n">t</span>
+<span class="o">}</span>
+</code></pre><p>This can be applied to any nullable type.</p><h2>Literal Extension Functions</h2><p>An interesting little feature that Kotlin has that makes it a bit different is the use of function literal extension functions. Basically where you can declare a function as a literal (a lambda method if you will) you can also make that literal an extension function,</p><p>So we could take our methods we wrote above and bring them right into our <code>main</code></p>
+<pre class="highlight"><code class="java"><span class="n">fun</span> <span class="nf">main</span><span class="o">(</span><span class="nl">args:</span> <span class="n">Array</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;)</span> <span class="o">{</span>
+    <span class="n">val</span> <span class="n">encrypt</span> <span class="o">=</span> <span class="o">{</span> <span class="n">String</span><span class="o">.(</span><span class="nl">salt:</span> <span class="n">String</span><span class="o">)</span> <span class="o">-&gt;</span> <span class="n">StringBuffer</span><span class="o">(</span><span class="k">this</span><span class="o">).</span><span class="na">append</span><span class="o">(</span><span class="n">salt</span><span class="o">)?.</span><span class="na">reverse</span><span class="o">().</span><span class="na">toString</span><span class="o">()}</span>
+    <span class="n">val</span> <span class="n">encode</span> <span class="o">=</span> <span class="o">{</span> <span class="n">String</span><span class="o">.(</span><span class="nl">encoding:</span> <span class="n">String</span><span class="o">)</span> <span class="o">-&gt;</span> <span class="k">this</span><span class="o">.</span><span class="na">getBytes</span><span class="o">(</span><span class="n">encoding</span><span class="o">)</span> <span class="o">}</span>
+    
+    <span class="n">val</span> <span class="n">mystring</span> <span class="o">=</span> <span class="s">"james"</span>
+    <span class="n">val</span> <span class="n">encoded</span> <span class="o">=</span> <span class="n">mystring</span><span class="o">.</span><span class="na">encrypt</span><span class="o">(</span><span class="s">"salt"</span><span class="o">).</span><span class="na">encode</span><span class="o">(</span><span class="s">"UTF-8"</span><span class="o">)</span>
+<span class="o">}</span>
+</code></pre><p>This may seem quite unnecessary at first glance but it become quite powerful when creating DSLs - as demonstrated in the docs around the <a href="http://confluence.jetbrains.net/display/Kotlin/Type-safe+Groovy-style+builders">Groovy Style Builders</a></p><p>So Kotlin has extension functions that don't require a load of boilerplate (C#) or rather odd implicit syntax (Scala) - cool, right?</p></div><a class="twitter" href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fyobriefca.se%2Fblog%2F2012%2F07%2F15%2Fkotlin-extension-functions%2F&amp;text=Kotlin%3A%20Extension%20Functions&amp;via=kouphax" itemprop="discussionUrl" target="_blank">Tweet This</a><div class="dater"><time datetime="15-07-2012" itemprop="datePublished">July 15, 2012</time></div><div class="categories">Published in <a href="/categories/kotlin/">Kotlin</a> on July 15, 2012</div></div></div><div class="homer"><a href="/"><i class="icon-briefcase" style="font-size:32px;"></i></a></div><script type="text/javascript">(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-19143623-5', 'yobriefca.se');
+  ga('send', 'pageview');</script></body></html>

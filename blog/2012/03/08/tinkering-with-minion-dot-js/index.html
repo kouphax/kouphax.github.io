@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><meta content="IE=edge,chrome=1" http-equiv="X-UA-Compatible"><meta content="width=device-width, user-scalable=no" name="viewport"><meta content="Tinkering with minion.js" name="description"><link href="/favicon.ico" rel="shortcut icon" type="image/x-icon"><link href="https://fonts.googleapis.com/css?family=Merriweather:400,700|Open+Sans:400,700" rel="stylesheet" type="text/css"><link href="/bundles/84cd5d4454d9/styles.css" rel="stylesheet" /><title>Tinkering with minion.js</title></head><body><div class="row"><blockquote class="warning">This post is over 6 months old.  Some details,
+       especially technical, may have changed.</blockquote><div itemscope="" itemtype="http://schema.org/Article"><h1 itemprop="name">Tinkering with minion.js</h1><div class="post" itemprop="articleBody"><p>Yay a technical post... </p><p><a href="https://github.com/gigafied/minion">minion.js</a> is a micro framework providing classical inheritance strategy for JavaScript plus many other goodies. It can be used in both browsers and <a href="http://nodejs.org">node.js</a>. Now I don't want to get caught up in any of this classical inheritance for JavaScript is an anti-pattern stuff so just take this framework for what it is - a decent way to define both client and server side models for you JavaScripts!</p><p>I've already said it has a host of goodies that can be useful for creating a nice flexible set of models and associated helpers. This includes,</p>
+<ul>
+  <li>Class and inheritance support</li>
+  <li>Modularity</li>
+  <li>A cross model pub/sub mechanism</li>
+  <li>Statics, Singletons, static methods and properties</li>
+  <li>Dependency management</li>
+  <li>Some other stuff I've yet to touch upon...</li>
+</ul><p>The code will more or less speak for itself here so lets dive in (the full suite of tests and sample node.js/express implementation can be found on my <a href="https://github.com/kouphax/minion-tinkering">GitHub thingy</a>).</p><h2>Classes</h2><p>One of the first things I did was try out the whole inheritence thing. I create a Fruit base class and provided a Strawberry implementation on top of it.</p>
+<pre class="highlight"><code class="javascript "><span class="nx">minion</span><span class="p">.</span><span class="nx">define</span><span class="p">(</span><span class="s2">"fruit"</span><span class="p">,</span> <span class="p">{</span>
+  <span class="nx">Fruit</span><span class="o">:</span> <span class="nx">minion</span><span class="p">.</span><span class="nx">extend</span><span class="p">(</span><span class="s2">"minion.Class"</span><span class="p">,</span> <span class="p">{</span>
+
+    <span class="nx">isInSeason</span><span class="o">:</span> <span class="kd">function</span><span class="p">(){</span>
+      <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">inSeason</span><span class="p">;</span>
+    <span class="p">}</span>
+  <span class="p">})</span>
+<span class="p">});</span>
+</code></pre>
+<pre class="highlight"><code class="javascript "><span class="nx">minion</span><span class="p">.</span><span class="nx">define</span><span class="p">(</span><span class="s2">"fruit"</span><span class="p">,</span> <span class="p">{</span>
+  <span class="nx">Strawberry</span><span class="o">:</span> <span class="nx">minion</span><span class="p">.</span><span class="nx">extend</span><span class="p">(</span><span class="s2">"fruit.Fruit"</span><span class="p">,</span> <span class="p">{</span>
+    <span class="nx">inSeason</span><span class="o">:</span> <span class="kc">true</span>
+  <span class="p">})</span>
+<span class="p">});</span>
+</code></pre><p>Using the Strawberry class is pretty damn simple. First thing you need to do is a one off simple configuration of minion,</p>
+<pre class="highlight"><code class="javascript "><span class="nx">minion</span><span class="p">.</span><span class="nx">configure</span><span class="p">({</span>
+  <span class="nx">classPath</span> <span class="o">:</span> <span class="s2">"js"</span>
+<span class="p">});</span>
+</code></pre><p>This just tells minions dependency manager where to start looking for your class implementations. We can then start using the Strawberry class easily using minions <code>require</code> method</p>
+<pre class="highlight"><code class="javascript "><span class="nx">minion</span><span class="p">.</span><span class="nx">require</span><span class="p">(</span><span class="s2">"fruit.Strawberry"</span><span class="p">,</span> <span class="kd">function</span><span class="p">(</span><span class="nx">Strawberry</span><span class="p">){</span>
+  <span class="nx">expect</span><span class="p">(</span><span class="nx">Strawberry</span><span class="p">).</span><span class="nx">to</span><span class="p">.</span><span class="nx">not</span><span class="p">.</span><span class="nx">be</span><span class="p">(</span><span class="kc">null</span><span class="p">);</span>
+<span class="p">});</span>
+</code></pre><h2>Static Objects</h2><p>Static objects are pre-initialised Singletons in minion.js and that makes a lot of sense. I created a Grocer static by simply extending another minion type <code>Static</code>.</p>
+<pre class="highlight"><code class="javascript "><span class="nx">minion</span><span class="p">.</span><span class="nx">define</span><span class="p">(</span><span class="s2">"fruit"</span><span class="p">,</span> <span class="p">{</span>
+  <span class="nx">Grocer</span><span class="o">:</span> <span class="nx">minion</span><span class="p">.</span><span class="nx">extend</span><span class="p">(</span><span class="s2">"minion.Static"</span><span class="p">,</span> <span class="p">{</span>
+
+    <span class="nx">init</span><span class="o">:</span> <span class="kd">function</span><span class="p">(){</span>
+      <span class="k">this</span><span class="p">.</span><span class="nx">stock</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+      <span class="k">this</span><span class="p">.</span><span class="nx">subscribe</span><span class="p">(</span><span class="s2">"purchase"</span><span class="p">,</span> <span class="k">this</span><span class="p">.</span><span class="nx">buy</span><span class="p">);</span>
+    <span class="p">},</span>
+
+    <span class="nx">sell</span><span class="o">:</span> <span class="kd">function</span><span class="p">(){</span>
+      <span class="k">this</span><span class="p">.</span><span class="nx">stock</span><span class="o">--</span>
+    <span class="p">},</span>
+
+    <span class="nx">buy</span><span class="o">:</span> <span class="kd">function</span><span class="p">(){</span>
+      <span class="k">this</span><span class="p">.</span><span class="nx">stock</span><span class="o">++</span>
+    <span class="p">},</span>
+
+    <span class="nx">checkLevels</span><span class="o">:</span> <span class="kd">function</span><span class="p">(){</span>
+      <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">stock</span><span class="p">;</span>
+    <span class="p">}</span>
+  <span class="p">})</span>
+<span class="p">});</span>
+</code></pre><p>Pretty unsuprising but minion will new up a shared instance of this class the first time it is called. You'll see a little hint of the pub/sub mechanism in the <code>init</code> method as well so lets jump on that.</p><h2>Pub/Sub</h2><p>So minion has a nice little pub/sub mechanism built right into the classes as well. So lets say a customer buys stuff from the grocer by publishing his/her request - sure beats just taking it without asking!!!</p>
+<pre class="highlight"><code class="javascript "><span class="nx">minion</span><span class="p">.</span><span class="nx">define</span><span class="p">(</span><span class="s2">"fruit"</span><span class="p">,</span> <span class="p">{</span>
+  <span class="nx">Customer</span><span class="o">:</span> <span class="nx">minion</span><span class="p">.</span><span class="nx">extend</span><span class="p">(</span><span class="s2">"minion.Class"</span><span class="p">,</span> <span class="p">{</span>
+    <span class="nx">buy</span><span class="o">:</span> <span class="kd">function</span><span class="p">(){</span>
+      <span class="k">this</span><span class="p">.</span><span class="nx">publish</span><span class="p">(</span><span class="s2">"purchase"</span><span class="p">)</span>
+    <span class="p">}</span>
+  <span class="p">})</span>
+<span class="p">});</span>
+</code></pre><p>Minion once again handles all the internal wiring up of this stuff and it just works. Nice.</p><h2>The Rest</h2><p>There is more to minion.js, I've just given you a very high level view but you should dive a bit deeper by looking at the <a href="https://github.com/gigafied/minion/blob/master/docs/getting_started.md">official docs</a>. There is a few bits of handy sugar sprinkled on the minion types (proxy, scoped setTimeout and setInterval). The pub/sub also goes a bit further provinding <code>Notifications</code> that allow a sort of async callback/response mechanism which can be handy.</p><p>Now I've never been a fan of these sorts of Class frameworks - I've never really seen the need but I must admit minion appeared at about the right time. I've been playing with a nice way of structuring <a href="http://mongoosejs.com">mongoose</a> Schemas/Classes and I think minion here might be a nice fit.</p><p>Anyway check it out. Yay a technical blog with more to come!</p><p><a href="https://github.com/gigafied/minion">minion.js</a></p><p><a href="https://github.com/kouphax/minion-tinkering">Sample Code</a></p></div><a class="twitter" href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fyobriefca.se%2Fblog%2F2012%2F03%2F08%2Ftinkering-with-minion-dot-js%2F&amp;text=Tinkering%20with%20minion.js&amp;via=kouphax" itemprop="discussionUrl" target="_blank">Tweet This</a><div class="dater"><time datetime="08-03-2012" itemprop="datePublished">March 08, 2012</time></div><div class="categories">Published in <a href="/categories/javascript/">JavaScript</a> on March 08, 2012</div></div></div><div class="homer"><a href="/"><i class="icon-briefcase" style="font-size:32px;"></i></a></div><script type="text/javascript">(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-19143623-5', 'yobriefca.se');
+  ga('send', 'pageview');</script></body></html>

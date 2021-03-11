@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?><feed xmlns="http://www.w3.org/2005/Atom"><id>urn:yobriefca-se:feed:vagrant</id><updated>Wed May 20 00:00:00 UTC 2015</updated><title type="text">Yo! Briefcase: vagrant</title><link rel="self" href="https://yobriefca.se/feed/vagrant.xml"></link><entry><title>Provisioning Postgres via Vagrant and Ansible</title><updated>Wed May 20 00:00:00 UTC 2015</updated><author><name>James Hughes</name></author><link href="https://yobriefca.se/blog/2015/05/20/provisioning-postgres-via-vagrant-and-ansible/"></link><id>urn:yobriefca-se:feed:post:Provisioning Postgres via Vagrant and Ansible</id><content type="html">&lt;p&gt;This article covers a simple workflow for setting up a &lt;a href="http://vagrantup.com"&gt;Vagrant&lt;/a&gt; instance running &lt;a href="http://postgresql.org"&gt;Postgres&lt;/a&gt; provisioned by &lt;a href="http://ansible.com"&gt;Ansible&lt;/a&gt;. The first time I did this I found that most articles didn't cover everything and I had to look around to solve a few minor issues.&lt;/p&gt;
+&lt;blockquote&gt;&lt;p&gt;It's worth noting that I can avoid all this and use Nic Ferriers very useful &lt;a href="http://www.pgdevbox.com/"&gt;Postgres Dev Box&lt;/a&gt;. This work may be unnecessary but it's still fun - &lt;strong&gt;Funecessary&lt;/strong&gt;&lt;/p&gt;
+&lt;/blockquote&gt;&lt;p&gt;I'm going to make an assumption that you know what both Vagrant and Ansible are and you understand the basic premise of how they work. I'll also assume that you have ansible installed on the host machine (Ansible is purely SSH and doesn't need agents installed on target machines).&lt;/p&gt;&lt;h2&gt;Vagrantfile&lt;/h2&gt;&lt;p&gt;We start with the &lt;code&gt;Vagrantfile&lt;/code&gt;. This is the file that tells Vagrant what VM base box to use (Ubuntu Precise 32), what ports should be forwarded to the host (5432 - the default Postgres port) and what provider should be used to provision the VM once it has been brought up (Ansible).&lt;/p&gt;&lt;p&gt;If you already have a local instance of Postgres running you'll want to shut it down or you'll get port collisions and Vagrant will complain.&lt;/p&gt;
+&lt;pre class="highlight"&gt;&lt;code class="ruby"&gt;&lt;span class="no"&gt;Vagrant&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;configure&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;"2"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="k"&gt;do&lt;/span&gt; &lt;span class="o"&gt;|&lt;/span&gt;&lt;span class="n"&gt;config&lt;/span&gt;&lt;span class="o"&gt;|&lt;/span&gt;
+    &lt;span class="n"&gt;config&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;vm&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;box&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;"precise32"&lt;/span&gt;
+    &lt;span class="n"&gt;config&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;vm&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;box_url&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;"http://files.vagrantup.com/precise32.box"&lt;/span&gt;
+
+    &lt;span class="n"&gt;config&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;vm&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;network&lt;/span&gt; &lt;span class="s2"&gt;"forwarded_port"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="ss"&gt;guest&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="mi"&gt;5432&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="ss"&gt;host&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="mi"&gt;5432&lt;/span&gt;
+
+    &lt;span class="n"&gt;config&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;vm&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;provision&lt;/span&gt; &lt;span class="s2"&gt;"ansible"&lt;/span&gt; &lt;span class="k"&gt;do&lt;/span&gt; &lt;span class="o"&gt;|&lt;/span&gt;&lt;span class="n"&gt;ansible&lt;/span&gt;&lt;span class="o"&gt;|&lt;/span&gt;
+        &lt;span class="n"&gt;ansible&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;playbook&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;"playbook.yml"&lt;/span&gt;
+    &lt;span class="k"&gt;end&lt;/span&gt;
+&lt;span class="k"&gt;end&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;h2&gt;playbook.yml&lt;/h2&gt;&lt;p&gt;Ansible provisioning in Vagrant accepts, at the minimum, a playbook to run and the provider takes care of ensuring that ansible is called correctly. Our Vagrantfile above is configured to point to &lt;code&gt;playbook.yml&lt;/code&gt; that sits alongside the &lt;code&gt;Vagrantfile&lt;/code&gt; so we need to create that.&lt;/p&gt;
+&lt;pre class="highlight"&gt;&lt;code&gt;- hosts: all
+  sudo: yes
+  gather_facts: no
+  tasks:
+    - name: add keyserver to apt
+      command: apt-key adv --keyserver hkp://p80.pool.sks-keyservers.net:80 --recv-keys B97B0AFCAA1A47F044F244A07FCC7D46ACCC4CF8
+    - name: add custom postgres repo to apt
+      lineinfile: dest=/etc/apt/sources.list.d/pgdg.list
+                  line="deb http://apt.postgresql.org/pub/repos/apt/ precise-pgdg main" state=present
+                  create=yes
+
+- hosts: all
+  sudo: yes
+  gather_facts: no
+  tasks:
+    - name: ensure apt cache is up to date
+      apt: update_cache=yes
+    - name: ensure packages are installed
+      apt: name={{item}}
+      with_items:
+          - python-software-properties
+          - software-properties-common
+          - libpq-dev
+          - python-psycopg2
+          - postgresql-9.4
+
+- hosts: all
+  sudo: yes
+  sudo_user: postgres
+  gather_facts: no
+
+  handlers:
+    - name: restart postgresql
+      service: name=postgresql state=restarted
+
+  tasks:
+    - name: postgresql should listen on all ports
+      lineinfile: dest=/etc/postgresql/9.4/main/postgresql.conf
+                  regexp="^listen_addresses"
+                  line="listen_addresses = '*'" state=present
+
+    - name: postgresql should allow access to host
+      copy:
+        dest: /etc/postgresql/9.4/main/pg_hba.conf
+        content: |
+          local   all   postgres   peer
+          local   all   all        peer
+          host    all   all        0.0.0.0/0   md5
+      notify: restart postgresql
+
+- hosts: all
+  sudo: yes
+  sudo_user: postgres
+  gather_facts: no
+
+  vars:
+    dbname: vagrant
+    dbuser: vagrant
+    dbpassword: vagrant
+
+  tasks:
+    - name: ensure database is created
+      postgresql_db: name={{dbname}}
+
+    - name: ensure user has access to database
+      postgresql_user: db={{dbname}} name={{dbuser}} password={{dbpassword}} priv=ALL
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;It probably best to tease apart what each part of this playbook does. I've broken the playbook out into four distinct sections that perform specific related tasks to make this easier to explain,&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;Add the Postgres apt repository to allow us to get the latest release of Postgres (&lt;code&gt;apt&lt;/code&gt; by default will install &lt;code&gt;9.1&lt;/code&gt; but I want &lt;code&gt;9.4&lt;/code&gt;&lt;/li&gt;
+  &lt;li&gt;Update the &lt;code&gt;apt&lt;/code&gt; cache and install the necessary packages (ultimately &lt;code&gt;postgresql-9.4&lt;/code&gt; but we need a few base packages as well.&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;By this point Postgres will be installed and a &lt;code&gt;postgres&lt;/code&gt; user created but if you try and connect to the instance from outside the VM it still wont work. We have some additional work to do. This is exactly what the next block does.&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;Update the &lt;code&gt;postgresql.conf&lt;/code&gt; file to allow Postgres to listen on all ports and update &lt;code&gt;pg_hba.conf&lt;/code&gt; to allow the host machine to connect to Postgres. &lt;em&gt;NB&lt;/em&gt; these rules are very lax, for a bit of local development work this is fine but it would be best to tighten these up for more serious work. The service should be restarted after both of these tasks.&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;So now we have the ability to connect to the database from the host machine we also want to set up a dedicated database and user.&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;Create a &lt;code&gt;vagrant&lt;/code&gt; database and create and associate a &lt;code&gt;vagrant&lt;/code&gt; user to this database.&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;If we save both files and run &lt;code&gt;vagrant up&lt;/code&gt; we will end up with a provisioned Vagrant box running Postgres that can be access from the host machine on port 5432.&lt;/p&gt;</content></entry></feed>
