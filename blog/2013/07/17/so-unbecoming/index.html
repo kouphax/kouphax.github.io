@@ -50,21 +50,21 @@
   <span class="n">when</span><span class="o">(</span><span class="nc">Idle</span><span class="o">)</span> <span class="o">{</span>
     <span class="k">case</span> <span class="nc">Event</span><span class="o">(</span><span class="nc">Go</span><span class="o">,</span> <span class="k">_</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="n">goto</span><span class="o">(</span><span class="nc">Downloading</span><span class="o">)</span>
   <span class="o">}</span>
- 
+
   <span class="n">when</span><span class="o">(</span><span class="nc">Downloading</span><span class="o">)</span> <span class="o">{</span>
     <span class="k">case</span> <span class="nc">Event</span><span class="o">(</span><span class="nc">Finish</span><span class="o">,</span> <span class="k">_</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="n">goto</span><span class="o">(</span><span class="nc">Idle</span><span class="o">)</span>
   <span class="o">}</span>
- 
+
   <span class="n">onTransition</span> <span class="o">{</span>
     <span class="k">case</span> <span class="nc">Idle</span> <span class="o">-&gt;</span> <span class="nc">Downloading</span> <span class="k">=&gt;</span> <span class="o">{</span>
       <span class="n">context</span><span class="o">.</span><span class="n">actorOf</span><span class="o">(</span><span class="nc">Props</span><span class="o">[</span><span class="kt">Downloader</span><span class="o">])</span> <span class="o">!</span> <span class="nc">Go</span>
     <span class="o">}</span>
   <span class="o">}</span>
- 
+
   <span class="n">initialize</span><span class="o">()</span>
 <span class="o">}</span>
 </code></pre><p>The code above tells us that we have 2 states <code>Idle</code> and <code>Downloading</code>. When we receive a <code>Go</code> event (a simple case object) in the Idle state we move into the <code>Downloading</code> state. When we receive a <code>Finish</code> event in the <code>Downloading</code> state we go back to <code>Idle</code>.</p><p>Finally, on the transition of <code>Idle</code> to <code>Downloading</code> we tell our downloader actor to do its thing.</p><p>When the download completes our actor can simply tell it <code>sender</code> it is finished</p>
-<pre class="highlight"><code class="scala"><span class="k">class</span> <span class="nc">Downloader</span> <span class="k">extends</span> <span class="nc">Actor</span> <span class="o">{</span> 
+<pre class="highlight"><code class="scala"><span class="k">class</span> <span class="nc">Downloader</span> <span class="k">extends</span> <span class="nc">Actor</span> <span class="o">{</span>
   <span class="k">def</span> <span class="n">receive</span> <span class="k">=</span> <span class="o">{</span>
     <span class="k">case</span> <span class="nc">Go</span> <span class="k">=&gt;</span> <span class="o">{</span>
       <span class="c1">// perform download</span>
@@ -79,7 +79,7 @@
 <span class="o">}</span>
 </code></pre><p>Now if the scheduler ticks while a download is active it just gets ignored (though you can optionally handle it in the <code>whenUnhandled</code> block of the FSM actor)</p><p>I'll come back this implementation near the end of the post.</p><h2>Become/Unbecome</h2><p>Do you find the FSM implmentation a bit wordy for something that only really has two states? There is a lot of extra stuff going compared to the boolean flag appraoch. Well actually actors are capable of being their own FSM without the need of the FSM trait.</p><p>Akkas Actors support a pattern of swapping out the actors message handler for another receiver via the <code>become</code>/<code>unbecome</code> methods. We can implement our download co-ordinator with alot les code like so.</p>
 <pre class="highlight"><code class="scala"><span class="k">class</span> <span class="nc">Downloader</span> <span class="k">extends</span> <span class="nc">Actor</span> <span class="o">{</span>
- 
+
   <span class="k">import</span> <span class="nn">context._</span>
 
   <span class="k">def</span> <span class="n">receive</span> <span class="k">=</span> <span class="o">{</span>
@@ -88,16 +88,10 @@
         <span class="k">case</span> <span class="k">_</span> <span class="k">=&gt;</span> <span class="c1">// do nothing</span>
       <span class="o">}</span>
   <span class="o">}</span>
- 
+
   <span class="k">def</span> <span class="n">download</span> <span class="k">=</span> <span class="n">future</span> <span class="o">{</span>
     <span class="c1">// perform download</span>
     <span class="n">unbecome</span>
   <span class="o">}</span>
 <span class="o">}</span>
-</code></pre><p>And thats it. This entire thing replaces both the co-ordinator actor and downloader actor. Our scheduler remains roughtly the same except we call this actor instead of our co-ordinator. </p><p>So whats happening? Well when we receive <strong>any</strong> message (for the first time for example) we call <code>download</code> which begins the download process. Then our actors <code>become</code>s something else - the thing it becomes is a cold, uncaring machine - doing nothing to any message it gets. When the download completes the <code>unbecome</code> puts the actor back into its initial (idle) state.</p><h2>Conclusion</h2><p>So what did I personally end up using? I went with the FSM approach. Why? Well I think, even with the basic nature of our needs, the FSM approach is actually more understandable. Comparing my two solutions (which may or may not be good practise, I'm new to Akka) I find the <code>become</code>/<code>unbecome</code> approach to be rather cryptic - sure there are less lines to take in but thats a crappy metric to measure quality by. That said reaching for a fully fledged FSM strategy for every situation is probably going to grow out of control - so it may not always be the best case. Know thine weapons.</p></div><a class="twitter" href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fyobriefca.se%2Fblog%2F2013%2F07%2F17%2Fso-unbecoming%2F&amp;text=So%20Unbecoming&amp;via=kouphax" itemprop="discussionUrl" target="_blank">Tweet This</a><div class="dater"><time datetime="17-07-2013" itemprop="datePublished">July 17, 2013</time></div><div class="categories">Published in <a href="/categories/scala/">Scala</a> on July 17, 2013</div></div></div><div class="homer"><a href="/"><i class="icon-briefcase" style="font-size:32px;"></i></a></div><script type="text/javascript">(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
-
-  ga('create', 'UA-19143623-5', 'yobriefca.se');
-  ga('send', 'pageview');</script></body></html>
+</code></pre><p>And thats it. This entire thing replaces both the co-ordinator actor and downloader actor. Our scheduler remains roughtly the same except we call this actor instead of our co-ordinator. </p><p>So whats happening? Well when we receive <strong>any</strong> message (for the first time for example) we call <code>download</code> which begins the download process. Then our actors <code>become</code>s something else - the thing it becomes is a cold, uncaring machine - doing nothing to any message it gets. When the download completes the <code>unbecome</code> puts the actor back into its initial (idle) state.</p><h2>Conclusion</h2><p>So what did I personally end up using? I went with the FSM approach. Why? Well I think, even with the basic nature of our needs, the FSM approach is actually more understandable. Comparing my two solutions (which may or may not be good practise, I'm new to Akka) I find the <code>become</code>/<code>unbecome</code> approach to be rather cryptic - sure there are less lines to take in but thats a crappy metric to measure quality by. That said reaching for a fully fledged FSM strategy for every situation is probably going to grow out of control - so it may not always be the best case. Know thine weapons.</p></div><a class="twitter" href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fyobriefca.se%2Fblog%2F2013%2F07%2F17%2Fso-unbecoming%2F&amp;text=So%20Unbecoming&amp;via=kouphax" itemprop="discussionUrl" target="_blank">Tweet This</a><div class="dater"><time datetime="17-07-2013" itemprop="datePublished">July 17, 2013</time></div><div class="categories">Published in <a href="/categories/scala/">Scala</a> on July 17, 2013</div></div></div><div class="homer"><a href="/"><i class="icon-briefcase" style="font-size:32px;"></i></a></div></body></html>

@@ -12,7 +12,7 @@
     <span class="nt">&lt;/p&gt;</span>
 <span class="err">&lt;</span>%} %&gt;
 <span class="nt">&lt;script </span><span class="na">type=</span><span class="s">"text/javascript"</span><span class="nt">&gt;</span>
-    <span class="nx">$</span><span class="p">(</span><span class="s2">"form"</span><span class="p">).</span><span class="nx">submit</span><span class="p">(</span><span class="kd">function</span> <span class="p">(</span><span class="nx">evt</span><span class="p">)</span> <span class="p">{</span>   
+    <span class="nx">$</span><span class="p">(</span><span class="s2">"form"</span><span class="p">).</span><span class="nx">submit</span><span class="p">(</span><span class="kd">function</span> <span class="p">(</span><span class="nx">evt</span><span class="p">)</span> <span class="p">{</span>
         <span class="c1">// extract values to submit         </span>
         <span class="kd">var</span> <span class="nx">form</span> <span class="o">=</span> <span class="nx">$</span><span class="p">(</span><span class="k">this</span><span class="p">),</span>
             <span class="nx">username</span> <span class="o">=</span> <span class="nx">form</span><span class="p">.</span><span class="nx">find</span><span class="p">(</span><span class="s2">"[name=Username]"</span><span class="p">).</span><span class="nx">val</span><span class="p">(),</span>
@@ -25,9 +25,9 @@
         <span class="nx">$</span><span class="p">.</span><span class="nx">ajax</span><span class="p">({</span>
             <span class="nx">url</span><span class="o">:</span> <span class="nx">form</span><span class="p">.</span><span class="nx">attr</span><span class="p">(</span><span class="s2">"action"</span><span class="p">),</span>
             <span class="nx">type</span><span class="o">:</span> <span class="s1">'POST'</span><span class="p">,</span>
-            <span class="nx">contentType</span><span class="o">:</span> <span class="s1">'application/json; charset=utf-8'</span><span class="p">,</span>                
+            <span class="nx">contentType</span><span class="o">:</span> <span class="s1">'application/json; charset=utf-8'</span><span class="p">,</span>
             <span class="nx">dataType</span><span class="o">:</span> <span class="s1">'json'</span><span class="p">,</span>
-            <span class="nx">data</span><span class="o">:</span> <span class="nx">json</span><span class="p">,</span>                
+            <span class="nx">data</span><span class="o">:</span> <span class="nx">json</span><span class="p">,</span>
             <span class="nx">success</span><span class="o">:</span> <span class="nx">handleLogin</span>
         <span class="p">});</span>
 
@@ -40,7 +40,7 @@
 <span class="k">public</span> <span class="n">ActionResult</span> <span class="nf">Index</span><span class="p">(</span><span class="n">LoginModel</span> <span class="n">model</span><span class="p">)</span>
 <span class="p">{</span>
     <span class="c1">// do login</span>
-    <span class="k">return</span> <span class="nf">Json</span><span class="p">(</span><span class="k">new</span> 
+    <span class="k">return</span> <span class="nf">Json</span><span class="p">(</span><span class="k">new</span>
     <span class="p">{</span>
         <span class="n">Success</span> <span class="p">=</span> <span class="k">true</span>
     <span class="p">});</span>
@@ -66,16 +66,10 @@
 <span class="k">public</span> <span class="n">ActionResult</span> <span class="nf">Index</span><span class="p">(</span><span class="n">LoginModel</span> <span class="n">model</span><span class="p">)</span>
 <span class="p">{</span>
     <span class="c1">// do login</span>
-    <span class="k">return</span> <span class="nf">Json</span><span class="p">(</span><span class="k">new</span> 
+    <span class="k">return</span> <span class="nf">Json</span><span class="p">(</span><span class="k">new</span>
     <span class="p">{</span>
         <span class="n">Success</span> <span class="p">=</span> <span class="k">true</span>
     <span class="p">});</span>
 <span class="p">}</span>
 </code></pre></div>
-</p><p>I know most of this post was taken up by MVC2 specific implementation but  isn't that really the point?  MVC3 is a nice refinement of MVC2 there isn't  anything new exactly but the core stuff that is there has been made easier and  more configurable.</p></div><a class="twitter" href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fyobriefca.se%2Fblog%2F2010%2F10%2F20%2Fasp-dot-net-mvc3-jsonvalueproviderfactory%2F&amp;text=ASP.NET%20MVC3%20JsonValueProviderFactory&amp;via=kouphax" itemprop="discussionUrl" target="_blank">Tweet This</a><div class="dater"><time datetime="20-10-2010" itemprop="datePublished">October 20, 2010</time></div><div class="categories">Published in <a href="/categories/dot-net/">.NET</a> on October 20, 2010</div></div></div><div class="homer"><a href="/"><i class="icon-briefcase" style="font-size:32px;"></i></a></div><script type="text/javascript">(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
-
-  ga('create', 'UA-19143623-5', 'yobriefca.se');
-  ga('send', 'pageview');</script></body></html>
+</p><p>I know most of this post was taken up by MVC2 specific implementation but  isn't that really the point?  MVC3 is a nice refinement of MVC2 there isn't  anything new exactly but the core stuff that is there has been made easier and  more configurable.</p></div><a class="twitter" href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fyobriefca.se%2Fblog%2F2010%2F10%2F20%2Fasp-dot-net-mvc3-jsonvalueproviderfactory%2F&amp;text=ASP.NET%20MVC3%20JsonValueProviderFactory&amp;via=kouphax" itemprop="discussionUrl" target="_blank">Tweet This</a><div class="dater"><time datetime="20-10-2010" itemprop="datePublished">October 20, 2010</time></div><div class="categories">Published in <a href="/categories/dot-net/">.NET</a> on October 20, 2010</div></div></div><div class="homer"><a href="/"><i class="icon-briefcase" style="font-size:32px;"></i></a></div></body></html>

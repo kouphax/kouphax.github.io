@@ -10,7 +10,7 @@
 <pre class="highlight"><code class="clojure"><span class="p">(</span><span class="kd">ns </span><span class="nv">user</span>
   <span class="p">(</span><span class="ss">:require</span> <span class="p">[</span><span class="nv">clojure.java.io</span> <span class="ss">:as</span> <span class="nv">io</span><span class="p">]</span>
             <span class="p">[</span><span class="nv">clojure.string</span> <span class="ss">:as</span> <span class="nv">str</span><span class="p">]))</span>
-            
+
 <span class="p">(</span><span class="kd">defn- </span><span class="nv">list-files</span> <span class="p">[</span><span class="nv">folder</span><span class="p">]</span>
   <span class="p">(</span><span class="nb">file-seq </span><span class="p">(</span><span class="nf">io/file</span> <span class="nv">folder</span><span class="p">)))</span>
 
@@ -20,7 +20,7 @@
       <span class="p">(</span><span class="nf">str/split</span> <span class="o">#</span><span class="s">"\."</span><span class="p">)</span>
       <span class="p">(</span><span class="nf">last</span><span class="p">)</span>
       <span class="p">(</span><span class="nb">= </span><span class="s">"xml"</span><span class="p">)))</span>
-                         
+
 <span class="p">(</span><span class="kd">defn- </span><span class="nv">list-xml-files</span> <span class="p">[</span><span class="nv">files</span><span class="p">]</span>
   <span class="p">(</span><span class="nb">filter </span><span class="p">(</span><span class="k">fn </span><span class="p">[</span><span class="nv">file</span><span class="p">]</span>
             <span class="p">(</span><span class="nb">and </span><span class="p">(</span><span class="nf">.isFile</span> <span class="nv">file</span><span class="p">)</span>
@@ -30,8 +30,8 @@
 <span class="p">(</span><span class="kd">defn- </span><span class="nv">list-xml-paths</span> <span class="p">[</span><span class="nv">folder</span><span class="p">]</span>
   <span class="p">(</span><span class="nb">map </span><span class="p">(</span><span class="k">fn </span><span class="p">[</span><span class="nv">file</span><span class="p">]</span> <span class="p">(</span><span class="nf">.getAbsolutePath</span> <span class="nv">file</span><span class="p">))</span>
        <span class="p">(</span><span class="nf">list-xml-files</span> <span class="p">(</span><span class="nf">list-files</span> <span class="nv">folder</span><span class="p">))))</span>
-       
-<span class="p">(</span><span class="k">def </span><span class="nv">xml-paths</span> 
+
+<span class="p">(</span><span class="k">def </span><span class="nv">xml-paths</span>
   <span class="p">(</span><span class="nf">list-xml-paths</span> <span class="s">"./workspace/xml"</span><span class="p">))</span>
 </code></pre><p>A bit of scrappy code that I wrote interactively while doing some ad-hoc file processing. What we end up with is a list of absolute file paths to some XML files contained within a specified folder. In order to transform a folder path to a list of XML files it does a few things,</p>
 <ol>
@@ -61,7 +61,7 @@
 <span class="p">(</span><span class="k">def </span><span class="nv">as-path</span>
   <span class="p">(</span><span class="nb">map </span><span class="p">(</span><span class="k">fn </span><span class="p">[</span><span class="nv">item</span><span class="p">]</span> <span class="p">(</span><span class="nf">.getAbsolutePath</span> <span class="nv">item</span><span class="p">))))</span>
 </code></pre><p>you should be able to see these transducer definitions are just restructured, single arity versions of our original <code>filter</code> and <code>map</code> calls.</p><p>Now we need to turn these into a pipeline. We do this using the <code>comp</code> function,</p>
-<pre class="highlight"><code class="clojure"><span class="p">(</span><span class="k">def </span><span class="nv">xform</span> 
+<pre class="highlight"><code class="clojure"><span class="p">(</span><span class="k">def </span><span class="nv">xform</span>
   <span class="p">(</span><span class="nb">comp </span><span class="nv">files-only</span> <span class="nv">xml-extension-only</span> <span class="nv">as-path</span><span class="p">))</span>
 </code></pre><p>The use of <code>xform</code> as a name is common in transducer examples (short for transform) so I have retained the use here for consistency. </p><p>With our transducers composed into a transform pipeline we can apply it to our input,</p>
 <pre class="highlight"><code class="clojure"> <span class="p">(</span><span class="kd">defn- </span><span class="nv">list-xml-paths</span> <span class="p">[</span><span class="nv">folder</span><span class="p">]</span>
@@ -70,7 +70,7 @@
 <pre class="highlight"><code class="clojure"><span class="p">(</span><span class="kd">ns </span><span class="nv">user</span>
   <span class="p">(</span><span class="ss">:require</span> <span class="p">[</span><span class="nv">clojure.java.io</span> <span class="ss">:as</span> <span class="nv">io</span><span class="p">]</span>
             <span class="p">[</span><span class="nv">clojure.string</span> <span class="ss">:as</span> <span class="nv">str</span><span class="p">]))</span>
-            
+
 <span class="p">(</span><span class="kd">defn- </span><span class="nv">list-files</span> <span class="p">[</span><span class="nv">folder</span><span class="p">]</span>
   <span class="p">(</span><span class="nb">file-seq </span><span class="p">(</span><span class="nf">io/file</span> <span class="nv">folder</span><span class="p">)))</span>
 
@@ -87,18 +87,12 @@
 <span class="p">(</span><span class="k">def </span><span class="nv">as-path</span>
   <span class="p">(</span><span class="nb">map </span><span class="p">(</span><span class="k">fn </span><span class="p">[</span><span class="nv">item</span><span class="p">]</span> <span class="p">(</span><span class="nf">.getAbsolutePath</span> <span class="nv">item</span><span class="p">))))</span>
 
-<span class="p">(</span><span class="k">def </span><span class="nv">xform</span> 
+<span class="p">(</span><span class="k">def </span><span class="nv">xform</span>
   <span class="p">(</span><span class="nb">comp </span><span class="nv">files-only</span> <span class="nv">xml-extension-only</span> <span class="nv">as-path</span><span class="p">))</span>
 
 <span class="p">(</span><span class="kd">defn- </span><span class="nv">list-xml-paths</span> <span class="p">[</span><span class="nv">folder</span><span class="p">]</span>
   <span class="p">(</span><span class="nf">sequence</span> <span class="nv">xform</span> <span class="p">(</span><span class="nf">list-files</span> <span class="nv">folder</span><span class="p">)))</span>
-  
-<span class="p">(</span><span class="k">def </span><span class="nv">xml-paths</span> 
-  <span class="p">(</span><span class="nf">list-xml-paths</span> <span class="s">"./workspace/xml"</span><span class="p">))</span>
-</code></pre></div><a class="twitter" href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fyobriefca.se%2Fblog%2F2015%2F08%2F04%2Frefactoring-towards-transducers%2F&amp;text=Refactoring%20Towards%20Transducers&amp;via=kouphax" itemprop="discussionUrl" target="_blank">Tweet This</a><div class="dater"><time datetime="04-08-2015" itemprop="datePublished">August 04, 2015</time></div><div class="categories">Published in <a href="/categories/clojure/">Clojure</a> on August 04, 2015</div></div></div><div class="homer"><a href="/"><i class="icon-briefcase" style="font-size:32px;"></i></a></div><script type="text/javascript">(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
 
-  ga('create', 'UA-19143623-5', 'yobriefca.se');
-  ga('send', 'pageview');</script></body></html>
+<span class="p">(</span><span class="k">def </span><span class="nv">xml-paths</span>
+  <span class="p">(</span><span class="nf">list-xml-paths</span> <span class="s">"./workspace/xml"</span><span class="p">))</span>
+</code></pre></div><a class="twitter" href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fyobriefca.se%2Fblog%2F2015%2F08%2F04%2Frefactoring-towards-transducers%2F&amp;text=Refactoring%20Towards%20Transducers&amp;via=kouphax" itemprop="discussionUrl" target="_blank">Tweet This</a><div class="dater"><time datetime="04-08-2015" itemprop="datePublished">August 04, 2015</time></div><div class="categories">Published in <a href="/categories/clojure/">Clojure</a> on August 04, 2015</div></div></div><div class="homer"><a href="/"><i class="icon-briefcase" style="font-size:32px;"></i></a></div></body></html>

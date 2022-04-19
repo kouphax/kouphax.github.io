@@ -64,7 +64,7 @@
     <span class="k">private</span> <span class="kt">string</span> <span class="n">_name</span><span class="p">;</span>
 <span class="na">        </span>
 <span class="na">    [Required]</span>
-    <span class="k">public</span> <span class="kt">string</span> <span class="n">Name</span> 
+    <span class="k">public</span> <span class="kt">string</span> <span class="n">Name</span>
     <span class="p">{</span>
         <span class="k">get</span>
         <span class="p">{</span>
@@ -159,7 +159,7 @@
                 <span class="k">break</span><span class="p">;</span>
         <span class="p">}</span>
 
-        <span class="k">return</span> <span class="n">ideas</span><span class="p">.</span><span class="n">ToList</span><span class="p">();</span>            
+        <span class="k">return</span> <span class="n">ideas</span><span class="p">.</span><span class="n">ToList</span><span class="p">();</span>
     <span class="p">}</span>
 <span class="p">}</span>
 </code></pre></div>
@@ -171,7 +171,7 @@
 <span class="p">{</span>
     <span class="k">public</span> <span class="k">override</span> <span class="kt">object</span> <span class="nf">BindModel</span><span class="p">(</span><span class="n">ControllerContext</span> <span class="n">controllerContext</span><span class="p">,</span> <span class="n">ModelBindingContext</span> <span class="n">bindingContext</span><span class="p">)</span>
     <span class="p">{</span>
-        <span class="n">List</span><span class="p">&lt;</span><span class="n">Model</span><span class="p">.</span><span class="n">Tag</span><span class="p">&gt;</span> <span class="n">tags</span> <span class="p">=</span> <span class="k">new</span> <span class="n">List</span><span class="p">&lt;</span><span class="n">Model</span><span class="p">.</span><span class="n">Tag</span><span class="p">&gt;();</span>            
+        <span class="n">List</span><span class="p">&lt;</span><span class="n">Model</span><span class="p">.</span><span class="n">Tag</span><span class="p">&gt;</span> <span class="n">tags</span> <span class="p">=</span> <span class="k">new</span> <span class="n">List</span><span class="p">&lt;</span><span class="n">Model</span><span class="p">.</span><span class="n">Tag</span><span class="p">&gt;();</span>
         <span class="n">HttpContextBase</span> <span class="n">ctx</span> <span class="p">=</span> <span class="n">controllerContext</span><span class="p">.</span><span class="n">HttpContext</span><span class="p">;</span>
         <span class="kt">string</span> <span class="n">user</span> <span class="p">=</span> <span class="n">ctx</span><span class="p">.</span><span class="n">User</span><span class="p">.</span><span class="n">Identity</span><span class="p">.</span><span class="n">Name</span><span class="p">;</span>
         <span class="kt">string</span> <span class="k">value</span> <span class="p">=</span> <span class="n">ctx</span><span class="p">.</span><span class="n">Request</span><span class="p">.</span><span class="n">Form</span><span class="p">[</span><span class="n">bindingContext</span><span class="p">.</span><span class="n">ModelName</span><span class="p">];</span>
@@ -206,10 +206,4 @@
 
 <span class="p">}</span>
 </code></pre></div>
-<h2>Other Things</h2><p>Not very much else worth mentioning right now as I more or less used the MVC  scaffolding to build the views (with some minor tweaking).  Validation on the UI  is pushed from the domain object making things a lot more streamlined.  The  controllers are still very light and could be made lighter by pushing stuff into  the IdeaRepository as well but that's for another day.</p><p>So there you go.  A very quick and dirty intro into the world of Entity  Framework.  There isn't anything complex going on here and I was worried that EF  would mask a lot of stuff that we would need access to but it seems there is  plenty of configuration points to hook into.  It has come on leaps and bounds  since I last dipped my toes into EF and hopefully they keep up the same  momentum.  There is still a lot of due diligence required before I'd recommend  EF over any other data access layer that we are currently using but I am  certainly keen to dig deeper and push it to it's limits.</p><p>Once again the source for the solution is <a href="https://github.com/kouphax/ideas/">available on Github</a>*.  Phew..... </p><p><em>* Expect bugs.</em></p></div><a class="twitter" href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fyobriefca.se%2Fblog%2F2011%2F02%2F11%2Fentity-framework-code-first-head-first%2F&amp;text=Entity%20Framework%3A%20Code%20First%20-%20Head%20First&amp;via=kouphax" itemprop="discussionUrl" target="_blank">Tweet This</a><div class="dater"><time datetime="11-02-2011" itemprop="datePublished">February 11, 2011</time></div><div class="categories">Published in <a href="/categories/dot-net/">.NET</a> on February 11, 2011</div></div></div><div class="homer"><a href="/"><i class="icon-briefcase" style="font-size:32px;"></i></a></div><script type="text/javascript">(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
-
-  ga('create', 'UA-19143623-5', 'yobriefca.se');
-  ga('send', 'pageview');</script></body></html>
+<h2>Other Things</h2><p>Not very much else worth mentioning right now as I more or less used the MVC  scaffolding to build the views (with some minor tweaking).  Validation on the UI  is pushed from the domain object making things a lot more streamlined.  The  controllers are still very light and could be made lighter by pushing stuff into  the IdeaRepository as well but that's for another day.</p><p>So there you go.  A very quick and dirty intro into the world of Entity  Framework.  There isn't anything complex going on here and I was worried that EF  would mask a lot of stuff that we would need access to but it seems there is  plenty of configuration points to hook into.  It has come on leaps and bounds  since I last dipped my toes into EF and hopefully they keep up the same  momentum.  There is still a lot of due diligence required before I'd recommend  EF over any other data access layer that we are currently using but I am  certainly keen to dig deeper and push it to it's limits.</p><p>Once again the source for the solution is <a href="https://github.com/kouphax/ideas/">available on Github</a>*.  Phew..... </p><p><em>* Expect bugs.</em></p></div><a class="twitter" href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fyobriefca.se%2Fblog%2F2011%2F02%2F11%2Fentity-framework-code-first-head-first%2F&amp;text=Entity%20Framework%3A%20Code%20First%20-%20Head%20First&amp;via=kouphax" itemprop="discussionUrl" target="_blank">Tweet This</a><div class="dater"><time datetime="11-02-2011" itemprop="datePublished">February 11, 2011</time></div><div class="categories">Published in <a href="/categories/dot-net/">.NET</a> on February 11, 2011</div></div></div><div class="homer"><a href="/"><i class="icon-briefcase" style="font-size:32px;"></i></a></div></body></html>

@@ -6,8 +6,8 @@
    |_ repositories.config
     |_ &lt;src&gt;
     |_ &lt;test&gt;
- |_ .gitignore   
-  |_ default.ps1  
+ |_ .gitignore
+  |_ default.ps1
   |_ MySolution.sln
  |_ nuget.config
 </code></pre></div>
@@ -46,16 +46,16 @@ lib/*/
 <p>By default <a href="https://github.com/JamesKovacs/psake">psake</a> should do a <code>Build</code> and <code>Test</code>.</p><p class="minimal-gist"></p><div class="highlight"><pre><code><span class="c"># Resolves all the requires nuget dependecies so they don't need checked in</span>
 <span class="n">Task</span> <span class="n">Resolve</span> <span class="p">{</span>
   <span class="nb">Push-Location</span> <span class="s1">'.\lib\'</span>
-  <span class="nb">Get-Content</span> <span class="s1">'.\repositories.config'</span> <span class="p">|</span> <span class="k">foreach</span> <span class="p">{</span>    
+  <span class="nb">Get-Content</span> <span class="s1">'.\repositories.config'</span> <span class="p">|</span> <span class="k">foreach</span> <span class="p">{</span>
  <span class="k">if</span><span class="p">(</span><span class="nv">$_</span> <span class="o">-match</span> <span class="s1">'path="(.*)"'</span><span class="p">){</span>
-  
+
       <span class="nb">Write-LineBreak</span>
      <span class="nb">Write-Host</span> <span class="s2">"Resolving Dependencies for "</span> <span class="n">-nonewline</span>
      <span class="nb">Write-Host</span> <span class="nv">$matches</span><span class="p">[</span><span class="n">1</span><span class="p">].</span><span class="n">Split</span><span class="p">(</span><span class="s1">'\'</span><span class="p">)[-</span><span class="n">2</span><span class="p">]</span> <span class="n">-ForegroundColor</span> <span class="n">Green</span>
       <span class="nb">Write-LineBreak</span>
- 
+
       <span class="n">nuget</span> <span class="n">install</span> <span class="nv">$matches</span><span class="p">[</span><span class="n">1</span><span class="p">]</span>
-   
+
       <span class="nb">Write-LineBreak</span>
  <span class="p">}</span>
   <span class="p">}</span>
@@ -64,14 +64,14 @@ lib/*/
 </code></pre></div>
 <p>Resolve is the function mentioned earlier that finds the location of the repositories.config files and asks <a href="http://nuget.org">Nuget</a> to resolve all the external dependencies of the solution.  This should be done when you have pulled from a repository that included new dependencies.</p><p class="minimal-gist"></p><div class="highlight"><pre><code><span class="c"># Build the first solution file you find</span>
 <span class="n">Task</span> <span class="n">Build</span> <span class="p">{</span>
-  
+
   <span class="nb">Write-LineBreak</span>
   <span class="nb">Write-Host</span> <span class="s2">"Building Solution "</span> <span class="n">-nonewline</span>
   <span class="nb">Write-Host</span> <span class="nv">$solutionname</span> <span class="n">-ForegroundColor</span> <span class="n">Green</span>
   <span class="nb">Write-LineBreak</span>
-      
+
   <span class="n">Exec</span> <span class="p">{</span> <span class="n">msbuild</span>   <span class="p">/</span><span class="n">v</span><span class="err">:</span><span class="n">quiet</span> <span class="p">/</span><span class="n">t</span><span class="err">:</span><span class="n">Rebuild</span>  <span class="p">}</span>
-  
+
   <span class="nb">Write-LineBreak</span>
 <span class="p">}</span>
 </code></pre></div>
@@ -79,10 +79,4 @@ lib/*/
 <span class="n">Task</span> <span class="n">Test</span> <span class="p">{</span>
 <span class="p">}</span>
 </code></pre></div>
-</p><p>Executes all the tests in the solution.  Currently empty I intend to flesh this out with a default unit testing approach.</p><h1>Baby Steps</h1><p>So this is just the beginning and I hope this evolves based on observations made in our real world projects rather than a bunch of nice to haves.  It will also be nice to automate the creation of projects and solutions but thats certainly for another time.  Recommendations, comments and all that stuff welcome.  I'll try and get this basic structure up on Github too.</p><p id="fn1" class="footnote"><a href="#fnr1"><sup>1</sup></a> I mean, it has been a while since I blogged so it's about time I get back to it.  That said this isn't a "filler post".  I'm not doing this under some random contract.  Thought I wish I was - imagine that - how fun.</p><p id="fn2" class="footnote"><a href="#fnr2"><sup>2</sup></a> Cracker idea, right?  Who'd have thought it??! I'm a total genius and you can bow at my feet at will please.  kthnxbai.</p><p id="fn3" class="footnote"><a href="#fnr3"><sup>3</sup></a> All subfolders in lib - as mentioned in the previous section.</p></div><a class="twitter" href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fyobriefca.se%2Fblog%2F2011%2F08%2F15%2Fan-opinionated-project-structure%2F&amp;text=An%20Opinionated%20Project%20Structure&amp;via=kouphax" itemprop="discussionUrl" target="_blank">Tweet This</a><div class="dater"><time datetime="15-08-2011" itemprop="datePublished">August 15, 2011</time></div><div class="categories">Published in <a href="/categories/dot-net/">.NET</a> on August 15, 2011</div></div></div><div class="homer"><a href="/"><i class="icon-briefcase" style="font-size:32px;"></i></a></div><script type="text/javascript">(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
-
-  ga('create', 'UA-19143623-5', 'yobriefca.se');
-  ga('send', 'pageview');</script></body></html>
+</p><p>Executes all the tests in the solution.  Currently empty I intend to flesh this out with a default unit testing approach.</p><h1>Baby Steps</h1><p>So this is just the beginning and I hope this evolves based on observations made in our real world projects rather than a bunch of nice to haves.  It will also be nice to automate the creation of projects and solutions but thats certainly for another time.  Recommendations, comments and all that stuff welcome.  I'll try and get this basic structure up on Github too.</p><p id="fn1" class="footnote"><a href="#fnr1"><sup>1</sup></a> I mean, it has been a while since I blogged so it's about time I get back to it.  That said this isn't a "filler post".  I'm not doing this under some random contract.  Thought I wish I was - imagine that - how fun.</p><p id="fn2" class="footnote"><a href="#fnr2"><sup>2</sup></a> Cracker idea, right?  Who'd have thought it??! I'm a total genius and you can bow at my feet at will please.  kthnxbai.</p><p id="fn3" class="footnote"><a href="#fnr3"><sup>3</sup></a> All subfolders in lib - as mentioned in the previous section.</p></div><a class="twitter" href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fyobriefca.se%2Fblog%2F2011%2F08%2F15%2Fan-opinionated-project-structure%2F&amp;text=An%20Opinionated%20Project%20Structure&amp;via=kouphax" itemprop="discussionUrl" target="_blank">Tweet This</a><div class="dater"><time datetime="15-08-2011" itemprop="datePublished">August 15, 2011</time></div><div class="categories">Published in <a href="/categories/dot-net/">.NET</a> on August 15, 2011</div></div></div><div class="homer"><a href="/"><i class="icon-briefcase" style="font-size:32px;"></i></a></div></body></html>
